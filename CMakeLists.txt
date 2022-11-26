@@ -19,6 +19,7 @@ add_executable(controller
         )
 
 target_include_directories(controller PRIVATE
+        .
         ${CMAKE_CURRENT_LIST_DIR}
         )
 
@@ -28,6 +29,7 @@ target_link_libraries(controller
         FreeRTOS-Kernel-Heap4
         hardware_gpio
         hardware_pwm
+        hardware_uart
         pico_stdlib
         )
 
