@@ -10,6 +10,7 @@
 #include "hardware/uart.h"
 
 #include "display.h"
+#include "servo.h"
 
 
 // Let's use just a normal UART for now while I get my feet under me
@@ -109,6 +110,9 @@ int main() {
                 nullptr,
                 1,
                 &updateUpdateTaskHandle);
+
+    // This is temp
+    set_up_servo();
 
     vTaskStartScheduler();
 }
