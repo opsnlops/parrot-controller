@@ -1,0 +1,177 @@
+
+#include "../controller.h"
+
+#include <cstdio>
+#include <cstdarg>
+#include <cstring>
+
+#include <FreeRTOS.h>
+#include <queue.h>
+#include "pico/time.h"
+
+#include "logging.h"
+
+
+QueueHandle_t creatureLogMessageQueue;
+TaskHandle_t creatureLogQueueReaderTaskHandler;
+
+static bool queueMade = false;
+
+void logger_init() {
+    creatureLogMessageQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(struct LogMessage));
+    queueMade = true;
+    start_log_reader();
+}
+
+void __unused verbose(const char *message, ...) {
+#if LOGGING_LEVEL > 4
+    // Copy the arguments to a new va_list
+    va_list args;
+    va_start(args, message);
+
+    struct LogMessage lm = createMessageObject(LOG_LEVEL_VERBOSE, message, args);
+    va_end(args);
+
+    if (queueMade)
+        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+#endif
+}
+
+void debug(const char *message, ...) {
+#if LOGGING_LEVEL > 3
+    // Copy the arguments to a new va_list
+    va_list args;
+    va_start(args, message);
+
+    struct LogMessage lm = createMessageObject(LOG_LEVEL_DEBUG, message, args);
+    va_end(args);
+
+    if (queueMade)
+        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+#endif
+}
+
+void info(const char *message, ...) {
+#if LOGGING_LEVEL > 2
+    // Copy the arguments to a new va_list
+    va_list args;
+    va_start(args, message);
+
+    struct LogMessage lm = createMessageObject(LOG_LEVEL_INFO, message, args);
+    va_end(args);
+
+    if (queueMade)
+        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+#endif
+}
+
+void warning(const char *message, ...) {
+#if LOGGING_LEVEL > 1
+    // Copy the arguments to a new va_list
+    va_list args;
+    va_start(args, message);
+
+    struct LogMessage lm = createMessageObject(LOG_LEVEL_WARNING, message, args);
+    va_end(args);
+
+    if (queueMade)
+        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+#endif
+}
+
+void error(const char *message, ...) {
+#if LOGGING_LEVEL > 0
+    // Copy the arguments to a new va_list
+    va_list args;
+    va_start(args, message);
+
+    struct LogMessage lm = createMessageObject(LOG_LEVEL_ERROR, message, args);
+    va_end(args);
+
+    if (queueMade)
+        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+#endif
+}
+
+void __unused fatal(const char *message, ...) {
+    // Copy the arguments to a new va_list
+    va_list args;
+    va_start(args, message);
+
+    struct LogMessage lm = createMessageObject(LOG_LEVEL_FATAL, message, args);
+    va_end(args);
+
+    if (queueMade)
+        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+}
+
+struct LogMessage createMessageObject(u_int8_t level, const char *message, va_list args) {
+    char buffer[LOGGING_MESSAGE_MAX_LENGTH + 1];
+    memset(buffer, '\0', LOGGING_MESSAGE_MAX_LENGTH + 1);
+
+    vsnprintf(buffer, LOGGING_MESSAGE_MAX_LENGTH, message, args);
+
+    LogMessage lm{};
+    lm.level = level;
+    memcpy(lm.message, buffer, LOGGING_MESSAGE_MAX_LENGTH);
+    return lm;
+}
+
+void start_log_reader() {
+    xTaskCreate(logQueueReaderTask,
+                "logQueueReaderTask",
+                20480,
+                nullptr,
+                1,
+                &creatureLogQueueReaderTaskHandler);
+}
+
+/**
+ * @brief Creates a task that polls the logging queue
+ *
+ * It then spits things to the Serial port, and optionally to syslog so that a
+ * Linux host can handle the heavy lifting.
+ */
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
+portTASK_FUNCTION(logQueueReaderTask, pvParameters) {
+
+    for (EVER) {
+        LogMessage lm{};
+        char levelBuffer[5];
+        if (xQueueReceive(creatureLogMessageQueue, &lm, (TickType_t) portMAX_DELAY) == pdPASS) {
+
+            // For now just dump it to the console
+            if (lm.level == LOG_LEVEL_VERBOSE) {
+                strncpy(levelBuffer, "[V] ", 3);
+            } else if (lm.level == LOG_LEVEL_DEBUG) {
+
+                strncpy(levelBuffer, "[D]", 3);
+            } else if (lm.level == LOG_LEVEL_INFO) {
+
+                strncpy(levelBuffer, "[I]", 3);
+            } else if (lm.level == LOG_LEVEL_WARNING) {
+
+                strncpy(levelBuffer, "[W]", 3);
+            } else if (lm.level == LOG_LEVEL_ERROR) {
+
+                strncpy(levelBuffer, "[E]", 3);
+            } else if (lm.level == LOG_LEVEL_FATAL) {
+
+                strncpy(levelBuffer, "[F]", 3);
+            } else {
+
+                strncpy(levelBuffer, "[?]", 3);
+            }
+
+            // Format our message
+            uint32_t time = to_ms_since_boot(get_absolute_time());
+            printf("[%lu]%s %s", time, levelBuffer, lm.message);
+
+
+        }
+    }
+}
+
+#pragma clang diagnostic pop

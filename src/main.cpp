@@ -1,4 +1,6 @@
 
+#include "controller.h"
+
 #include <cstdio>
 
 #include <FreeRTOS.h>
@@ -9,8 +11,7 @@
 #include "hardware/irq.h"
 #include "hardware/uart.h"
 
-#include "display.h"
-#include "servo.h"
+#include "logging/logging.h"
 
 
 // Let's use just a normal UART for now while I get my feet under me
@@ -30,12 +31,7 @@ static uint32_t chars_rxed = 0;
 
 // Setup a queue for incoming messages
 QueueHandle_t incomingQueue = nullptr;
-#define INCOMING_CHARACTER_QUEUE_SIZE 64
 
-
-// Task prototypes
-portTASK_FUNCTION_PROTO(messageQueueReaderTask, pvParameters);
-portTASK_FUNCTION_PROTO(hellorldTask, pvParameters);
 
 // RX interrupt handler
 void on_uart_rx() {
@@ -53,15 +49,18 @@ void on_uart_rx() {
 
 int main() {
 
-    // Enable USB serial debugging, too
+    // All the SDK to bring up the stdio stuff so we can write to the serial port
     stdio_init_all();
+
+    logger_init();
+    debug("Logging running!");
 
     uart_init(UART_ID, 2400);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
     uint actual = uart_set_baudrate(UART_ID, BAUD_RATE);
-    printf("Actual baud: %d\n", actual);
+    debug("Actual baud: %d\n", actual);
 
     // Set UART flow control CTS/RTS, we don't want these, so turn them off
     uart_set_hw_flow(UART_ID, false, false);
@@ -111,9 +110,6 @@ int main() {
                 1,
                 &updateUpdateTaskHandle);
 
-    // This is temp
-    set_up_servo();
-
     vTaskStartScheduler();
 }
 
@@ -125,9 +121,9 @@ portTASK_FUNCTION(messageQueueReaderTask, pvParameters) {
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
-    while (true) {
-        if (xQueueReceive(incomingQueue, &incoming, (TickType_t) 5000) == pdPASS) {
-            printf("%c", (char) incoming);
+    for (EVER) {
+        if (xQueueReceive(incomingQueue, &incoming, (TickType_t) portMAX_DELAY) == pdPASS) {
+            debug("%c", (char) incoming);
         }
     }
 #pragma clang diagnostic pop
@@ -138,10 +134,9 @@ portTASK_FUNCTION(messageQueueReaderTask, pvParameters) {
 portTASK_FUNCTION(hellorldTask, pvParameters) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
-    while (true) {
+    for (EVER) {
 
         uart_puts(UART_ID, "Hellorld!\n\r");
-
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 #pragma clang diagnostic pop

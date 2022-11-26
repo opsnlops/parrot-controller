@@ -7,4 +7,4 @@
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 
-void set_up_servo();
+void __unused set_up_servo();

@@ -1,21 +1,24 @@
 
+// Global
+#include "controller.h"
+
+// This module
 #include "servo.h"
 
-#include <cstdio>
-#include "pico/stdlib.h"
-
+// FreeRTOS
 #include <FreeRTOS.h>
-#include <queue.h>
 #include <task.h>
 
+// Our modules
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
+
 
 uint PIN_OUT = 22;
 uint slice = 0;
 uint channel = 0;
 
-void set_up_servo() {
+void __unused set_up_servo() {
     double divider = 125000000 / (4096 * 50) / 16; // 50Hz
 
     gpio_set_function(PIN_OUT, GPIO_FUNC_PWM);
@@ -32,13 +35,13 @@ void set_up_servo() {
     // Don't yell about this being endless loop
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
-    while (true) {
+    for (EVER) {
 
         // Sweep from 250us to 2500us
         for (int i = ms / 4; i < (ms * 2.5); i += 10) {
 
             pwm_set_chan_level(slice, channel, i);
-            vTaskDelay(20);
+            vTaskDelay(pdMS_TO_TICKS(20));
         }
 
     }
