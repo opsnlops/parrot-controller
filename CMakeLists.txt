@@ -13,8 +13,10 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize the SDK
 pico_sdk_init()
 
+file(GLOB sourceFiles src/*)
+
 add_executable(controller
-        src/main.c
+        ${sourceFiles}
         FreeRTOSConfig.h
         )
 
@@ -22,6 +24,9 @@ target_include_directories(controller PRIVATE
         .
         ${CMAKE_CURRENT_LIST_DIR}
         )
+
+add_subdirectory(pico-ssd1306)
+
 
 # pull in common dependencies
 target_link_libraries(controller
@@ -31,6 +36,7 @@ target_link_libraries(controller
         hardware_pwm
         hardware_uart
         pico_stdlib
+        pico_ssd1306
         )
 
 # Enable the console over USB

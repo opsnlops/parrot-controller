@@ -1,5 +1,5 @@
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <FreeRTOS.h>
 #include <queue.h>
@@ -8,6 +8,8 @@
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
 #include "hardware/uart.h"
+
+#include "display.h"
 
 
 // Let's use just a normal UART for now while I get my feet under me
@@ -26,7 +28,7 @@ static uint32_t chars_rxed = 0;
 
 
 // Setup a queue for incoming messages
-QueueHandle_t incomingQueue = NULL;
+QueueHandle_t incomingQueue = nullptr;
 #define INCOMING_CHARACTER_QUEUE_SIZE 64
 
 
@@ -81,12 +83,13 @@ int main() {
 
     incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
 
+
     // Start the task to read the queue
     TaskHandle_t messageReaderTaskHandle;
     xTaskCreate(messageQueueReaderTask,
                 "messageQueueReaderTask",
                 10240,
-                NULL,
+                nullptr,
                 1,
                 &messageReaderTaskHandle);
 
@@ -95,9 +98,17 @@ int main() {
     xTaskCreate(hellorldTask,
                 "hellorldTask",
                 10240,
-                NULL,
+                nullptr,
                 1,
                 &hellorldTaskHandle);
+
+    TaskHandle_t updateUpdateTaskHandle;
+    xTaskCreate(displayUpdateTask,
+                "displayUpdateTask",
+                10240,
+                nullptr,
+                1,
+                &updateUpdateTaskHandle);
 
     vTaskStartScheduler();
 }
