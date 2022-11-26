@@ -12,6 +12,8 @@
 // Use the namespace for convenience
 using namespace pico_ssd1306;
 
+extern uint32_t chars_rxed;
+
 void set_up_display_i2c() {
 
     debug("setting up the display's i2c");
@@ -38,9 +40,13 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
     SSD1306 display = SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH32);
     display.setOrientation(false);  // False means horizontally
 
-    // Allocate one buffer for the display
-    char buffer[DISPLAY_BUFFER_SIZE + 1];
-    memset(buffer, '\0', DISPLAY_BUFFER_SIZE + 1);
+    // Allocate one buffer_line_one for the display
+    char buffer_line_one[DISPLAY_BUFFER_SIZE + 1];
+    memset(buffer_line_one, '\0', DISPLAY_BUFFER_SIZE + 1);
+
+    char buffer_line_two[DISPLAY_BUFFER_SIZE + 1];
+    memset(buffer_line_two, '\0', DISPLAY_BUFFER_SIZE + 1);
+
     uint32_t time;
 
 #pragma clang diagnostic push
@@ -52,11 +58,15 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
 
         time = to_ms_since_boot(get_absolute_time());
 
-        // Null out the buffer
-        memset(buffer, '\0', DISPLAY_BUFFER_SIZE + 1);
-        sprintf(buffer, "Time: %lu", time);
+        // Null out the buffers
+        memset(buffer_line_one, '\0', DISPLAY_BUFFER_SIZE + 1);
+        memset(buffer_line_two, '\0', DISPLAY_BUFFER_SIZE + 1);
 
-        drawText(&display, font_8x8, buffer, 0, 0);
+        sprintf(buffer_line_one, "Time: %lu", time);
+        sprintf(buffer_line_two, "  Rx: %lu", chars_rxed);
+
+        drawText(&display, font_8x8, buffer_line_one, 0, 0);
+        drawText(&display, font_8x8, buffer_line_two, 0, 10);
 
         display.sendBuffer();
 

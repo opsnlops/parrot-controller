@@ -15,11 +15,11 @@
 QueueHandle_t creatureLogMessageQueue;
 TaskHandle_t creatureLogQueueReaderTaskHandler;
 
-static bool queueMade = false;
+bool logging_queue_exists = false;
 
 void logger_init() {
-    creatureLogMessageQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(struct LogMessage));
-    queueMade = true;
+    creatureLogMessageQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LogMessage));
+    logging_queue_exists = true;
     start_log_reader();
 }
 
@@ -32,7 +32,7 @@ void __unused verbose(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_VERBOSE, message, args);
     va_end(args);
 
-    if (queueMade)
+    if (logging_queue_exists)
         xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
 #endif
 }
@@ -46,7 +46,7 @@ void debug(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_DEBUG, message, args);
     va_end(args);
 
-    if (queueMade)
+    if (logging_queue_exists)
         xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
 #endif
 }
@@ -60,7 +60,7 @@ void info(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_INFO, message, args);
     va_end(args);
 
-    if (queueMade)
+    if (logging_queue_exists)
         xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
 #endif
 }
@@ -74,7 +74,7 @@ void warning(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_WARNING, message, args);
     va_end(args);
 
-    if (queueMade)
+    if (logging_queue_exists)
         xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
 #endif
 }
@@ -88,7 +88,7 @@ void error(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_ERROR, message, args);
     va_end(args);
 
-    if (queueMade)
+    if (logging_queue_exists)
         xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
 #endif
 }
@@ -101,7 +101,7 @@ void __unused fatal(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_FATAL, message, args);
     va_end(args);
 
-    if (queueMade)
+    if (logging_queue_exists)
         xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
 }
 
@@ -118,9 +118,9 @@ struct LogMessage createMessageObject(u_int8_t level, const char *message, va_li
 }
 
 void start_log_reader() {
-    xTaskCreate(logQueueReaderTask,
-                "logQueueReaderTask",
-                20480,
+    xTaskCreate(log_queue_reader_task,
+                "log_queue_reader_task",
+                40960,
                 nullptr,
                 1,
                 &creatureLogQueueReaderTaskHandler);
@@ -135,7 +135,7 @@ void start_log_reader() {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
-portTASK_FUNCTION(logQueueReaderTask, pvParameters) {
+portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
 
     for (EVER) {
         LogMessage lm{};

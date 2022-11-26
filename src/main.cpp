@@ -26,7 +26,7 @@
 #define STOP_BITS 1
 #define PARITY    UART_PARITY_NONE
 
-static uint32_t chars_rxed = 0;
+uint32_t chars_rxed = 0;
 
 
 // Setup a queue for incoming messages
@@ -52,7 +52,9 @@ int main() {
     // All the SDK to bring up the stdio stuff so we can write to the serial port
     stdio_init_all();
 
-    logger_init();
+    incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
+
+    //logger_init();
     debug("Logging running!");
 
     uart_init(UART_ID, 2400);
@@ -81,8 +83,6 @@ int main() {
     // Now enable the UART to send interrupts - RX only
     uart_set_irq_enables(UART_ID, true, false);
 
-    incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
-
 
     // Start the task to read the queue
     TaskHandle_t messageReaderTaskHandle;
@@ -93,6 +93,7 @@ int main() {
                 1,
                 &messageReaderTaskHandle);
 
+
     // Start the task to print Hellolrd to the UART as a heartbeat
     TaskHandle_t hellorldTaskHandle;
     xTaskCreate(hellorldTask,
@@ -102,6 +103,7 @@ int main() {
                 1,
                 &hellorldTaskHandle);
 
+
     TaskHandle_t updateUpdateTaskHandle;
     xTaskCreate(displayUpdateTask,
                 "displayUpdateTask",
@@ -109,6 +111,7 @@ int main() {
                 nullptr,
                 1,
                 &updateUpdateTaskHandle);
+
 
     vTaskStartScheduler();
 }

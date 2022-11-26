@@ -28,5 +28,5 @@
  */
 portTASK_FUNCTION_PROTO(displayUpdateTask, pvParameters);           // defined in display.cpp
 portTASK_FUNCTION_PROTO(hellorldTask, pvParameters);                // defined in main.cpp
-portTASK_FUNCTION_PROTO(logQueueReaderTask, pvParameters);          // defined in logging/logging.cpp
+portTASK_FUNCTION_PROTO(log_queue_reader_task, pvParameters);       // defined in logging/logging.cpp
 portTASK_FUNCTION_PROTO(messageQueueReaderTask, pvParameters);      // defined in logging/logging.cpp
