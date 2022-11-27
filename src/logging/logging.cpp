@@ -9,11 +9,14 @@
 #include <queue.h>
 #include "pico/time.h"
 
+#include "../tasks.h"
 #include "logging.h"
 
 
+extern TaskHandle_t log_queue_reader_task_handle;   // in main.cpp
+
 QueueHandle_t creatureLogMessageQueue;
-TaskHandle_t creatureLogQueueReaderTaskHandler;
+
 
 bool logging_queue_exists = false;
 
@@ -120,10 +123,10 @@ struct LogMessage createMessageObject(u_int8_t level, const char *message, va_li
 void start_log_reader() {
     xTaskCreate(log_queue_reader_task,
                 "log_queue_reader_task",
-                40960,
+                1024,
                 nullptr,
                 1,
-                &creatureLogQueueReaderTaskHandler);
+                &log_queue_reader_task_handle);
 }
 
 /**
@@ -167,7 +170,7 @@ portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
 
             // Format our message
             uint32_t time = to_ms_since_boot(get_absolute_time());
-            printf("[%lu]%s %s", time, levelBuffer, lm.message);
+            printf("[%lu]%s %s\n", time, levelBuffer, lm.message);
 
 
         }
