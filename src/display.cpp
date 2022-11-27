@@ -8,11 +8,14 @@
 
 #include "display.h"
 #include "logging/logging.h"
+#include "servo.h"
 
 // Use the namespace for convenience
 using namespace pico_ssd1306;
 
 extern uint32_t chars_rxed;
+extern Servo test_servo;
+extern Servo other_servo;
 
 void set_up_display_i2c() {
 
@@ -40,12 +43,14 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
     SSD1306 display = SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH32);
     display.setOrientation(false);  // False means horizontally
 
-    // Allocate one buffer_line_one for the display
-    char buffer_line_one[DISPLAY_BUFFER_SIZE + 1];
-    memset(buffer_line_one, '\0', DISPLAY_BUFFER_SIZE + 1);
+    uint8_t number_lines = 4;
 
-    char buffer_line_two[DISPLAY_BUFFER_SIZE + 1];
-    memset(buffer_line_two, '\0', DISPLAY_BUFFER_SIZE + 1);
+    // Allocate one buffer_line_one for the display
+    char buffer[number_lines][DISPLAY_BUFFER_SIZE + 1];
+
+    for(int i = 0; i < number_lines; i++)
+        memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
+
 
     uint32_t time;
 
@@ -59,14 +64,18 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
         time = to_ms_since_boot(get_absolute_time());
 
         // Null out the buffers
-        memset(buffer_line_one, '\0', DISPLAY_BUFFER_SIZE + 1);
-        memset(buffer_line_two, '\0', DISPLAY_BUFFER_SIZE + 1);
+        for(int i = 0; i < number_lines; i++)
+            memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
-        sprintf(buffer_line_one, "Time: %lu", time);
-        sprintf(buffer_line_two, "  Rx: %lu", chars_rxed);
+        sprintf(buffer[0], "Time: %lu", time);
+        sprintf(buffer[1], "  Rx: %lu", chars_rxed);
+        sprintf(buffer[2], " Pos: %d, %d", test_servo.current_position, other_servo.current_position);
+        sprintf(buffer[3], " Mem: %d (%d)", xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize());
 
-        drawText(&display, font_8x8, buffer_line_one, 0, 0);
-        drawText(&display, font_8x8, buffer_line_two, 0, 10);
+        drawText(&display, font_5x8, buffer[0], 0, 0);
+        drawText(&display, font_5x8, buffer[1], 0, 7);
+        drawText(&display, font_5x8, buffer[2], 0, 14);
+        drawText(&display, font_5x8, buffer[3], 0, 21);
 
         display.sendBuffer();
 

@@ -6,13 +6,22 @@
 #include <FreeRTOS.h>
 #include <queue.h>
 #include <task.h>
+#include <cstring>
 
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
 #include "hardware/uart.h"
 
 #include "logging/logging.h"
+#include "servo.h"
+#include "tasks.h"
 
+
+// Located in tasks.cpp
+extern TaskHandle_t displayUpdateTaskHandle;
+extern TaskHandle_t hellorldTaskHandle;
+extern TaskHandle_t messageQueueReaderTaskHandle;
+extern TaskHandle_t servoDebugTaskHandle;
 
 // Let's use just a normal UART for now while I get my feet under me
 // with DMX
@@ -31,6 +40,9 @@ uint32_t chars_rxed = 0;
 
 // Setup a queue for incoming messages
 QueueHandle_t incomingQueue = nullptr;
+
+Servo test_servo;
+Servo other_servo;
 
 
 // RX interrupt handler
@@ -54,8 +66,16 @@ int main() {
 
     incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
 
-    //logger_init();
+    logger_init();
     debug("Logging running!");
+
+    // Set up the test servo
+    servo_init(&test_servo, 22, 50, 250, 2500,false);
+    servo_init(&other_servo, 1, 50, 100, 1500,true);
+    servo_on(&test_servo);
+    servo_on(&other_servo);
+
+
 
     uart_init(UART_ID, 2400);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
@@ -85,33 +105,36 @@ int main() {
 
 
     // Start the task to read the queue
-    TaskHandle_t messageReaderTaskHandle;
     xTaskCreate(messageQueueReaderTask,
                 "messageQueueReaderTask",
-                10240,
+                1024,
                 nullptr,
                 1,
-                &messageReaderTaskHandle);
+                &messageQueueReaderTaskHandle);
 
 
     // Start the task to print Hellolrd to the UART as a heartbeat
-    TaskHandle_t hellorldTaskHandle;
     xTaskCreate(hellorldTask,
                 "hellorldTask",
-                10240,
+                256,
                 nullptr,
                 1,
                 &hellorldTaskHandle);
 
 
-    TaskHandle_t updateUpdateTaskHandle;
-    xTaskCreate(displayUpdateTask,
-                "displayUpdateTask",
-                10240,
+    xTaskCreate(servoDebugTask,
+                "servoDebugTask",
+                1024,
                 nullptr,
                 1,
-                &updateUpdateTaskHandle);
+                &servoDebugTaskHandle);
 
+    xTaskCreate(displayUpdateTask,
+                "displayUpdateTask",
+                1024,
+                nullptr,
+                1,
+                &displayUpdateTaskHandle);
 
     vTaskStartScheduler();
 }
@@ -141,6 +164,23 @@ portTASK_FUNCTION(hellorldTask, pvParameters) {
 
         uart_puts(UART_ID, "Hellorld!\n\r");
         vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+#pragma clang diagnostic pop
+}
+
+
+portTASK_FUNCTION(servoDebugTask, pvParameters) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
+    for(EVER) {
+
+        for(int i = 0; i < MAX_SERVO_POSITION; i += 5)
+        {
+            servo_move(&test_servo, i);
+            servo_move(&other_servo, i);
+            vTaskDelay(pdMS_TO_TICKS(20));
+        }
     }
 #pragma clang diagnostic pop
 }

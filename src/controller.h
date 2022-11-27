@@ -2,6 +2,7 @@
 #pragma once
 
 #include <FreeRTOS.h>
+#include <task.h>
 
 // Just because it's funny
 #define EVER ;;
@@ -19,14 +20,12 @@
 /*
  * Logging Config
  */
-#define LOGGING_LEVEL               5
+#define LOGGING_LEVEL               LOG_LEVEL_DEBUG
 #define LOGGING_QUEUE_LENGTH        16
 #define LOGGING_MESSAGE_MAX_LENGTH  512
 
 /*
- * Task Prototypes
+ * Servo bounds
  */
-portTASK_FUNCTION_PROTO(displayUpdateTask, pvParameters);           // defined in display.cpp
-portTASK_FUNCTION_PROTO(hellorldTask, pvParameters);                // defined in main.cpp
-portTASK_FUNCTION_PROTO(log_queue_reader_task, pvParameters);       // defined in logging/logging.cpp
-portTASK_FUNCTION_PROTO(messageQueueReaderTask, pvParameters);      // defined in logging/logging.cpp
+#define MIN_SERVO_POSITION          0
+#define MAX_SERVO_POSITION          999

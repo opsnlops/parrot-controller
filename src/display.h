@@ -1,10 +1,6 @@
 
 #pragma once
 
-#include <FreeRTOS.h>
-#include <queue.h>
-#include <task.h>
-
 #include "hardware/i2c.h"
 
 #include "pico-ssd1306/ssd1306.h"
