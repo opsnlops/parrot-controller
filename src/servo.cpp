@@ -93,8 +93,23 @@ void servo_off(Servo* s) {
 /**
  * @brief Requests that a servo be moved to a given position
  *
- * The value must be between MIN_SERVO_POSITION and MAX_SERVO_POSITION. An
+ * The value must be between `MIN_SERVO_POSITION` and `MAX_SERVO_POSITION`. An
  * assert will be fired in not to prevent damage to the creature or a motor.
+ *
+ * `servo_move()` does not actually move the servo. Instead, it marks it's requested
+ * position in `desired_ticks` and waits for the IRQ handler to fire off to actually
+ * move to that position. Working this way decouples changing the duty cycle from
+ * the request to the PWM circuit, which is useful when moving servos following
+ * some sort of external control. (DMX in our case!)
+ *
+ * The Pi Pico only adjusts the duty cycle when the counter rolls over. Doing it
+ * more often wastes CPU cycles. (Calling `pwm_set_chan_level()` more than once a
+ * frame is a waste of effort.)
+ *
+ * The IRQ handler follows the frequency of the first servo in the array declared in
+ * main(). I would like to be able to support a bunch of different frequencies at once,
+ * but as of right now, there's really not a need, and I'd rather not make the ISR
+ * any more complex than it needs to be.
  *
  * @param s The servo to move
  * @param position The requested position
@@ -122,16 +137,13 @@ void servo_move(Servo* s, uint16_t position) {
     // Now that we know how many microseconds we're expected to have, map that to
     // a frame and a value that can be passed to the PWM controller
     float frame_active = desired_pulse_length_us / (float)(s->frame_length_us);
-    uint32_t ticks = (float)s->resolution * frame_active;
-
-    // Now set the servo to this value
-    pwm_set_chan_level(s->slice, s->channel, ticks);
+    s->desired_ticks = (float)s->resolution * frame_active;
     s->current_position = position;
 
-    debug("set servo %d to position %d (%d ticks)",
+    verbose("requesting servo %d be set to position %d (%d ticks)",
           s->gpio,
           s->current_position,
-          ticks);
+          s->desired_ticks);
 }
 
 /**

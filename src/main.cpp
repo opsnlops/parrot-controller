@@ -10,6 +10,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
+#include "hardware/pwm.h"
 #include "hardware/uart.h"
 
 #include "logging/logging.h"
@@ -58,6 +59,17 @@ void on_uart_rx() {
     }
 }
 
+/**
+ * IRQ handler to update the duty cycle on our servos
+ */
+void on_pwm_wrap_handler() {
+
+    for(auto & servo : servos)
+        pwm_set_chan_level(servo.slice, servo.channel, servo.desired_ticks);
+
+    pwm_clear_irq(servos[0].slice);
+}
+
 
 int main() {
 
@@ -69,12 +81,19 @@ int main() {
     logger_init();
     debug("Logging running!");
 
+
     // Create the servos
     servo_init(&servos[0], 22, SERVO_HZ, 250, 2500, false);
     servo_init(&servos[1], 1, SERVO_HZ, 100, 1500, true);
+
+    // Install the IRQ handler for the servos
+    pwm_set_irq_enabled(servos[0].slice, true);
+    irq_set_exclusive_handler(PWM_IRQ_WRAP, on_pwm_wrap_handler);
+    irq_set_enabled(PWM_IRQ_WRAP, true);
+
+    // And start them up!
     servo_on(&servos[0]);
     servo_on(&servos[1]);
-
 
 
     uart_init(UART_ID, 2400);
@@ -173,14 +192,13 @@ portTASK_FUNCTION(servoDebugTask, pvParameters) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
-    for(EVER) {
+    for (EVER) {
 
         // Declare these here, so we're not making new ones in this tight loop
         int i, j;
 
-        for(i = 0; i < MAX_SERVO_POSITION; i += 5)
-        {
-            for(j = 0; j < NUMBER_OF_SERVOS; j++)
+        for (i = 0; i < MAX_SERVO_POSITION; i += 5) {
+            for (j = 0; j < NUMBER_OF_SERVOS; j++)
                 servo_move(&servos[j], i);
 
             vTaskDelay(pdMS_TO_TICKS(20));

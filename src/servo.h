@@ -33,6 +33,7 @@ typedef struct {
     uint16_t current_position;  // Where we think the servo currently is
     bool on;                    // Is the servo active?
     bool inverted;              // Should the movements be inverted?
+    uint32_t desired_ticks;     // The number of ticks we should be set to on the next cycle
 } Servo;
 
 
