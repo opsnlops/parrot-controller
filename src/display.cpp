@@ -14,8 +14,7 @@
 using namespace pico_ssd1306;
 
 extern uint32_t chars_rxed;
-extern Servo test_servo;
-extern Servo other_servo;
+extern Servo servos[NUMBER_OF_SERVOS];
 
 void set_up_display_i2c() {
 
@@ -69,7 +68,7 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
 
         sprintf(buffer[0], "Time: %lu", time);
         sprintf(buffer[1], "  Rx: %lu", chars_rxed);
-        sprintf(buffer[2], " Pos: %d, %d", test_servo.current_position, other_servo.current_position);
+        sprintf(buffer[2], " Pos: %d, %d", servos[0].current_position, servos[1].current_position);
         sprintf(buffer[3], " Mem: %d (%d)", xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize());
 
         drawText(&display, font_5x8, buffer[0], 0, 0);

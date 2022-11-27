@@ -41,8 +41,8 @@ uint32_t chars_rxed = 0;
 // Setup a queue for incoming messages
 QueueHandle_t incomingQueue = nullptr;
 
-Servo test_servo;
-Servo other_servo;
+// Create an array of servos
+Servo servos[NUMBER_OF_SERVOS];
 
 
 // RX interrupt handler
@@ -69,11 +69,11 @@ int main() {
     logger_init();
     debug("Logging running!");
 
-    // Set up the test servo
-    servo_init(&test_servo, 22, 50, 250, 2500,false);
-    servo_init(&other_servo, 1, 50, 100, 1500,true);
-    servo_on(&test_servo);
-    servo_on(&other_servo);
+    // Create the servos
+    servo_init(&servos[0], 22, 50, 250, 2500, false);
+    servo_init(&servos[1], 1, 50, 100, 1500, true);
+    servo_on(&servos[0]);
+    servo_on(&servos[1]);
 
 
 
@@ -175,10 +175,14 @@ portTASK_FUNCTION(servoDebugTask, pvParameters) {
 
     for(EVER) {
 
-        for(int i = 0; i < MAX_SERVO_POSITION; i += 5)
+        // Declare these here so we're not making new ones in this tight loop
+        int i, j;
+
+        for(i = 0; i < MAX_SERVO_POSITION; i += 5)
         {
-            servo_move(&test_servo, i);
-            servo_move(&other_servo, i);
+            for(j = 0; j < NUMBER_OF_SERVOS; j++)
+                servo_move(&servos[j], i);
+
             vTaskDelay(pdMS_TO_TICKS(20));
         }
     }
