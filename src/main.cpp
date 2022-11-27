@@ -61,7 +61,7 @@ void on_uart_rx() {
 
 int main() {
 
-    // All the SDK to bring up the stdio stuff so we can write to the serial port
+    // All the SDK to bring up the stdio stuff, so we can write to the serial port
     stdio_init_all();
 
     incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
@@ -70,8 +70,8 @@ int main() {
     debug("Logging running!");
 
     // Create the servos
-    servo_init(&servos[0], 22, 50, 250, 2500, false);
-    servo_init(&servos[1], 1, 50, 100, 1500, true);
+    servo_init(&servos[0], 22, SERVO_HZ, 250, 2500, false);
+    servo_init(&servos[1], 1, SERVO_HZ, 100, 1500, true);
     servo_on(&servos[0]);
     servo_on(&servos[1]);
 
@@ -113,7 +113,7 @@ int main() {
                 &messageQueueReaderTaskHandle);
 
 
-    // Start the task to print Hellolrd to the UART as a heartbeat
+    // Start the task to print Hellorld to the UART as a heartbeat
     xTaskCreate(hellorldTask,
                 "hellorldTask",
                 256,
@@ -175,7 +175,7 @@ portTASK_FUNCTION(servoDebugTask, pvParameters) {
 
     for(EVER) {
 
-        // Declare these here so we're not making new ones in this tight loop
+        // Declare these here, so we're not making new ones in this tight loop
         int i, j;
 
         for(i = 0; i < MAX_SERVO_POSITION; i += 5)
