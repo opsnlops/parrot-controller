@@ -31,12 +31,13 @@ extern TaskHandle_t servoDebugTaskHandle;
 #define UART_RX_PIN 5
 
 // Serial port parameters
-#define BAUD_RATE 115200
+#define BAUD_RATE 57600
 #define DATA_BITS 8
 #define STOP_BITS 1
 #define PARITY    UART_PARITY_NONE
 
-uint32_t chars_rxed = 0;
+uint32_t bytes_received = 0;
+uint32_t pwm_wraps = 0;
 
 
 // Setup a queue for incoming messages
@@ -51,13 +52,14 @@ void on_uart_rx() {
 
     while (uart_is_readable(UART_ID)) {
 
-        uint8_t ch = uart_getc(UART_ID);
+        uint8_t value = uart_getc(UART_ID);
 
         // Drop it into a queue
-        xQueueSendToBackFromISR(incomingQueue, &ch, NULL);
-        chars_rxed++;
+        xQueueSendToBackFromISR(incomingQueue, &value, NULL);
+        bytes_received++;
     }
 }
+
 
 /**
  * IRQ handler to update the duty cycle on our servos
@@ -68,6 +70,8 @@ void on_pwm_wrap_handler() {
         pwm_set_chan_level(servo.slice, servo.channel, servo.desired_ticks);
 
     pwm_clear_irq(servos[0].slice);
+
+    pwm_wraps++;
 }
 
 
@@ -84,7 +88,7 @@ int main() {
 
     // Create the servos
     servo_init(&servos[0], 22, SERVO_HZ, 250, 2500, false);
-    servo_init(&servos[1], 1, SERVO_HZ, 100, 1500, true);
+    servo_init(&servos[1], 1, SERVO_HZ, 250, 2500, true);
 
     // Install the IRQ handler for the servos
     pwm_set_irq_enabled(servos[0].slice, true);
@@ -126,7 +130,7 @@ int main() {
     // Start the task to read the queue
     xTaskCreate(messageQueueReaderTask,
                 "messageQueueReaderTask",
-                1024,
+                8192,
                 nullptr,
                 1,
                 &messageQueueReaderTaskHandle);
@@ -140,13 +144,14 @@ int main() {
                 1,
                 &hellorldTaskHandle);
 
-
+    /*
     xTaskCreate(servoDebugTask,
                 "servoDebugTask",
                 1024,
                 nullptr,
                 1,
                 &servoDebugTaskHandle);
+    */
 
     xTaskCreate(displayUpdateTask,
                 "displayUpdateTask",
@@ -159,21 +164,8 @@ int main() {
 }
 
 
-// Read from the queue and print it to the screen for now
-portTASK_FUNCTION(messageQueueReaderTask, pvParameters) {
 
-    uint8_t incoming;
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-    for (EVER) {
-        if (xQueueReceive(incomingQueue, &incoming, (TickType_t) portMAX_DELAY) == pdPASS) {
-            debug("%c", (char) incoming);
-        }
-    }
-#pragma clang diagnostic pop
-
-}
 
 // Read from the queue and print it to the screen for now
 portTASK_FUNCTION(hellorldTask, pvParameters) {

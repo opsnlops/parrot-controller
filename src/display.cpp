@@ -13,7 +13,9 @@
 // Use the namespace for convenience
 using namespace pico_ssd1306;
 
-extern uint32_t chars_rxed;
+extern uint32_t bytes_received;
+extern uint32_t pwm_wraps;
+extern uint32_t number_of_moves;
 extern Servo servos[NUMBER_OF_SERVOS];
 
 void set_up_display_i2c() {
@@ -60,21 +62,22 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
         // Clear the display
         display.clear();
 
-        time = to_ms_since_boot(get_absolute_time());
-
         // Null out the buffers
         for(int i = 0; i < number_lines; i++)
             memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
-        sprintf(buffer[0], "Time: %lu", time);
-        sprintf(buffer[1], "  Rx: %lu", chars_rxed);
-        sprintf(buffer[2], " Pos: %d, %d", servos[0].current_position, servos[1].current_position);
-        sprintf(buffer[3], " Mem: %d (%d)", xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize());
+        sprintf(buffer[0], "Wraps: %lu", pwm_wraps);
+        sprintf(buffer[1], "   Rx: %lu", bytes_received);
+        sprintf(buffer[2], "  Pos: %d, %d", servos[0].current_position, servos[1].current_position);
+        sprintf(buffer[3], "Moves: %lu", number_of_moves);
+        //sprintf(buffer[4], "  Mem: %d (%d)", xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize());
+
 
         drawText(&display, font_5x8, buffer[0], 0, 0);
         drawText(&display, font_5x8, buffer[1], 0, 7);
         drawText(&display, font_5x8, buffer[2], 0, 14);
         drawText(&display, font_5x8, buffer[3], 0, 21);
+        //drawText(&display, font_5x8, buffer[4], 0, 28);
 
         display.sendBuffer();
 

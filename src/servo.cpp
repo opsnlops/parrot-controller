@@ -13,6 +13,8 @@
 #include "logging/logging.h"
 
 
+uint32_t number_of_moves = 0;
+
 /**
  * @brief Initializes a servo and gets it ready for use
  *
@@ -144,6 +146,8 @@ void servo_move(Servo* s, uint16_t position) {
           s->gpio,
           s->current_position,
           s->desired_ticks);
+
+    number_of_moves++;
 }
 
 /**

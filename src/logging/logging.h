@@ -3,6 +3,9 @@
 
 #include "../controller.h"
 
+#include <cstring>
+#include <cstdio>
+
 #define LOG_LEVEL_VERBOSE 5
 #define LOG_LEVEL_DEBUG 4
 #define LOG_LEVEL_INFO 3
