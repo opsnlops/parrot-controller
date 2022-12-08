@@ -82,7 +82,7 @@
 /* Run time and task stats gathering related definitions. */
 #define configGENERATE_RUN_TIME_STATS           0
 #define configUSE_TRACE_FACILITY                1
-#define configUSE_STATS_FORMATTING_FUNCTIONS    0
+#define configUSE_STATS_FORMATTING_FUNCTIONS    1
 
 /* Co-routine related definitions. */
 #define configUSE_CO_ROUTINES                   0
@@ -100,6 +100,13 @@
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY    [dependent on processor and application]
 #define configMAX_API_CALL_INTERRUPT_PRIORITY   [dependent on processor and application]
 */
+
+/* Local debugging stuff */
+#define configMAX_TASK_NAME_LEN                 100
+#define configRECORD_STACK_HIGH_ADDRESS         1
+//#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()     (ulHighFrequencyTimerTicks = 0ul)
+//#define portGET_RUN_TIME_COUNTER_VALUE()             ulHighFrequencyTimerTicks
+
 
 /* SMP port only */
 #define configNUM_CORES                         2

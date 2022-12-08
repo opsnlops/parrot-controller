@@ -81,6 +81,7 @@ int main() {
     stdio_init_all();
 
     incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
+    vQueueAddToRegistry(incomingQueue, "incomingQueue");
 
     logger_init();
     debug("Logging running!");
@@ -88,7 +89,7 @@ int main() {
 
     // Create the servos
     servo_init(&servos[0], 22, SERVO_HZ, 250, 2500, false);
-    servo_init(&servos[1], 1, SERVO_HZ, 250, 2500, true);
+    servo_init(&servos[1], 2, SERVO_HZ, 250, 2500, true);
 
     // Install the IRQ handler for the servos
     pwm_set_irq_enabled(servos[0].slice, true);
@@ -130,7 +131,7 @@ int main() {
     // Start the task to read the queue
     xTaskCreate(messageQueueReaderTask,
                 "messageQueueReaderTask",
-                8192,
+                1024,
                 nullptr,
                 1,
                 &messageQueueReaderTaskHandle);

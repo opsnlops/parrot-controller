@@ -7,7 +7,7 @@
 
 
 /*
- * This file is a crude sort of task manager, listing all of the tasks
+ * This file is a crude sort of task manager, listing all the tasks
  * we have.
  */
 
