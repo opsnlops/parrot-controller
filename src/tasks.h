@@ -16,6 +16,8 @@ portTASK_FUNCTION_PROTO(displayUpdateTask, pvParameters);           // used in d
 portTASK_FUNCTION_PROTO(hellorldTask, pvParameters);                // used in main.cpp
 portTASK_FUNCTION_PROTO(log_queue_reader_task, pvParameters);       // used in logging/logging.cpp
 portTASK_FUNCTION_PROTO(messageQueueReaderTask, pvParameters);      // used in logging/logging.cpp
+portTASK_FUNCTION_PROTO(dmx_reader_task, pvParameters);             // used in dmx.cpp
+
 
 // Testing only
 portTASK_FUNCTION_PROTO(servoDebugTask, pvParameters);              // used in main.cpp

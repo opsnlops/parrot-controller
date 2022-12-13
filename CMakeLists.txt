@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize the SDK
 pico_sdk_init()
 
+# Pull in the DMX library
+include(Pico-DMX/interfaceLibForPicoSDK.cmake)
+
 file(GLOB sourceFiles
         src/*
         src/logging/*
@@ -21,7 +24,7 @@ file(GLOB sourceFiles
 add_executable(controller
         ${sourceFiles}
         FreeRTOSConfig.h
-        )
+        src/dmx.h)
 
 target_include_directories(controller PRIVATE
         .
@@ -35,11 +38,14 @@ add_subdirectory(pico-ssd1306)
 target_link_libraries(controller
         FreeRTOS-Kernel
         FreeRTOS-Kernel-Heap4
+        hardware_dma
         hardware_gpio
+        hardware_pio
         hardware_pwm
         hardware_uart
         pico_stdlib
         pico_ssd1306
+        picodmx
         )
 
 # Enable the console over USB

@@ -1,4 +1,5 @@
 .idea/
 cmake-*
 build/
-pico-ssd1306
+pico-ssd1306/
+Pico-DMX/

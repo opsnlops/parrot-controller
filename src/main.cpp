@@ -16,12 +16,14 @@
 #include "logging/logging.h"
 #include "servo.h"
 #include "tasks.h"
+#include "dmx.h"
 
 
 // Located in tasks.cpp
 extern TaskHandle_t displayUpdateTaskHandle;
 extern TaskHandle_t hellorldTaskHandle;
 extern TaskHandle_t messageQueueReaderTaskHandle;
+extern TaskHandle_t dmx_reader_task_handle;
 extern TaskHandle_t servoDebugTaskHandle;
 
 // Let's use just a normal UART for now while I get my feet under me
@@ -85,6 +87,9 @@ int main() {
 
     logger_init();
     debug("Logging running!");
+
+    // Fire up DMX
+    dmx_init(DMX_GPIO_PIN);
 
 
     // Create the servos
@@ -160,6 +165,15 @@ int main() {
                 nullptr,
                 1,
                 &displayUpdateTaskHandle);
+
+
+    xTaskCreate(dmx_reader_task,
+                "dmx_reader_task",
+                512,
+                nullptr,
+                1,
+                &dmx_reader_task_handle);
+
 
     vTaskStartScheduler();
 }

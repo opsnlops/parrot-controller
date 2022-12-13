@@ -1,10 +1,11 @@
 
 # Setup
 
-This requires this library:
+This requires the following libraries:
 
 ```
-git@github.com:Harbys/pico-ssd1306.git
+https://github.com/Harbys/pico-ssd1306
+https://github.com/jostlowe/Pico-DMX
 ```
 
 On hotot it's in `~/code` and symlinked into the project.
