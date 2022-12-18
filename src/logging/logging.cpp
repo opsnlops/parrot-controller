@@ -22,6 +22,7 @@ bool logging_queue_exists = false;
 
 void logger_init() {
     creature_log_message_queue_handle = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LogMessage));
+    vQueueAddToRegistry(creature_log_message_queue_handle, "log_message_queue");
     logging_queue_exists = true;
     start_log_reader();
 }

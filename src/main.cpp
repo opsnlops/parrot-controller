@@ -2,6 +2,7 @@
 #include "controller.h"
 
 #include <cstdio>
+#include <climits>
 
 #include <FreeRTOS.h>
 #include <queue.h>
@@ -25,7 +26,7 @@
 // Located in tasks.cpp
 extern TaskHandle_t displayUpdateTaskHandle;
 extern TaskHandle_t hellorldTaskHandle;
-extern TaskHandle_t dmx_reader_task_handle;
+extern TaskHandle_t dmx_processing_task_handle;
 extern TaskHandle_t servoDebugTaskHandle;
 extern TaskHandle_t relayDebugTaskHandle;
 
@@ -53,7 +54,7 @@ uint32_t pwm_wraps = 0;
 
 
 // Setup a queue for incoming messages
-QueueHandle_t incomingQueue = nullptr;
+//QueueHandle_t incomingQueue = nullptr;
 
 // Create an array of servos
 Servo servos[NUMBER_OF_SERVOS];
@@ -94,9 +95,6 @@ int main() {
 
     // All the SDK to bring up the stdio stuff, so we can write to the serial port
     stdio_init_all();
-
-    incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
-    vQueueAddToRegistry(incomingQueue, "incomingQueue");
 
     logger_init();
     debug("Logging running!");
@@ -194,14 +192,12 @@ int main() {
                 &displayUpdateTaskHandle);
 
 
-    /*
-    xTaskCreate(dmx_reader_task,
-                "dmx_reader_task",
-                512,
+    xTaskCreate(dmx_processing_task,
+                "dmx_processing_task",
+                2048,
                 nullptr,
                 1,
-                &dmx_reader_task_handle);
-    */
+                &dmx_processing_task_handle);
 
 
     vTaskStartScheduler();
@@ -253,6 +249,22 @@ portTASK_FUNCTION(relayDebugTask, pvParameters) {
         // Test toggling the power on and off to the servos
         vTaskDelay(pdMS_TO_TICKS(10000));
         creature_power->toggle();
+
+    }
+#pragma clang diagnostic pop
+}
+
+
+portTASK_FUNCTION(dmx_processing_task, pvParameters) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
+    uint32_t ulNotifiedValue;
+    for (EVER) {
+
+        xTaskNotifyWait(0x00, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY);
+        verbose("DMX says hi");
+
 
     }
 #pragma clang diagnostic pop

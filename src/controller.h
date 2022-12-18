@@ -18,13 +18,12 @@
 #define DISPLAY_UPDATE_TIME_MS     33
 #define DISPLAY_BUFFER_SIZE        256
 
-#define INCOMING_CHARACTER_QUEUE_SIZE 16
 
 /*
  * Logging Config
  */
-#define LOGGING_LEVEL               LOG_LEVEL_DEBUG
-#define LOGGING_QUEUE_LENGTH        16
+#define LOGGING_LEVEL               LOG_LEVEL_VERBOSE
+#define LOGGING_QUEUE_LENGTH        10
 #define LOGGING_MESSAGE_MAX_LENGTH  512
 
 /*
