@@ -17,6 +17,7 @@
 #include "servo.h"
 #include "tasks.h"
 #include "dmx.h"
+#include "relay.h"
 
 
 // Located in tasks.cpp
@@ -48,6 +49,7 @@ QueueHandle_t incomingQueue = nullptr;
 // Create an array of servos
 Servo servos[NUMBER_OF_SERVOS];
 
+Relay* e_stop;
 
 // RX interrupt handler
 void on_uart_rx() {
@@ -87,6 +89,10 @@ int main() {
 
     logger_init();
     debug("Logging running!");
+
+    // Turn off the e-stop
+    e_stop = init_relay(19, true);
+    relay_on(e_stop);
 
     // Fire up DMX
     dmx_init(DMX_GPIO_PIN);

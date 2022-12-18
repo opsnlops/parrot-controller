@@ -24,7 +24,7 @@ file(GLOB sourceFiles
 add_executable(controller
         ${sourceFiles}
         FreeRTOSConfig.h
-        src/dmx.h)
+        src/dmx.h src/relay.cpp src/relay.h)
 
 target_include_directories(controller PRIVATE
         .
