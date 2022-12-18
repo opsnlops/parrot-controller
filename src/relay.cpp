@@ -8,53 +8,62 @@
 #include "logging/logging.h"
 
 
-Relay* init_relay(uint8_t gpio_pin, bool on) {
+/**
+ * Creates a relay
+ *
+ * @param gpio_pin The GPIO pin the relay is on
+ * @param on Should it be on by default?
+ * @return a pointer to the Relay on the heap
+ */
+Relay::Relay(uint8_t gpio_pin, bool on) {
 
     debug("creating relay on gpio %d", gpio_pin);
 
-
-    auto r = (Relay*)malloc(sizeof(Relay));
-
-    r->gpio_pin = gpio_pin;
-    r->on = on;
+    this->gpio_pin = gpio_pin;
+    this->on = on;
 
     gpio_init(gpio_pin);
     gpio_set_dir(gpio_pin, true);   // This is an output pin
     gpio_set_outover(gpio_pin, GPIO_OVERRIDE_INVERT); // The relays are active low
     gpio_put(gpio_pin, on);
 
-    return r;
 }
 
-int relay_on(Relay *r) {
+bool Relay::isOn() const
+{
+    return on;
+}
 
-    debug("setting relay on GPIO %d to on", r->gpio_pin);
 
-    gpio_put(r->gpio_pin, true);
-    r->on = true;
+int Relay::turnOn() {
+
+    debug("setting relay on GPIO %d to on", gpio_pin);
+
+    gpio_put(gpio_pin, true);
+    on = true;
 
     return 0;
 }
 
-int relay_off(Relay *r) {
+int Relay::turnOff() {
 
-    debug("setting relay on GPIO %d to off", r->gpio_pin);
+    debug("setting relay on GPIO %d to off", gpio_pin);
 
-    gpio_put(r->gpio_pin, false);
-    r->on = false;
+    gpio_put(gpio_pin, false);
+    on = false;
 
     return 0;
 }
 
 
-int relay_toggle(Relay *r) {
+int Relay::toggle() {
 
-    debug("toggling relay on GPIO %d", r->gpio_pin);
+    debug("toggling relay on GPIO %d", gpio_pin);
 
-    if(r->on) {
-        relay_off(r);
+    if(on) {
+        turnOff();
     } else {
-        relay_on(r);
+        turnOn();
     }
 
     return 0;

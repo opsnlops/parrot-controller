@@ -1,4 +1,5 @@
 
+#include "creature.h"
 #include "controller.h"
 
 #include "wire_decoder.h"
@@ -16,6 +17,8 @@
 #include "logging/logging.h"
 #include "servo.h"
 
+
+#ifdef USE_UART_CONTROL
 
 // All of these are in main.cpp
 extern QueueHandle_t incomingQueue;
@@ -125,3 +128,5 @@ void process_uart_frame(u_int8_t *buffer) {
 
 
 }
+
+#endif

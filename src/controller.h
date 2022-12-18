@@ -32,6 +32,3 @@
  */
 #define MIN_SERVO_POSITION          0
 #define MAX_SERVO_POSITION          999
-
-#define NUMBER_OF_SERVOS            2
-#define SERVO_HZ                    50

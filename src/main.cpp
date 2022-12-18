@@ -8,10 +8,12 @@
 #include <task.h>
 #include <cstring>
 
+#include "creature.h"
+
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
 #include "hardware/pwm.h"
-#include "hardware/uart.h"
+
 
 #include "logging/logging.h"
 #include "servo.h"
@@ -23,21 +25,28 @@
 // Located in tasks.cpp
 extern TaskHandle_t displayUpdateTaskHandle;
 extern TaskHandle_t hellorldTaskHandle;
-extern TaskHandle_t messageQueueReaderTaskHandle;
 extern TaskHandle_t dmx_reader_task_handle;
 extern TaskHandle_t servoDebugTaskHandle;
+extern TaskHandle_t relayDebugTaskHandle;
 
-// Let's use just a normal UART for now while I get my feet under me
-// with DMX
-#define UART_ID uart1
-#define UART_TX_PIN 4
-#define UART_RX_PIN 5
+// Serial port parameters (if enabled)
+#ifdef USE_UART_CONTROL
 
-// Serial port parameters
-#define BAUD_RATE 57600
-#define DATA_BITS 8
-#define STOP_BITS 1
-#define PARITY    UART_PARITY_NONE
+    #include "hardware/uart.h"
+
+    extern TaskHandle_t messageQueueReaderTaskHandle;
+
+    #define UART_ID uart1
+    #define UART_TX_PIN 4
+    #define UART_RX_PIN 5
+
+    #define BAUD_RATE 57600
+    #define DATA_BITS 8
+    #define STOP_BITS 1
+    #define PARITY    UART_PARITY_NONE
+#endif
+// END UART_CONTROL
+
 
 uint32_t bytes_received = 0;
 uint32_t pwm_wraps = 0;
@@ -49,8 +58,10 @@ QueueHandle_t incomingQueue = nullptr;
 // Create an array of servos
 Servo servos[NUMBER_OF_SERVOS];
 
-Relay* e_stop;
 
+Relay* creature_power;
+
+#ifdef USE_UART_CONTROL
 // RX interrupt handler
 void on_uart_rx() {
 
@@ -63,12 +74,12 @@ void on_uart_rx() {
         bytes_received++;
     }
 }
-
+#endif
 
 /**
  * IRQ handler to update the duty cycle on our servos
  */
-void on_pwm_wrap_handler() {
+void __isr on_pwm_wrap_handler() {
 
     for(auto & servo : servos)
         pwm_set_chan_level(servo.slice, servo.channel, servo.desired_ticks);
@@ -91,8 +102,8 @@ int main() {
     debug("Logging running!");
 
     // Turn off the e-stop
-    e_stop = init_relay(19, true);
-    relay_on(e_stop);
+    creature_power = new Relay(E_STOP_PIN, true);
+    creature_power->turnOn();
 
     // Fire up DMX
     dmx_init(DMX_GPIO_PIN);
@@ -111,7 +122,7 @@ int main() {
     servo_on(&servos[0]);
     servo_on(&servos[1]);
 
-
+#ifdef USE_UART_CONTROL
     uart_init(UART_ID, 2400);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
@@ -146,8 +157,9 @@ int main() {
                 nullptr,
                 1,
                 &messageQueueReaderTaskHandle);
+#endif
 
-
+    /*
     // Start the task to print Hellorld to the UART as a heartbeat
     xTaskCreate(hellorldTask,
                 "hellorldTask",
@@ -155,6 +167,7 @@ int main() {
                 nullptr,
                 1,
                 &hellorldTaskHandle);
+    */
 
     /*
     xTaskCreate(servoDebugTask,
@@ -163,22 +176,32 @@ int main() {
                 nullptr,
                 1,
                 &servoDebugTaskHandle);
-    */
+
+
+    xTaskCreate(relayDebugTask,
+                "relayDebugTask",
+                512,
+                nullptr,
+                1,
+                &relayDebugTaskHandle);
+  */
 
     xTaskCreate(displayUpdateTask,
                 "displayUpdateTask",
                 1024,
                 nullptr,
-                1,
+                0,          // Low priority
                 &displayUpdateTaskHandle);
 
 
+    /*
     xTaskCreate(dmx_reader_task,
                 "dmx_reader_task",
                 512,
                 nullptr,
                 1,
                 &dmx_reader_task_handle);
+    */
 
 
     vTaskStartScheduler();
@@ -193,8 +216,9 @@ portTASK_FUNCTION(hellorldTask, pvParameters) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
     for (EVER) {
-
+#ifdef USE_UART_CONTROL
         uart_puts(UART_ID, "Hellorld!\n\r");
+#endif
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 #pragma clang diagnostic pop
@@ -216,6 +240,20 @@ portTASK_FUNCTION(servoDebugTask, pvParameters) {
 
             vTaskDelay(pdMS_TO_TICKS(20));
         }
+    }
+#pragma clang diagnostic pop
+}
+
+portTASK_FUNCTION(relayDebugTask, pvParameters) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
+    for (EVER) {
+
+        // Test toggling the power on and off to the servos
+        vTaskDelay(pdMS_TO_TICKS(10000));
+        creature_power->toggle();
+
     }
 #pragma clang diagnostic pop
 }

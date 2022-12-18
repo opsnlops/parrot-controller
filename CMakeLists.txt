@@ -24,7 +24,7 @@ file(GLOB sourceFiles
 add_executable(controller
         ${sourceFiles}
         FreeRTOSConfig.h
-        src/dmx.h src/relay.cpp src/relay.h)
+        src/dmx.h src/relay.cpp src/relay.h src/creature.h)
 
 target_include_directories(controller PRIVATE
         .
@@ -48,9 +48,9 @@ target_link_libraries(controller
         picodmx
         )
 
-# Enable the console over USB
-pico_enable_stdio_usb(controller 1)
-pico_enable_stdio_uart(controller 0)
+# Enable the console over UART
+pico_enable_stdio_usb(controller 0)
+pico_enable_stdio_uart(controller 1)
 
 # Create all of the files
 pico_add_extra_outputs(controller)

@@ -15,13 +15,13 @@
 
 extern TaskHandle_t log_queue_reader_task_handle;   // in main.cpp
 
-QueueHandle_t creatureLogMessageQueue;
+QueueHandle_t creature_log_message_queue_handle;
 
 
 bool logging_queue_exists = false;
 
 void logger_init() {
-    creatureLogMessageQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LogMessage));
+    creature_log_message_queue_handle = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LogMessage));
     logging_queue_exists = true;
     start_log_reader();
 }
@@ -36,7 +36,7 @@ void __unused verbose(const char *message, ...) {
     va_end(args);
 
     if (logging_queue_exists)
-        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
 #endif
 }
 
@@ -50,7 +50,7 @@ void debug(const char *message, ...) {
     va_end(args);
 
     if (logging_queue_exists)
-        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
 #endif
 }
 
@@ -64,7 +64,7 @@ void info(const char *message, ...) {
     va_end(args);
 
     if (logging_queue_exists)
-        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
 #endif
 }
 
@@ -78,7 +78,7 @@ void warning(const char *message, ...) {
     va_end(args);
 
     if (logging_queue_exists)
-        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
 #endif
 }
 
@@ -92,7 +92,7 @@ void error(const char *message, ...) {
     va_end(args);
 
     if (logging_queue_exists)
-        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
 #endif
 }
 
@@ -105,7 +105,7 @@ void __unused fatal(const char *message, ...) {
     va_end(args);
 
     if (logging_queue_exists)
-        xQueueSendToBack(creatureLogMessageQueue, &lm, (TickType_t) 10);
+        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
 }
 
 struct LogMessage createMessageObject(u_int8_t level, const char *message, va_list args) {
@@ -143,7 +143,7 @@ portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
     for (EVER) {
         LogMessage lm{};
         char levelBuffer[5];
-        if (xQueueReceive(creatureLogMessageQueue, &lm, (TickType_t) portMAX_DELAY) == pdPASS) {
+        if (xQueueReceive(creature_log_message_queue_handle, &lm, (TickType_t) portMAX_DELAY) == pdPASS) {
 
             // For now just dump it to the console
             if (lm.level == LOG_LEVEL_VERBOSE) {
