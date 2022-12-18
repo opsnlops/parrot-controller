@@ -140,38 +140,41 @@ void start_log_reader() {
 
 portTASK_FUNCTION(log_queue_reader_task, pvParameters) {
 
+    LogMessage lm{};
+    char levelBuffer[4];
+    memset(&levelBuffer, '\0', 4);
+
     for (EVER) {
-        LogMessage lm{};
-        char levelBuffer[5];
         if (xQueueReceive(creature_log_message_queue_handle, &lm, (TickType_t) portMAX_DELAY) == pdPASS) {
-
-            // For now just dump it to the console
-            if (lm.level == LOG_LEVEL_VERBOSE) {
-                strncpy(levelBuffer, "[V] ", 3);
-            } else if (lm.level == LOG_LEVEL_DEBUG) {
-
-                strncpy(levelBuffer, "[D]", 3);
-            } else if (lm.level == LOG_LEVEL_INFO) {
-
-                strncpy(levelBuffer, "[I]", 3);
-            } else if (lm.level == LOG_LEVEL_WARNING) {
-
-                strncpy(levelBuffer, "[W]", 3);
-            } else if (lm.level == LOG_LEVEL_ERROR) {
-
-                strncpy(levelBuffer, "[E]", 3);
-            } else if (lm.level == LOG_LEVEL_FATAL) {
-
-                strncpy(levelBuffer, "[F]", 3);
-            } else {
-
-                strncpy(levelBuffer, "[?]", 3);
+            switch (lm.level) {
+                case LOG_LEVEL_VERBOSE:
+                    strncpy(levelBuffer, "[V] ", 3);
+                    break;
+                case LOG_LEVEL_DEBUG:
+                    strncpy(levelBuffer, "[D] ", 3);
+                    break;
+                case LOG_LEVEL_INFO:
+                    strncpy(levelBuffer, "[I] ", 3);
+                    break;
+                case LOG_LEVEL_WARNING:
+                    strncpy(levelBuffer, "[W] ", 3);
+                    break;
+                case LOG_LEVEL_ERROR:
+                    strncpy(levelBuffer, "[E] ", 3);
+                    break;
+                case LOG_LEVEL_FATAL:
+                    strncpy(levelBuffer, "[F] ", 3);
+                    break;
+                default:
+                    strncpy(levelBuffer, "[?] ", 3);
             }
 
             // Format our message
             uint32_t time = to_ms_since_boot(get_absolute_time());
             printf("[%lu]%s %s\n", time, levelBuffer, lm.message);
 
+            // Wipe the buffer for next time
+            memset(&levelBuffer, '\0', 4);
 
         }
     }
