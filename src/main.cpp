@@ -25,7 +25,6 @@
 
 // Located in tasks.cpp
 extern TaskHandle_t displayUpdateTaskHandle;
-extern TaskHandle_t hellorldTaskHandle;
 extern TaskHandle_t dmx_processing_task_handle;
 extern TaskHandle_t servoDebugTaskHandle;
 extern TaskHandle_t relayDebugTaskHandle;
@@ -160,16 +159,6 @@ int main() {
 #endif
 
     /*
-    // Start the task to print Hellorld to the UART as a heartbeat
-    xTaskCreate(hellorldTask,
-                "hellorldTask",
-                256,
-                nullptr,
-                1,
-                &hellorldTaskHandle);
-    */
-
-    /*
     xTaskCreate(servoDebugTask,
                 "servoDebugTask",
                 1024,
@@ -204,9 +193,6 @@ int main() {
 
     vTaskStartScheduler();
 }
-
-
-
 
 
 // Read from the queue and print it to the screen for now
