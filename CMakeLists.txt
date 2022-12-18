@@ -48,7 +48,7 @@ target_link_libraries(controller
         picodmx
         )
 
-# Enable the console over UART
+# Enable the console over UART (which is the picoprobe!)
 pico_enable_stdio_usb(controller 0)
 pico_enable_stdio_uart(controller 1)
 
