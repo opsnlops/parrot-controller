@@ -20,7 +20,7 @@ extern uint32_t bytes_received;
 extern uint32_t pwm_wraps;
 extern uint32_t number_of_moves;
 extern uint32_t dmx_packets_read;
-extern Servo servos[NUMBER_OF_SERVOS];
+extern Servo* servos[NUMBER_OF_SERVOS];
 extern Relay *creature_power;
 extern volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
 
@@ -72,7 +72,7 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
         for(int i = 0; i < number_lines; i++)
             memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
-        sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d", pwm_wraps, servos[0].current_position, servos[1].current_position);
+        sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d", pwm_wraps, servos[0]->getPosition(), servos[1]->getPosition());
         sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, creature_power->isOn() ? "On" : "Off");
         sprintf(buffer[2], "  DMX: %-5lu  Mem: %d", dmx_packets_read, xPortGetFreeHeapSize());
         sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", (int)dmx_buffer[1], (int)dmx_buffer[2], (int)dmx_buffer[3],

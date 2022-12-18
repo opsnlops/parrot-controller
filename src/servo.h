@@ -21,7 +21,19 @@
  *
  * @brief A representation of a servo motor
  */
-typedef struct {
+class Servo {
+
+public:
+    Servo(uint gpio, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted);
+    void turnOn();
+    void turnOff();
+    uint16_t getPosition() const;
+    uint getSlice() const;
+    uint getChannel() const;
+    uint getDesiredTicks() const;
+    void move(uint16_t position);
+
+private:
     uint gpio;                  // GPIO pin the servo is connected to
     uint16_t min_pulse_us;      // Lower bound on the servo's pulse size in microseconds
     uint16_t max_pulse_us;      // Upper bound on the servo's pulse size in microseconds
@@ -34,12 +46,6 @@ typedef struct {
     bool on;                    // Is the servo active?
     bool inverted;              // Should the movements be inverted?
     uint32_t desired_ticks;     // The number of ticks we should be set to on the next cycle
-} Servo;
 
-
-// Function Prototypes
-void servo_init(Servo *s, uint gpio, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted);
-void servo_on(Servo* s);
-void servo_off(Servo* s);
-void servo_move(Servo* s, uint16_t position);
-uint32_t pwm_set_freq_duty(uint slice_num, uint chan, uint32_t frequency, int d);
+    static uint32_t pwm_set_freq_duty(uint slice_num, uint chan, uint32_t frequency, int d);
+};

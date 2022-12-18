@@ -57,7 +57,7 @@ uint32_t pwm_wraps = 0;
 //QueueHandle_t incomingQueue = nullptr;
 
 // Create an array of servos
-Servo servos[NUMBER_OF_SERVOS];
+Servo* servos[NUMBER_OF_SERVOS];
 
 
 Relay* creature_power;
@@ -83,9 +83,11 @@ void on_uart_rx() {
 void __isr on_pwm_wrap_handler() {
 
     for(auto & servo : servos)
-        pwm_set_chan_level(servo.slice, servo.channel, servo.desired_ticks);
+        pwm_set_chan_level(servo->getSlice(),
+                           servo->getChannel(),
+                           servo->getDesiredTicks());
 
-    pwm_clear_irq(servos[0].slice);
+    pwm_clear_irq(servos[0]->getSlice());
 
     pwm_wraps++;
 }
@@ -108,17 +110,17 @@ int main() {
 
 
     // Create the servos
-    servo_init(&servos[0], 22, SERVO_HZ, 250, 2500, false);
-    servo_init(&servos[1], 2, SERVO_HZ, 250, 2500, true);
+    servos[0] = new Servo(22, SERVO_HZ, 250, 2500, false);
+    servos[1] = new Servo(2, SERVO_HZ, 250, 2500, true);
 
     // Install the IRQ handler for the servos
-    pwm_set_irq_enabled(servos[0].slice, true);
+    pwm_set_irq_enabled(servos[0]->getSlice(), true);
     irq_set_exclusive_handler(PWM_IRQ_WRAP, on_pwm_wrap_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
     // And start them up!
-    servo_on(&servos[0]);
-    servo_on(&servos[1]);
+    servos[0]->turnOn();
+    servos[1]->turnOn();
 
 #ifdef USE_UART_CONTROL
     uart_init(UART_ID, 2400);
@@ -232,7 +234,7 @@ portTASK_FUNCTION(servoDebugTask, pvParameters) {
 
         for (i = 0; i < MAX_SERVO_POSITION; i += 5) {
             for (j = 0; j < NUMBER_OF_SERVOS; j++)
-                servo_move(&servos[j], i);
+                servos[j]->move(i);
 
             vTaskDelay(pdMS_TO_TICKS(20));
         }

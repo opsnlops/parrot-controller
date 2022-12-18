@@ -31,30 +31,33 @@ uint32_t number_of_moves = 0;
  * The servo's PWM controller will be off by default to make sure it's not turned
  * on before we're ready to go.
  *
- * @param s Servo to build
  * @param gpio The GPIO pin this servo is connected to
  * @param frequency PWM frequency
  * @param min_pulse_us Min pulse length in microseconds
  * @param max_pulse_us Max pulse length in microseconds
  * @param inverted are this servo's movements inverted?
  */
-void servo_init(Servo *s, uint gpio, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted) {
+Servo::Servo(uint gpio, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted) {
 
     gpio_set_function(gpio, GPIO_FUNC_PWM);
-    s->gpio = gpio;
-    s->frequency = frequency;
-    s->min_pulse_us = min_pulse_us;
-    s->max_pulse_us = max_pulse_us;
-    s->frame_length_us = 1000000 / frequency;   // Number of microseconds in each frame (frequency)
-    s->slice = pwm_gpio_to_slice_num(gpio);
-    s->channel = pwm_gpio_to_channel(gpio);
-    s->resolution = pwm_set_freq_duty(s->slice, s->channel, s->frequency, 0);
-    s->inverted = inverted;
-    s->current_position = MIN_SERVO_POSITION;
+    this->gpio = gpio;
+    this->frequency = frequency;
+    this->min_pulse_us = min_pulse_us;
+    this->max_pulse_us = max_pulse_us;
+    this->frame_length_us = 1000000 / frequency;   // Number of microseconds in each frame (frequency)
+    this->slice = pwm_gpio_to_slice_num(gpio);
+    this->channel = pwm_gpio_to_channel(gpio);
+    this->resolution = pwm_set_freq_duty(this->slice,
+                                         this->channel,
+                                         this->frequency,
+                                         0);
+    this->inverted = inverted;
+    this->desired_ticks = 0;
+    this->current_position = MIN_SERVO_POSITION;
 
     // Turn the servo off by default
-    pwm_set_enabled(s->slice, false);
-    s->on = false;
+    pwm_set_enabled(this->slice, false);
+    this->on = false;
 
     // TODO: What's a good default to set the servo to on power on?
 
@@ -66,14 +69,12 @@ void servo_init(Servo *s, uint gpio, uint32_t frequency, uint16_t min_pulse_us, 
  *
  * Note that this turns on the PWM pulse _for the entire slice_ (both A and B
  * outputs).
- *
- * @param s The servo to enable
  */
-void servo_on(Servo* s) {
-    pwm_set_enabled(s->slice, true);
-    s->on = true;
+void Servo::turnOn() {
+    pwm_set_enabled(slice, true);
+    on = true;
 
-    info("Enabled servo on pin %d (slice %d)", s->gpio, s->slice);
+    info("Enabled servo on pin %d (slice %d)", gpio, slice);
 }
 
 
@@ -82,14 +83,12 @@ void servo_on(Servo* s) {
  *
  * Note that this turns off the PWM pulse _for the entire slice_ (both A and B
  * outputs).
- *
- * @param s The servo to disable
  */
-void servo_off(Servo* s) {
-    pwm_set_enabled(s->slice, false);
-    s->on = false;
+void Servo::turnOff() {
+    pwm_set_enabled(slice, false);
+    on = false;
 
-    info("Disabled servo on pin %d (slice %d)", s->gpio, s->slice);
+    info("Disabled servo on pin %d (slice %d)", gpio, slice);
 }
 
 /**
@@ -113,10 +112,9 @@ void servo_off(Servo* s) {
  * but as of right now, there's really not a need, and I'd rather not make the ISR
  * any more complex than it needs to be.
  *
- * @param s The servo to move
  * @param position The requested position
  */
-void servo_move(Servo* s, uint16_t position) {
+void Servo::move(uint16_t position) {
 
     //
     // Remember: Float point can be slow on the Pico! 🐢
@@ -129,25 +127,41 @@ void servo_move(Servo* s, uint16_t position) {
     // TODO: This assumes that MIN_SERVO_POSITION is always 0. Is that okay?
 
     // If this servo is inverted, do it now
-    if(s->inverted) position = MAX_SERVO_POSITION - position;
+    if(inverted) position = MAX_SERVO_POSITION - position;
 
     // What percentage of our travel is expected?
     float travel_percentage = (float)position / MAX_SERVO_POSITION;
-    float desired_pulse_length_us = (float)(((s->max_pulse_us - s->min_pulse_us)) * travel_percentage)
-            + (float)s->min_pulse_us;
+    float desired_pulse_length_us = (float)(((max_pulse_us - min_pulse_us)) * travel_percentage)
+            + (float)min_pulse_us;
 
     // Now that we know how many microseconds we're expected to have, map that to
     // a frame and a value that can be passed to the PWM controller
-    float frame_active = desired_pulse_length_us / (float)(s->frame_length_us);
-    s->desired_ticks = (float)s->resolution * frame_active;
-    s->current_position = position;
+    float frame_active = desired_pulse_length_us / (float)(frame_length_us);
+    desired_ticks = (float)resolution * frame_active;
+    current_position = position;
 
     verbose("requesting servo %d be set to position %d (%d ticks)",
-          s->gpio,
-          s->current_position,
-          s->desired_ticks);
+          gpio,
+          current_position,
+          desired_ticks);
 
     number_of_moves++;
+}
+
+uint16_t Servo::getPosition() const {
+    return current_position;
+}
+
+uint Servo::getSlice() const {
+    return slice;
+}
+
+uint Servo::getChannel() const {
+    return channel;
+}
+
+uint Servo::getDesiredTicks() const {
+    return desired_ticks;
 }
 
 /**
@@ -170,7 +184,7 @@ void servo_move(Servo* s, uint16_t position) {
  * @param d speed (currently unused)
  * @return the wrap counter wrap value for this slice an channel (aka the resolution)
  */
-uint32_t pwm_set_freq_duty(uint slice_num, uint chan, uint32_t frequency, int d) {
+uint32_t Servo::pwm_set_freq_duty(uint slice_num, uint chan, uint32_t frequency, int d) {
     uint32_t clock = 125000000;
     uint32_t divider16 = clock / frequency / 4096 + (clock % (frequency * 4096) != 0);
     if (divider16 / 16 == 0) divider16 = 16;
