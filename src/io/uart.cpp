@@ -7,7 +7,6 @@
 
 #include <FreeRTOS.h>
 #include <queue.h>
-#include <task.h>
 
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
@@ -15,6 +14,12 @@
 
 #include "uart.h"
 #include "logging/logging.h"
+
+// Statics
+uint32_t UART::messagesProcessed;
+u_int8_t UART::header[HEADER_SIZE];
+QueueHandle_t UART::incomingQueue;
+
 
 UART::UART() {
 

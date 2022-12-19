@@ -8,7 +8,7 @@
 #include "hardware/uart.h"
 
 #include "controller.h"
-#include "io.h"
+#include "handler.h"
 
 extern TaskHandle_t messageQueueReaderTaskHandle;
 
@@ -28,6 +28,7 @@ extern TaskHandle_t messageQueueReaderTaskHandle;
  */
 #define HEADER_SIZE 3
 
+
 class UART : public IOHandler {
 
 public:
@@ -36,7 +37,7 @@ public:
     int init() override;
     uint32_t getMessagesProcessed() override;
 
-    static void on_uart_rx();
+    static __isr void on_uart_rx();
 
 private:
     static uint32_t messagesProcessed;

@@ -17,8 +17,11 @@
 #include "logging/logging.h"
 #include "device/servo.h"
 #include "tasks.h"
-#include "io/dmx.h"
 #include "device/relay.h"
+
+#include "io/dmx.h"
+#include "io/handler.h"
+#include "io/uart.h"
 
 
 // Located in tasks.cpp
@@ -33,6 +36,8 @@ uint32_t pwm_wraps = 0;
 Servo* servos[NUMBER_OF_SERVOS];
 Relay* creature_power;
 
+IOHandler* input;
+IOHandler* dmxInput;
 
 /**
  * IRQ handler to update the duty cycle on our servos
@@ -58,12 +63,21 @@ int main() {
     logger_init();
     debug("Logging running!");
 
+    // TODO: Just for testing
+    input = new UART();
+    input->init();
+
+    dmxInput = new DMX();
+    ((DMX*)dmxInput)->setInputPin(DMX_GPIO_PIN);
+    dmxInput->init();
+
+
     // Turn off the e-stop
     creature_power = new Relay(E_STOP_PIN, true);
     creature_power->turnOn();
 
     // Fire up DMX
-    dmx_init(DMX_GPIO_PIN);
+    //dmx_init(DMX_GPIO_PIN);
 
 
     // Create the servos

@@ -25,8 +25,8 @@ include_directories(
 file(GLOB sourceFiles
         src/*
         src/device/*
-        src/logging/*
         src/io/*
+        src/logging/*
         )
 
 add_executable(controller
