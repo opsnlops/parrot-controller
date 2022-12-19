@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../controller.h"
+#include "controller.h"
 
 #include <cstring>
 #include <cstdio>

@@ -1,5 +1,5 @@
 
-#include "../controller.h"
+#include "controller.h"
 
 #include <cstdio>
 #include <cstdarg>
@@ -9,7 +9,7 @@
 #include <queue.h>
 #include "pico/time.h"
 
-#include "../tasks.h"
+#include "tasks.h"
 #include "logging.h"
 
 

@@ -6,7 +6,7 @@
 #include "pico/stdlib.h"
 
 
-#include <DmxInput.h>
+#include "Pico-DMX/src/DmxInput.h"
 
 
 int dmx_init(int dmx_input_pin);

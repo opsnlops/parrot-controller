@@ -19,7 +19,7 @@
 #include "logging/logging.h"
 #include "servo.h"
 #include "tasks.h"
-#include "dmx.h"
+#include "io/dmx.h"
 #include "relay.h"
 
 

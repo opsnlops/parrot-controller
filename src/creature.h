@@ -31,3 +31,8 @@
 
 
 #define DMX_NUMBER_OF_CHANNELS      9
+
+
+class Creature {
+
+};

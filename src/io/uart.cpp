@@ -1,8 +1,8 @@
 
-#include "creature.h"
-#include "controller.h"
+#include "src/creature.h"
+#include "src/controller.h"
 
-#include "wire_decoder.h"
+#include "uart.h"
 
 #include <fcntl.h>
 #include <cassert>
@@ -14,8 +14,8 @@
 #include <queue.h>
 #include <task.h>
 
-#include "logging/logging.h"
-#include "servo.h"
+#include "src/logging/logging.h"
+#include "src/servo.h"
 
 
 #ifdef USE_UART_CONTROL

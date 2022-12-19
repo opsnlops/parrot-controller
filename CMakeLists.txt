@@ -16,9 +16,14 @@ pico_sdk_init()
 # Pull in the DMX library
 include(Pico-DMX/interfaceLibForPicoSDK.cmake)
 
+# Set up our includes
+include_directories(src/)
+
+# Our source files
 file(GLOB sourceFiles
         src/*
         src/logging/*
+        src/io/*
         )
 
 add_executable(controller

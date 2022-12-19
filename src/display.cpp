@@ -10,7 +10,7 @@
 #include "display.h"
 #include "logging/logging.h"
 #include "servo.h"
-#include "dmx.h"
+#include "io/dmx.h"
 #include "relay.h"
 
 // Use the namespace for convenience

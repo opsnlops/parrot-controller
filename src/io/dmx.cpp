@@ -8,8 +8,6 @@
 #include "dmx.h"
 #include "tasks.h"
 
-#include <DmxInput.h>
-
 
 DmxInput dmx_input;
 volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
