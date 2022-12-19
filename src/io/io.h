@@ -2,7 +2,7 @@
 #pragma once
 
 
-class IO {
+class IOHandler {
 
 public:
     virtual int init() = 0;

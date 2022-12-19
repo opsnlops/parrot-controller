@@ -28,7 +28,7 @@ extern TaskHandle_t messageQueueReaderTaskHandle;
  */
 #define HEADER_SIZE 3
 
-class UART : public IO {
+class UART : public IOHandler {
 
 public:
 
