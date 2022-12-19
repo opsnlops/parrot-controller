@@ -7,8 +7,6 @@
 // Just because it's funny
 #define EVER ;;
 
-// The header is defined in main.cpp
-#define HEADER_SIZE 3
 
 /*
  * Display Stuff

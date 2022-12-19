@@ -1,32 +1,130 @@
 
-#include "src/creature.h"
-#include "src/controller.h"
+#include "creature.h"
+#include "controller.h"
 
-#include "uart.h"
-
-#include <fcntl.h>
-#include <cassert>
 #include <climits>
-#include <cstdio>
 #include <unistd.h>
 
 #include <FreeRTOS.h>
 #include <queue.h>
 #include <task.h>
 
-#include "src/logging/logging.h"
-#include "device/servo.h"
+#include "pico/stdlib.h"
+#include "hardware/irq.h"
+#include "hardware/uart.h"
+
+#include "uart.h"
+#include "logging/logging.h"
+
+UART::UART() {
+
+    messagesProcessed = 0;
+
+    // HOP
+    header[0] = 0x48;
+    header[1] = 0x4F;
+    header[2] = 0x50;
+
+    incomingQueue = nullptr;
+}
+
+uint32_t UART::getMessagesProcessed() {
+    return messagesProcessed;
+}
+
+int UART::init() {
+
+    debug("starting up the UART I/O processor");
+
+    // Create the queue for incoming characters and register it with FreeRTOS's
+    // registry for debugging purposes
+    incomingQueue = xQueueCreate(INCOMING_CHARACTER_QUEUE_SIZE, sizeof(uint8_t));
+    vQueueAddToRegistry(incomingQueue, "incomingQueue");
+
+    uart_init(UART_ID, 2400);
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
+    uint actual = uart_set_baudrate(UART_ID, BAUD_RATE);
+    debug("Actual baud: %d\n", actual);
+
+    // Set UART flow control CTS/RTS, we don't want these, so turn them off
+    uart_set_hw_flow(UART_ID, false, false);
+
+    // Set our data format
+    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
+
+    // Turn off FIFO's - we want to do this character by character
+    uart_set_fifo_enabled(UART_ID, false);
+
+    // Set up a RX interrupt
+    int UART_IRQ = UART1_IRQ;
+
+    // And set up and enable the interrupt handlers
+    irq_set_exclusive_handler(UART_IRQ, on_uart_rx);
+    irq_set_enabled(UART_IRQ, true);
+
+    // Now enable the UART to send interrupts - RX only
+    uart_set_irq_enables(UART_ID, true, false);
+
+    return 1;
+}
+
+/**
+ * ISR that handles incoming characters from the external port
+ */
+void __isr UART::on_uart_rx() {
+
+    while (uart_is_readable(UART_ID)) {
+
+        uint8_t value = uart_getc(UART_ID);
+
+        // Drop it into the queue
+        xQueueSendToBackFromISR(incomingQueue, &value, NULL);
+        messagesProcessed++;
+    }
+}
+
+uint16_t UART::convert_dmx_position_to_servo_position(u_int8_t incoming_value) {
+
+    float percentage_requested = (float) incoming_value / (float) UCHAR_MAX;
+
+    uint16_t local_requested = MAX_SERVO_POSITION * percentage_requested;
+
+    verbose("converted %d -> %d", incoming_value, local_requested);
+
+    return local_requested;
+
+}
+
+void UART::process_uart_frame(u_int8_t *buffer) {
+
+    debug("processing frame!");
+
+    // We've already verified the last byte, so let's check the header
+    if(memcmp(reinterpret_cast<char*>(buffer), reinterpret_cast<char*>(header), HEADER_SIZE) == 0)
+    {
+        debug("valid frame");
+
+        for(int i = HEADER_SIZE; i < HEADER_SIZE + NUMBER_OF_SERVOS; i++)
+        {
+            // TODO: This should fill out the desired state to hand to the controller
+            //servo_move(&servos[i - HEADER_SIZE], convert_dmx_position_to_servo_position(buffer[i]));
+        }
+
+    }
+    else
+    {
+        warning("header not found in frame; dropping");
+    }
+
+
+
+}
+
 
 
 #ifdef USE_UART_CONTROL
-
-// All of these are in main.cpp
-extern QueueHandle_t incomingQueue;
-extern Servo servos[NUMBER_OF_SERVOS];
-
-// HOP
-u_int8_t header[HEADER_SIZE] = {0x48, 0x4F, 0x50};
-
 
 
 // Read from the queue and print it to the screen for now
@@ -89,43 +187,6 @@ portTASK_FUNCTION(messageQueueReaderTask, pvParameters) {
         }
     }
 #pragma clang diagnostic pop
-
-}
-
-
-uint16_t convert_dmx_position_to_servo_position(u_int8_t incoming_value) {
-
-    float percentage_requested = (float) incoming_value / (float) UCHAR_MAX;
-
-    uint16_t local_requested = MAX_SERVO_POSITION * percentage_requested;
-
-    verbose("converted %d -> %d", incoming_value, local_requested);
-
-    return local_requested;
-
-}
-
-void process_uart_frame(u_int8_t *buffer) {
-
-    debug("processing frame!");
-
-    // We've already verified the last byte, so let's check the header
-    if(memcmp(reinterpret_cast<char*>(buffer), reinterpret_cast<char*>(header), HEADER_SIZE) == 0)
-    {
-        debug("valid frame");
-
-        for(int i = HEADER_SIZE; i < HEADER_SIZE + NUMBER_OF_SERVOS; i++)
-        {
-            servo_move(&servos[i - HEADER_SIZE], convert_dmx_position_to_servo_position(buffer[i]));
-        }
-
-    }
-    else
-    {
-        warning("header not found in frame; dropping");
-    }
-
-
 
 }
 

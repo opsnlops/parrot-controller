@@ -1,6 +1,4 @@
 
-#include "controller.h"
-
 #include <cstdio>
 #include <climits>
 
@@ -9,12 +7,12 @@
 #include <task.h>
 #include <cstring>
 
-#include "creature.h"
-
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
 #include "hardware/pwm.h"
 
+#include "creature.h"
+#include "controller.h"
 
 #include "logging/logging.h"
 #include "device/servo.h"
@@ -26,55 +24,15 @@
 // Located in tasks.cpp
 extern TaskHandle_t displayUpdateTaskHandle;
 extern TaskHandle_t dmx_processing_task_handle;
-extern TaskHandle_t servoDebugTaskHandle;
-extern TaskHandle_t relayDebugTaskHandle;
 
-// Serial port parameters (if enabled)
-#ifdef USE_UART_CONTROL
-
-    #include "hardware/uart.h"
-
-    extern TaskHandle_t messageQueueReaderTaskHandle;
-
-    #define UART_ID uart1
-    #define UART_TX_PIN 4
-    #define UART_RX_PIN 5
-
-    #define BAUD_RATE 57600
-    #define DATA_BITS 8
-    #define STOP_BITS 1
-    #define PARITY    UART_PARITY_NONE
-#endif
-// END UART_CONTROL
-
-
-uint32_t bytes_received = 0;
 uint32_t pwm_wraps = 0;
 
 
-// Setup a queue for incoming messages
-//QueueHandle_t incomingQueue = nullptr;
 
 // Create an array of servos
 Servo* servos[NUMBER_OF_SERVOS];
-
-
 Relay* creature_power;
 
-#ifdef USE_UART_CONTROL
-// RX interrupt handler
-void on_uart_rx() {
-
-    while (uart_is_readable(UART_ID)) {
-
-        uint8_t value = uart_getc(UART_ID);
-
-        // Drop it into a queue
-        xQueueSendToBackFromISR(incomingQueue, &value, NULL);
-        bytes_received++;
-    }
-}
-#endif
 
 /**
  * IRQ handler to update the duty cycle on our servos
@@ -122,31 +80,7 @@ int main() {
     servos[1]->turnOn();
 
 #ifdef USE_UART_CONTROL
-    uart_init(UART_ID, 2400);
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
-    uint actual = uart_set_baudrate(UART_ID, BAUD_RATE);
-    debug("Actual baud: %d\n", actual);
-
-    // Set UART flow control CTS/RTS, we don't want these, so turn them off
-    uart_set_hw_flow(UART_ID, false, false);
-
-    // Set our data format
-    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
-
-    // Turn off FIFO's - we want to do this character by character
-    uart_set_fifo_enabled(UART_ID, false);
-
-    // Set up a RX interrupt
-    int UART_IRQ = UART1_IRQ;
-
-    // And set up and enable the interrupt handlers
-    irq_set_exclusive_handler(UART_IRQ, on_uart_rx);
-    irq_set_enabled(UART_IRQ, true);
-
-    // Now enable the UART to send interrupts - RX only
-    uart_set_irq_enables(UART_ID, true, false);
 
 
     // Start the task to read the queue
