@@ -9,9 +9,9 @@
 
 #include "display.h"
 #include "logging/logging.h"
-#include "servo.h"
+#include "device/servo.h"
 #include "io/dmx.h"
-#include "relay.h"
+#include "device/relay.h"
 
 // Use the namespace for convenience
 using namespace pico_ssd1306;

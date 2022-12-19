@@ -15,7 +15,7 @@
 #include <task.h>
 
 #include "src/logging/logging.h"
-#include "src/servo.h"
+#include "device/servo.h"
 
 
 #ifdef USE_UART_CONTROL

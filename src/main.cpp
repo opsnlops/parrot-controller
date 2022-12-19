@@ -17,10 +17,10 @@
 
 
 #include "logging/logging.h"
-#include "servo.h"
+#include "device/servo.h"
 #include "tasks.h"
 #include "io/dmx.h"
-#include "relay.h"
+#include "device/relay.h"
 
 
 // Located in tasks.cpp

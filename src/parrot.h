@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "relay.h"
-#include "servo.h"
+#include "device/relay.h"
+#include "device/servo.h"
 
 class Parrot {
 

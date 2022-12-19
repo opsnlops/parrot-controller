@@ -17,11 +17,14 @@ pico_sdk_init()
 include(Pico-DMX/interfaceLibForPicoSDK.cmake)
 
 # Set up our includes
-include_directories(src/)
+include_directories(
+        src/
+        )
 
 # Our source files
 file(GLOB sourceFiles
         src/*
+        src/device/*
         src/logging/*
         src/io/*
         )
