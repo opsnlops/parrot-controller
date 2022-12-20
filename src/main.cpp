@@ -1,6 +1,8 @@
 
 #include <cstdio>
 #include <climits>
+#include <string>
+#include <list>
 
 #include <FreeRTOS.h>
 #include <queue.h>
@@ -11,8 +13,11 @@
 #include "hardware/irq.h"
 #include "hardware/pwm.h"
 
-#include "creature.h"
-#include "controller.h"
+#include "creature/parrot.h"
+#include "creature/creature.h"
+
+#include "controller-config.h"
+#include "controller/controller.h"
 
 #include "logging/logging.h"
 #include "device/servo.h"
@@ -71,6 +76,13 @@ int main() {
     ((DMX*)dmxInput)->setInputPin(DMX_GPIO_PIN);
     dmxInput->init();
 
+    //auto* myJoints = new std::list<Creatures::Joint>();
+    //auto it = myJoints->begin();
+    //myJoints->insert(it, new Creatures::Joint("etsts", 0, nullptr));
+    auto* parrot = new Creatures::Parrot("Pretty Bird", nullptr);
+
+    info("I see a Parrot named %s", parrot->getName().c_str());
+
 
     // Turn off the e-stop
     creature_power = new Relay(E_STOP_PIN, true);
@@ -81,8 +93,8 @@ int main() {
 
 
     // Create the servos
-    servos[0] = new Servo(22, SERVO_HZ, 250, 2500, false);
-    servos[1] = new Servo(2, SERVO_HZ, 250, 2500, true);
+    servos[0] = new Servo(22, "Servo One", SERVO_HZ, 250, 2500, false);
+    servos[1] = new Servo(2, "Servo Two", SERVO_HZ, 250, 2500, true);
 
     // Install the IRQ handler for the servos
     pwm_set_irq_enabled(servos[0]->getSlice(), true);

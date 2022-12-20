@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#include "creature.h"
+#include "controller-config.h"
 
 #include "logging/logging.h"
 #include "dmx.h"
@@ -34,7 +34,7 @@ uint32_t DMX::getMessagesProcessed() {
 
 int DMX::init()
 {
-    // TODO: Asset that the input pin is assigned
+    // TODO: Assert that the input pin is assigned
 
     info("Starting up DMS on pin %d", inputPin);
 

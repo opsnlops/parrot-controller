@@ -1,8 +1,14 @@
 
-#include "creature.h"
-#include "controller.h"
+#include "controller-config.h"
+#include "controller/controller.h"
 
 #include <cstdio>
+#include <list>
+
+#include <FreeRTOS.h>
+#include <task.h>
+
+#include "creature/creature.h"
 
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
@@ -24,7 +30,7 @@ extern Servo* servos[NUMBER_OF_SERVOS];
 extern Relay *creature_power;
 extern volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
 
-void set_up_display_i2c() {
+void Display::set_up_display_i2c() {
 
     debug("setting up the display's i2c");
 
@@ -45,7 +51,7 @@ void set_up_display_i2c() {
 // Read from the queue and print it to the screen for now
 portTASK_FUNCTION(displayUpdateTask, pvParameters) {
 
-    set_up_display_i2c();
+    Display::set_up_display_i2c();
 
     SSD1306 display = SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH32);
     display.setOrientation(false);  // False means horizontally

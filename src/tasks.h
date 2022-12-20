@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "creature.h"
+#include "controller-config.h"
 
 #include <FreeRTOS.h>
 #include <task.h>

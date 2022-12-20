@@ -24,6 +24,8 @@ include_directories(
 # Our source files
 file(GLOB sourceFiles
         src/*
+        src/controller/*
+        src/creature/*
         src/device/*
         src/io/*
         src/logging/*

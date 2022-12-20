@@ -10,5 +10,11 @@
 #define DISPLAY_I2C_CONTROLLER i2c0
 #define DISPLAY_I2C_DEVICE_ADDRESS 0x3C
 
+class Display {
 
-void set_up_display_i2c();
+public:
+    static void set_up_display_i2c();
+
+};
+
+

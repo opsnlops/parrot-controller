@@ -7,7 +7,7 @@
 
 #include "hardware/uart.h"
 
-#include "controller.h"
+#include "controller/controller.h"
 #include "handler.h"
 
 extern TaskHandle_t messageQueueReaderTaskHandle;

@@ -1,12 +1,14 @@
 
-#include "creature.h"
-#include "controller.h"
+#include "controller-config.h"
+#include "controller/controller.h"
 
 #include <climits>
 #include <unistd.h>
 
 #include <FreeRTOS.h>
 #include <queue.h>
+
+#include "creature/creature.h"
 
 #include "pico/stdlib.h"
 #include "hardware/irq.h"

@@ -22,4 +22,5 @@ public:
      * @return the number of messages
      */
     virtual uint32_t getMessagesProcessed() = 0;
+
 };
