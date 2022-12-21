@@ -2,7 +2,6 @@
 #pragma once
 
 #include <cstdio>
-#include <string>
 #include "pico/stdlib.h"
 
 #include "hardware/gpio.h"
@@ -25,14 +24,14 @@
 class Servo {
 
 public:
-    Servo(uint gpio, std::string name, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted);
+    Servo(uint gpio, const char* name, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted);
     void turnOn();
     void turnOff();
     uint16_t getPosition() const;
     uint getSlice() const;
     uint getChannel() const;
     uint getDesiredTicks() const;
-    std::string getName() const;
+    const char* getName() const;
     void move(uint16_t position);
 
 private:
@@ -48,7 +47,7 @@ private:
     bool on;                    // Is the servo active?
     bool inverted;              // Should the movements be inverted?
     uint32_t desired_ticks;     // The number of ticks we should be set to on the next cycle
-    std::string name;           // This servo's name
+    const char* name;           // This servo's name
 
     static uint32_t pwm_set_freq_duty(uint slice_num, uint chan, uint32_t frequency, int d);
 };

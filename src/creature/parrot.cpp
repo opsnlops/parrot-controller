@@ -1,17 +1,18 @@
 
-
-#include <list>
-#include <string>
-
-
 #include "parrot.h"
 #include "creature.h"
 
-namespace Creatures {
+Parrot::Parrot(const char* name)
+        : Creature(name) {
 
-    Parrot::Parrot(const std::string &name, std::list<Creatures::Joint> *joints)
-            : Creature(name, joints) {
-        info("My name is %s", name.c_str());
-    }
+    info("Hello! My name is %s!", name);
+}
 
+void Parrot::start() {
+
+    // Make sure we have a controller
+    assert(this->myController != nullptr);
+
+
+    debug("started!");
 }

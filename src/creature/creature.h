@@ -1,28 +1,47 @@
 
 #pragma once
 
-#include <string>
-#include <list>
+#include <climits>
+#include <unistd.h>
 
-#include "joint.h"
+#include "controller/controller.h"
 
 #define NUMBER_OF_SERVOS    6
+#define NUMBER_OF_JOINTS    6
 
-namespace Creatures {
+class Creature {
 
-    class Creature {
+public:
 
-    public:
-        Creature(const std::string &name, std::list<Creatures::Joint> *joints);
+    explicit Creature(const char* name);
 
-        std::string getName();
+    /**
+     * Storage space for the joints!
+     *
+     * This is static and public since it's accessed constantly, and I want
+     * to save the cost of a function call and a bunch of getters and
+     * setters.
+     */
+    static uint16_t joints[NUMBER_OF_JOINTS];
 
-        std::list<Creatures::Joint> *getJoints();
+    const char* getName();
 
-    private:
+    /**
+     * Establishes a link back to our controller
+     *
+     * @param controller a pointer to our controller
+     */
+    void setController(Controller* controller);
 
-        std::string name;
-        std::list<Creatures::Joint> *joints;
-    };
+    /**
+     * Start running!
+     */
+    virtual void start() = 0;
 
-}
+protected:
+
+    const char* name;
+    Controller* myController;
+
+};
+

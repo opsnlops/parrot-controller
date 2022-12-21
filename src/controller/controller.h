@@ -1,9 +1,6 @@
 
 #pragma once
 
-
-#include <list>
-
 #include "controller-config.h"
 #include "device/relay.h"
 #include "device/servo.h"
@@ -16,7 +13,7 @@ private:
     uint8_t numberOfJoints;
     bool poweredOn;
 
-    std::list<Servo> servos;
+    Servo* servos[MAX_NUMBER_OF_SERVOS];
     Relay* powerRelay;
 
 

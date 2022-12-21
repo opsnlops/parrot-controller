@@ -1,22 +1,24 @@
 
-#include <string>
-#include <list>
 
 #include "creature.h"
 
-namespace Creatures {
+#include "logging/logging.h"
 
-    Creature::Creature(const std::string &name, std::list<Creatures::Joint> *joints) {
-        this->name = name;
-        this->joints = joints;
-    }
 
-    std::list<Creatures::Joint> *Creature::getJoints() {
-        return this->joints;
-    }
+Creature::Creature(const char* name) {
 
-    std::string Creature::getName() {
-        return this->name;
-    }
+    this->name = name;
+    this->myController = nullptr;
 
+    debug("Creature() called! name: %s", this->name);
+}
+
+const char* Creature::getName() {
+    return this->name;
+}
+
+void Creature::setController(Controller *controller) {
+    this->myController = controller;
+
+    debug("established a link to our controller");
 }

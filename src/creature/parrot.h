@@ -8,25 +8,24 @@
 #include "device/relay.h"
 #include "device/servo.h"
 
-namespace Creatures {
 
-    class Parrot : public Creature {
+class Parrot : public Creature {
 
-    public:
+public:
 
-        Parrot(const std::string &name, std::list<Creatures::Joint> *joints);
+    Parrot(const char* name);
 
+    void start();
 
-        enum joint {
-            neck_left,
-            neck_right,
-            neck_rotate,
-            beak,
-            chest,
-            body_lean,
-            stand_rotate
-        };
-
+    enum joint {
+        neck_left,
+        neck_right,
+        neck_rotate,
+        beak,
+        chest,
+        body_lean,
+        stand_rotate
     };
 
-}
+};
+

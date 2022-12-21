@@ -1,13 +1,10 @@
 
-#include <cstdio>
+
 #include <climits>
-#include <string>
-#include <list>
 
 #include <FreeRTOS.h>
 #include <queue.h>
 #include <task.h>
-#include <cstring>
 
 #include "pico/stdlib.h"
 #include "hardware/irq.h"
@@ -76,13 +73,8 @@ int main() {
     ((DMX*)dmxInput)->setInputPin(DMX_GPIO_PIN);
     dmxInput->init();
 
-    //auto* myJoints = new std::list<Creatures::Joint>();
-    //auto it = myJoints->begin();
-    //myJoints->insert(it, new Creatures::Joint("etsts", 0, nullptr));
-    auto* parrot = new Creatures::Parrot("Pretty Bird", nullptr);
-
-    info("I see a Parrot named %s", parrot->getName().c_str());
-
+    auto* parrot = new Parrot("Beaky");
+    info("I see a new parrot! Its name is %s!", parrot->getName());
 
     // Turn off the e-stop
     creature_power = new Relay(E_STOP_PIN, true);
