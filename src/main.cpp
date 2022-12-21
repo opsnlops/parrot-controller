@@ -16,14 +16,14 @@
 #include "logging/logging.h"
 #include "tasks.h"
 #include "device/relay.h"
+#include "device/display.h"
 
 #include "io/dmx.h"
 #include "io/handler.h"
 #include "io/uart.h"
 
 
-// Located in tasks.cpp
-extern TaskHandle_t displayUpdateTaskHandle;
+
 extern TaskHandle_t dmx_processing_task_handle;
 
 IOHandler *input;
@@ -48,13 +48,18 @@ int main() {
 
     auto *controller = new Controller();
     auto *parrot = new Parrot("Beaky");
+    auto *display = new Display(controller, dmxInput);
 
     parrot->setController(controller);
     parrot->init();
 
-    parrot->start();
+    Display::init();
+
+
     parrot->start();
     info("I see a new parrot! Its name is %s!", parrot->getName());
+
+    Display::start();
 
 
 #ifdef USE_UART_CONTROL
@@ -86,13 +91,6 @@ int main() {
                 1,
                 &relayDebugTaskHandle);
   */
-
-    xTaskCreate(displayUpdateTask,
-                "displayUpdateTask",
-                1024,
-                nullptr,
-                0,          // Low priority
-                &displayUpdateTaskHandle);
 
 
     xTaskCreate(dmx_processing_task,

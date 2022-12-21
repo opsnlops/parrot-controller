@@ -35,7 +35,7 @@ UART::UART() {
     incomingQueue = nullptr;
 }
 
-uint32_t UART::getMessagesProcessed() {
+uint32_t UART::getNumberOfFramesReceived() {
     return messagesProcessed;
 }
 

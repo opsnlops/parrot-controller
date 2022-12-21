@@ -35,7 +35,7 @@ public:
 
     UART();
     int init() override;
-    uint32_t getMessagesProcessed() override;
+    uint32_t getNumberOfFramesReceived() override;
 
     static __isr void on_uart_rx();
 

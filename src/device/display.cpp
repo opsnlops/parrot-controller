@@ -3,32 +3,49 @@
 
 #include <cstdio>
 
-
 #include <FreeRTOS.h>
 #include <task.h>
-
-#include "controller/controller.h"
-#include "creature/creature.h"
 
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 
+#include "pico-ssd1306/ssd1306.h"
+#include "pico-ssd1306/textRenderer/TextRenderer.h"
+
+#include "tasks.h"
+#include "controller/controller.h"
 #include "display.h"
 #include "logging/logging.h"
-#include "device/servo.h"
 #include "io/dmx.h"
-#include "device/relay.h"
+
 
 // Use the namespace for convenience
 using namespace pico_ssd1306;
 
-extern Controller* controller;
 extern uint32_t bytes_received;
 extern uint32_t number_of_moves;
 extern uint32_t dmx_packets_read;
 extern volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
 
-void Display::set_up_display_i2c() {
+// Located in tasks.cpp
+extern TaskHandle_t displayUpdateTaskHandle;
+
+// Static members
+SSD1306 Display::display = SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH32);;
+Controller* Display::controller;
+IOHandler* Display::io;
+
+Display::Display(Controller *controller, IOHandler *io) {
+
+    debug("starting up the display");
+
+    Display::controller = controller;
+    Display::io = io;
+}
+
+
+
+void Display::init() {
 
     debug("setting up the display's i2c");
 
@@ -43,23 +60,29 @@ void Display::set_up_display_i2c() {
 
     // Give the display a moment to get started, as per the docs
     vTaskDelay(pdMS_TO_TICKS(250));
-
 }
+
+void Display::start()
+{
+    xTaskCreate(displayUpdateTask,
+                "displayUpdateTask",
+                1024,
+                nullptr,
+                0,          // Low priority
+                &displayUpdateTaskHandle);
+}
+
 
 // Read from the queue and print it to the screen for now
 portTASK_FUNCTION(displayUpdateTask, pvParameters) {
 
-    Display::set_up_display_i2c();
 
-    SSD1306 display = SSD1306(DISPLAY_I2C_CONTROLLER, DISPLAY_I2C_DEVICE_ADDRESS, Size::W128xH32);
-    display.setOrientation(false);  // False means horizontally
-
-    uint8_t number_lines = 4;
+    Display::display.setOrientation(false);  // False means horizontally
 
     // Allocate one buffer_line_one for the display
-    char buffer[number_lines][DISPLAY_BUFFER_SIZE + 1];
+    char buffer[DISPLAY_NUMBER_OF_LINES][DISPLAY_BUFFER_SIZE + 1];
 
-    for(int i = 0; i < number_lines; i++)
+    for(int i = 0; i < DISPLAY_NUMBER_OF_LINES; i++)
         memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
 
@@ -70,26 +93,26 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
     for (EVER) {
 
         // Clear the display
-        display.clear();
+        Display::display.clear();
 
         // Null out the buffers
-        for(int i = 0; i < number_lines; i++)
+        for(int i = 0; i < DISPLAY_NUMBER_OF_LINES; i++)
             memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
         sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d", Controller::numberOfPWMWraps, Controller::getServoPosition(0), Controller::getServoPosition(1));
-        sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, controller->isPoweredOn() ? "On" : "Off");
-        sprintf(buffer[2], "  DMX: %-5lu  Mem: %d", dmx_packets_read, xPortGetFreeHeapSize());
+        sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, Display::controller->isPoweredOn() ? "On" : "Off");
+        sprintf(buffer[2], "  DMX: %-5lu  Mem: %d", Display::io->getNumberOfFramesReceived(), xPortGetFreeHeapSize());
         sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", (int)dmx_buffer[1], (int)dmx_buffer[2], (int)dmx_buffer[3],
                 (int)dmx_buffer[4], (int)dmx_buffer[5],(int)dmx_buffer[6]);
 
 
-        drawText(&display, font_5x8, buffer[0], 0, 0);
-        drawText(&display, font_5x8, buffer[1], 0, 7);
-        drawText(&display, font_5x8, buffer[2], 0, 14);
-        drawText(&display, font_5x8, buffer[3], 0, 21);
+        drawText(&Display::display, font_5x8, buffer[0], 0, 0);
+        drawText(&Display::display, font_5x8, buffer[1], 0, 7);
+        drawText(&Display::display, font_5x8, buffer[2], 0, 14);
+        drawText(&Display::display, font_5x8, buffer[3], 0, 21);
         //drawText(&display, font_5x8, buffer[4], 0, 28);
 
-        display.sendBuffer();
+        Display::display.sendBuffer();
 
         vTaskDelay(pdMS_TO_TICKS(DISPLAY_UPDATE_TIME_MS));
     }

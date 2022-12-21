@@ -21,6 +21,6 @@ public:
      *
      * @return the number of messages
      */
-    virtual uint32_t getMessagesProcessed() = 0;
+    virtual uint32_t getNumberOfFramesReceived() = 0;
 
 };

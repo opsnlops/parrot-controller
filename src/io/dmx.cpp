@@ -28,7 +28,7 @@ void DMX::setInputPin(int inputPin) {
     this->inputPin = inputPin;
 }
 
-uint32_t DMX::getMessagesProcessed() {
+uint32_t DMX::getNumberOfFramesReceived() {
     return messagesProcessed;
 }
 

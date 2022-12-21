@@ -20,7 +20,7 @@ public:
 
     void setInputPin(int inputPin);
 
-    uint32_t getMessagesProcessed() override;
+    uint32_t getNumberOfFramesReceived() override;
 
     static void __isr dmxDataGotten(DmxInput* instance);
 
