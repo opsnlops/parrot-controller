@@ -1,13 +1,13 @@
 
 #include "controller-config.h"
-#include "controller/controller.h"
 
 #include <cstdio>
-#include <list>
+
 
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "controller/controller.h"
 #include "creature/creature.h"
 
 #include "hardware/i2c.h"
@@ -22,12 +22,10 @@
 // Use the namespace for convenience
 using namespace pico_ssd1306;
 
+extern Controller* controller;
 extern uint32_t bytes_received;
-extern uint32_t pwm_wraps;
 extern uint32_t number_of_moves;
 extern uint32_t dmx_packets_read;
-extern Servo* servos[NUMBER_OF_SERVOS];
-extern Relay *creature_power;
 extern volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
 
 void Display::set_up_display_i2c() {
@@ -78,8 +76,8 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
         for(int i = 0; i < number_lines; i++)
             memset(buffer[i], '\0', DISPLAY_BUFFER_SIZE + 1);
 
-        sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d", pwm_wraps, servos[0]->getPosition(), servos[1]->getPosition());
-        sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, creature_power->isOn() ? "On" : "Off");
+        sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d", Controller::numberOfPWMWraps, Controller::getServoPosition(0), Controller::getServoPosition(1));
+        sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, controller->isPoweredOn() ? "On" : "Off");
         sprintf(buffer[2], "  DMX: %-5lu  Mem: %d", dmx_packets_read, xPortGetFreeHeapSize());
         sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", (int)dmx_buffer[1], (int)dmx_buffer[2], (int)dmx_buffer[3],
                 (int)dmx_buffer[4], (int)dmx_buffer[5],(int)dmx_buffer[6]);

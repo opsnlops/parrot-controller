@@ -24,7 +24,7 @@
 class Servo {
 
 public:
-    Servo(uint gpio, const char* name, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted);
+    Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted);
     void turnOn();
     void turnOff();
     uint16_t getPosition() const;

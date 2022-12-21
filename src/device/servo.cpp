@@ -1,8 +1,7 @@
 
 #include <cassert>
 
-// Global
-#include "controller/controller.h"
+#include "controller-config.h"
 
 // This module
 #include "servo.h"
@@ -37,15 +36,15 @@ uint32_t number_of_moves = 0;
  * @param max_pulse_us Max pulse length in microseconds
  * @param inverted are this servo's movements inverted?
  */
-Servo::Servo(uint gpio, const char* name, uint32_t frequency, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted) {
+Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted) {
 
     gpio_set_function(gpio, GPIO_FUNC_PWM);
     this->gpio = gpio;
     this->name = name;
-    this->frequency = frequency;
+    this->frequency = SERVO_HZ;
     this->min_pulse_us = min_pulse_us;
     this->max_pulse_us = max_pulse_us;
-    this->frame_length_us = 1000000 / frequency;   // Number of microseconds in each frame (frequency)
+    this->frame_length_us = 1000000 / this->frequency;   // Number of microseconds in each frame (frequency)
     this->slice = pwm_gpio_to_slice_num(gpio);
     this->channel = pwm_gpio_to_channel(gpio);
     this->resolution = pwm_set_freq_duty(this->slice,

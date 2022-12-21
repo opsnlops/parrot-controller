@@ -60,3 +60,23 @@
  */
 #define MIN_SERVO_POSITION          0
 #define MAX_SERVO_POSITION          999
+
+/*
+ * Servo <-> GPIO Pin Mappings
+ */
+#define SERVO_0_GPIO_PIN            0
+#define SERVO_1_GPIO_PIN            1
+#define SERVO_2_GPIO_PIN            2
+#define SERVO_3_GPIO_PIN            3
+#define SERVO_4_GPIO_PIN            4
+#define SERVO_5_GPIO_PIN            5
+#define SERVO_6_GPIO_PIN            6
+#define SERVO_7_GPIO_PIN            7
+#define SERVO_8_GPIO_PIN            8
+#define SERVO_9_GPIO_PIN            9
+#define SERVO_10_GPIO_PIN           10
+#define SERVO_11_GPIO_PIN           11
+#define SERVO_12_GPIO_PIN           12
+#define SERVO_13_GPIO_PIN           13
+#define SERVO_14_GPIO_PIN           14
+#define SERVO_15_GPIO_PIN           15

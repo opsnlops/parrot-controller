@@ -8,6 +8,19 @@ Parrot::Parrot(const char* name)
     info("Hello! My name is %s!", name);
 }
 
+void Parrot::init() {
+    debug("starting creature init");
+
+    // Create all of our servos
+    myController->initServo(NECK_LEFT, "Neck Left", 250, 2500, false);
+    myController->initServo(NECK_RIGHT, "Neck Right", 250, 2500, true);
+    myController->initServo(BEAK, "Beak", 250, 2500, false);
+    myController->initServo(CHEST, "Chest", 250, 2500, false);
+    myController->initServo(BODY_LEAN, "Body Lean", 250, 2500, false);
+    myController->initServo(STAND_ROTATE, "Stand Rotate", 250, 2500, false);
+}
+
+
 void Parrot::start() {
 
     // Make sure we have a controller

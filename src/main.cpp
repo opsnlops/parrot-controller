@@ -7,17 +7,13 @@
 #include <task.h>
 
 #include "pico/stdlib.h"
-#include "hardware/irq.h"
-#include "hardware/pwm.h"
 
 #include "creature/parrot.h"
-#include "creature/creature.h"
 
 #include "controller-config.h"
 #include "controller/controller.h"
 
 #include "logging/logging.h"
-#include "device/servo.h"
 #include "tasks.h"
 #include "device/relay.h"
 
@@ -30,31 +26,8 @@
 extern TaskHandle_t displayUpdateTaskHandle;
 extern TaskHandle_t dmx_processing_task_handle;
 
-uint32_t pwm_wraps = 0;
-
-
-
-// Create an array of servos
-Servo* servos[NUMBER_OF_SERVOS];
-Relay* creature_power;
-
-IOHandler* input;
-IOHandler* dmxInput;
-
-/**
- * IRQ handler to update the duty cycle on our servos
- */
-void __isr on_pwm_wrap_handler() {
-
-    for(auto & servo : servos)
-        pwm_set_chan_level(servo->getSlice(),
-                           servo->getChannel(),
-                           servo->getDesiredTicks());
-
-    pwm_clear_irq(servos[0]->getSlice());
-
-    pwm_wraps++;
-}
+IOHandler *input;
+IOHandler *dmxInput;
 
 
 int main() {
@@ -70,32 +43,19 @@ int main() {
     input->init();
 
     dmxInput = new DMX();
-    ((DMX*)dmxInput)->setInputPin(DMX_GPIO_PIN);
+    ((DMX *) dmxInput)->setInputPin(DMX_GPIO_PIN);
     dmxInput->init();
 
-    auto* parrot = new Parrot("Beaky");
+    auto *controller = new Controller();
+    auto *parrot = new Parrot("Beaky");
+
+    parrot->setController(controller);
+    parrot->init();
+
+    parrot->start();
+    parrot->start();
     info("I see a new parrot! Its name is %s!", parrot->getName());
 
-    // Turn off the e-stop
-    creature_power = new Relay(E_STOP_PIN, true);
-    creature_power->turnOn();
-
-    // Fire up DMX
-    //dmx_init(DMX_GPIO_PIN);
-
-
-    // Create the servos
-    servos[0] = new Servo(22, "Servo One", SERVO_HZ, 250, 2500, false);
-    servos[1] = new Servo(2, "Servo Two", SERVO_HZ, 250, 2500, true);
-
-    // Install the IRQ handler for the servos
-    pwm_set_irq_enabled(servos[0]->getSlice(), true);
-    irq_set_exclusive_handler(PWM_IRQ_WRAP, on_pwm_wrap_handler);
-    irq_set_enabled(PWM_IRQ_WRAP, true);
-
-    // And start them up!
-    servos[0]->turnOn();
-    servos[1]->turnOn();
 
 #ifdef USE_UART_CONTROL
 
@@ -161,25 +121,6 @@ portTASK_FUNCTION(hellorldTask, pvParameters) {
 }
 
 
-portTASK_FUNCTION(servoDebugTask, pvParameters) {
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    for (EVER) {
-
-        // Declare these here, so we're not making new ones in this tight loop
-        int i, j;
-
-        for (i = 0; i < MAX_SERVO_POSITION; i += 5) {
-            for (j = 0; j < NUMBER_OF_SERVOS; j++)
-                servos[j]->move(i);
-
-            vTaskDelay(pdMS_TO_TICKS(20));
-        }
-    }
-#pragma clang diagnostic pop
-}
-
 portTASK_FUNCTION(relayDebugTask, pvParameters) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -188,7 +129,7 @@ portTASK_FUNCTION(relayDebugTask, pvParameters) {
 
         // Test toggling the power on and off to the servos
         vTaskDelay(pdMS_TO_TICKS(10000));
-        creature_power->toggle();
+        //creature_power->toggle();
 
     }
 #pragma clang diagnostic pop

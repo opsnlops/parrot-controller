@@ -6,8 +6,8 @@
 
 #include "controller/controller.h"
 
-#define NUMBER_OF_SERVOS    6
-#define NUMBER_OF_JOINTS    6
+#define NUMBER_OF_SERVOS    7
+#define NUMBER_OF_JOINTS    7
 
 class Creature {
 
@@ -32,6 +32,11 @@ public:
      * @param controller a pointer to our controller
      */
     void setController(Controller* controller);
+
+    /**
+     * Set up the controller
+     */
+    virtual void init() = 0;
 
     /**
      * Start running!
