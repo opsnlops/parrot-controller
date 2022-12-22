@@ -16,11 +16,3 @@
 portTASK_FUNCTION_PROTO(displayUpdateTask, pvParameters);           // used in display.cpp
 portTASK_FUNCTION_PROTO(log_queue_reader_task, pvParameters);       // used in logging/logging.cpp
 portTASK_FUNCTION_PROTO(dmx_processing_task, pvParameters);
-
-#ifdef USE_UART_CONTROL
-portTASK_FUNCTION_PROTO(messageQueueReaderTask, pvParameters);      // used in wire_decoder.cpp
-#endif
-
-// Testing only
-portTASK_FUNCTION_PROTO(servoDebugTask, pvParameters);              // used in main.cpp
-portTASK_FUNCTION_PROTO(relayDebugTask, pvParameters);              // used in main.cpp

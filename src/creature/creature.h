@@ -27,16 +27,9 @@ public:
     const char* getName();
 
     /**
-     * Establishes a link back to our controller
-     *
-     * @param controller a pointer to our controller
-     */
-    void setController(Controller* controller);
-
-    /**
      * Set up the controller
      */
-    virtual void init() = 0;
+    virtual void init(Controller* controller) = 0;
 
     /**
      * Start running!

@@ -49,6 +49,8 @@ Display::Display(Controller *controller, IOHandler *io) {
     gpio_pull_up(12);
     gpio_pull_up(13);
 
+    debug("leaving Display()");
+
 }
 
 Controller* Display::getController() {

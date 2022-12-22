@@ -1,6 +1,4 @@
 
-#include "controller/controller.h"
-
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
@@ -19,6 +17,9 @@ QueueHandle_t creature_log_message_queue_handle;
 
 
 bool logging_queue_exists = false;
+
+
+
 
 void logger_init() {
     creature_log_message_queue_handle = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LogMessage));
@@ -124,7 +125,7 @@ struct LogMessage createMessageObject(u_int8_t level, const char *message, va_li
 void start_log_reader() {
     xTaskCreate(log_queue_reader_task,
                 "log_queue_reader_task",
-                1024,
+                1512,
                 nullptr,
                 1,
                 &log_queue_reader_task_handle);

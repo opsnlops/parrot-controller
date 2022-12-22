@@ -8,8 +8,10 @@ Parrot::Parrot(const char* name)
     info("Hello! My name is %s!", name);
 }
 
-void Parrot::init() {
+void Parrot::init(Controller *controller) {
     debug("starting creature init");
+
+    this->myController = controller;
 
     // Create all of our servos
     myController->initServo(NECK_LEFT, "Neck Left", 250, 2500, false);
@@ -27,5 +29,5 @@ void Parrot::start() {
     assert(this->myController != nullptr);
 
 
-    debug("started!");
+    debug("parrot started!");
 }

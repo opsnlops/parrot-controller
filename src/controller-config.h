@@ -29,9 +29,6 @@
 #define DMX_BASE_CHANNEL            1
 #define DMX_E_STOP_CHANNEL_OFFSET   0
 #define DMX_SMOOTHING_OFFSET        1
-#define DMX_HEAD_LEFT_OFFSET        2
-#define DMX_HEAD_RIGHT_OFFSET       3
-
 
 #define DMX_NUMBER_OF_CHANNELS      9
 
@@ -52,8 +49,8 @@
 /*
  * Logging Config
  */
-#define LOGGING_LEVEL               LOG_LEVEL_VERBOSE
-#define LOGGING_QUEUE_LENGTH        10
+#define LOGGING_LEVEL               LOG_LEVEL_DEBUG
+#define LOGGING_QUEUE_LENGTH        40
 #define LOGGING_MESSAGE_MAX_LENGTH  512
 
 /*
@@ -65,7 +62,7 @@
 /*
  * Servo <-> GPIO Pin Mappings
  */
-#define SERVO_0_GPIO_PIN            0
+#define SERVO_0_GPIO_PIN            22
 #define SERVO_1_GPIO_PIN            1
 #define SERVO_2_GPIO_PIN            2
 #define SERVO_3_GPIO_PIN            3

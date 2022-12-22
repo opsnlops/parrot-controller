@@ -17,8 +17,8 @@ const char* Creature::getName() {
     return this->name;
 }
 
-void Creature::setController(Controller *controller) {
+void Creature::init(Controller *controller) {
     this->myController = controller;
 
-    debug("established a link to our controller");
+    debug("init done, controller exists");
 }

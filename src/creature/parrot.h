@@ -23,10 +23,10 @@ class Parrot : public Creature {
 
 public:
 
-    Parrot(const char* name);
+    explicit Parrot(const char* name);
 
-    void init();
-    void start();
+    void init(Controller *controller) override;
+    void start() override;
 
 };
 

@@ -25,12 +25,16 @@ Controller::Controller() {
 
 }
 
+void Controller::init() {
+    // NOOP
+}
+
 void Controller::start() {
     info("starting controller!");
 
     // Install the IRQ handler for the servos
     pwm_set_irq_enabled(servos[0]->getSlice(), true);
-    irq_set_exclusive_handler(PWM_IRQ_WRAP, on_pwm_wrap_handler);
+    irq_set_exclusive_handler(PWM_IRQ_WRAP, Controller::on_pwm_wrap_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
 }
@@ -62,7 +66,7 @@ void __isr Controller::on_pwm_wrap_handler() {
 
     pwm_clear_irq(servos[0]->getSlice());
 
-    numberOfPWMWraps++;
+    Controller::numberOfPWMWraps++;
 }
 
 uint32_t Controller::getNumberOfPWMWraps() {

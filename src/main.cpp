@@ -26,9 +26,7 @@
 
 extern TaskHandle_t dmx_processing_task_handle;
 
-IOHandler *input;
-IOHandler *dmxInput;
-
+#define INPUT_DMX 1
 
 int main() {
 
@@ -38,60 +36,35 @@ int main() {
     logger_init();
     debug("Logging running!");
 
-    // TODO: Just for testing
-    input = new UART();
-    input->init();
-
-    dmxInput = new DMX();
-    ((DMX *) dmxInput)->setInputPin(DMX_GPIO_PIN);
-    dmxInput->init();
+    // TODO: Just for testing, maybe use a switch?
+    IOHandler* io = nullptr;
+#ifdef INPUT_DMX
+    io = new DMX();
+    ((DMX *) io)->setInputPin(DMX_GPIO_PIN);
+#elif
+    io = new UATRT();
+#endif
+    io->init();
 
     auto *controller = new Controller();
-    auto *parrot = new Parrot("Beaky");
-    auto *display = new Display(controller, dmxInput);
+    auto *parrot = new Parrot("Beaky92");
+    auto *display = new Display(controller, io);
 
-    parrot->setController(controller);
-    parrot->init();
+    controller->init();
+    parrot->init(controller);
 
 
+    controller->start();
 
+    debug("calling display->start()");
+    display->start();
+
+
+    debug("calling start()");
     parrot->start();
     info("I see a new parrot! Its name is %s!", parrot->getName());
 
-    display->start();
 
-    controller->powerOn();
-
-
-#ifdef USE_UART_CONTROL
-
-
-
-    // Start the task to read the queue
-    xTaskCreate(messageQueueReaderTask,
-                "messageQueueReaderTask",
-                1024,
-                nullptr,
-                1,
-                &messageQueueReaderTaskHandle);
-#endif
-
-    /*
-    xTaskCreate(servoDebugTask,
-                "servoDebugTask",
-                1024,
-                nullptr,
-                1,
-                &servoDebugTaskHandle);
-
-
-    xTaskCreate(relayDebugTask,
-                "relayDebugTask",
-                512,
-                nullptr,
-                1,
-                &relayDebugTaskHandle);
-  */
 
 
     xTaskCreate(dmx_processing_task,
@@ -101,38 +74,12 @@ int main() {
                 1,
                 &dmx_processing_task_handle);
 
+    controller->powerOn();
 
     vTaskStartScheduler();
 }
 
 
-// Read from the queue and print it to the screen for now
-portTASK_FUNCTION(hellorldTask, pvParameters) {
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-    for (EVER) {
-#ifdef USE_UART_CONTROL
-        uart_puts(UART_ID, "Hellorld!\n\r");
-#endif
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-#pragma clang diagnostic pop
-}
-
-
-portTASK_FUNCTION(relayDebugTask, pvParameters) {
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    for (EVER) {
-
-        // Test toggling the power on and off to the servos
-        vTaskDelay(pdMS_TO_TICKS(10000));
-        //creature_power->toggle();
-
-    }
-#pragma clang diagnostic pop
-}
 
 
 portTASK_FUNCTION(dmx_processing_task, pvParameters) {

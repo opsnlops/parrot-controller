@@ -14,12 +14,11 @@ public:
     void initServo(uint8_t indexNumber, const char* name,uint16_t minPulseUs,
                    uint16_t maxPulseUs, bool inverted);
 
-    static void __isr on_pwm_wrap_handler();
-
     uint32_t getNumberOfPWMWraps();
 
     uint16_t getServoPosition(uint8_t indexNumber);
 
+    void init();
     void start();
 
     void powerOn();
@@ -27,17 +26,16 @@ public:
     void powerToggle();
     bool isPoweredOn();
 
+    static void __isr on_pwm_wrap_handler();
 
 private:
     bool poweredOn;
     Relay* powerRelay;
 
-
     // The ISR needs access to these values
     static Servo* servos[MAX_NUMBER_OF_SERVOS];
     static uint8_t numberOfServosInUse;
     static uint32_t numberOfPWMWraps;
-
 
     /**
      * Map the servo index to the GPO pin to use

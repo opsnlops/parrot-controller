@@ -35,7 +35,7 @@ int DMX::init()
 {
     // TODO: Assert that the input pin is assigned
 
-    info("Starting up DMS on pin %d", inputPin);
+    info("Starting up DMX on pin %d", inputPin);
 
     int dmx_status = dmx_input.begin(inputPin, DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS);
 

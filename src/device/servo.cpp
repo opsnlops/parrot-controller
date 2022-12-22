@@ -55,8 +55,8 @@ Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pu
     this->desired_ticks = 0;
     this->current_position = MIN_SERVO_POSITION;
 
-    // Turn the servo off by default
-    pwm_set_enabled(this->slice, false);
+    // Turn the servo on by default
+    pwm_set_enabled(this->slice, true);
     this->on = false;
 
     // TODO: What's a good default to set the servo to on power on?

@@ -29,7 +29,3 @@ private:
     int inputPin;
 
 };
-
-
-
-int dmx_init(int dmx_input_pin);
