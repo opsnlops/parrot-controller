@@ -21,15 +21,24 @@ using namespace pico_ssd1306;
  */
 class Display {
 
+
+
 public:
     Display(Controller* controller, IOHandler* io);
 
-    static void init();
-    static void start();
+    void start();
 
-    static SSD1306 display;
-    static Controller* controller;
-    static IOHandler* io;
+    Controller* getController();
+    IOHandler* getIOHandler();
+    SSD1306* getOLED();
+
+    void createOLEDDisplay();
+
+private:
+    SSD1306* oled;
+    Controller* controller;
+    IOHandler* io;
+
 };
 
 

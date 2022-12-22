@@ -53,13 +53,12 @@ int main() {
     parrot->setController(controller);
     parrot->init();
 
-    Display::init();
 
 
     parrot->start();
     info("I see a new parrot! Its name is %s!", parrot->getName());
 
-    Display::start();
+    display->start();
 
 
 #ifdef USE_UART_CONTROL
