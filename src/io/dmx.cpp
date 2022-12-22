@@ -11,21 +11,20 @@
 
 DmxInput dmx_input;
 volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
-volatile uint32_t dmx_packets_read = 0;
-
-extern TaskHandle_t dmx_processing_task_handle;
 
 // Statics
 uint32_t DMX::messagesProcessed;
 
+extern TaskHandle_t dmx_processing_task_handle;
 
 DMX::DMX() {
     inputPin = 0;
+    messagesProcessed = 0;
     debug("new DMX just dropped");
 }
 
-void DMX::setInputPin(int inputPin) {
-    this->inputPin = inputPin;
+void DMX::setInputPin(int input_pin) {
+    this->inputPin = input_pin;
 }
 
 uint32_t DMX::getNumberOfFramesReceived() {
@@ -58,9 +57,10 @@ uint32_t ulStatusRegister = 0;
 
 void __isr DMX::dmxDataGotten(DmxInput* instance) {
 
-    dmx_packets_read++;
+    // Send the processor a message
     xTaskNotifyFromISR(dmx_processing_task_handle,
                        ulStatusRegister,
                        eNoAction,
                        &xHigherPriorityTaskWoken);
+    DMX::messagesProcessed++;
 }

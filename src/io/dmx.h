@@ -20,16 +20,16 @@ public:
 
     void setInputPin(int inputPin);
 
+    static uint32_t messagesProcessed;
     uint32_t getNumberOfFramesReceived() override;
 
     static void __isr dmxDataGotten(DmxInput* instance);
 
 private:
-    static uint32_t messagesProcessed;
     int inputPin;
+
 };
 
 
 
 int dmx_init(int dmx_input_pin);
-;

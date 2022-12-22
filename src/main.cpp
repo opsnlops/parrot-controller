@@ -60,6 +60,8 @@ int main() {
 
     display->start();
 
+    controller->powerOn();
+
 
 #ifdef USE_UART_CONTROL
 

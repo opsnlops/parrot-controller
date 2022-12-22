@@ -23,7 +23,6 @@ Controller::Controller() {
     poweredOn = false;
     powerRelay = new Relay(E_STOP_PIN, poweredOn);
 
-
 }
 
 void Controller::start() {
@@ -64,6 +63,10 @@ void __isr Controller::on_pwm_wrap_handler() {
     pwm_clear_irq(servos[0]->getSlice());
 
     numberOfPWMWraps++;
+}
+
+uint32_t Controller::getNumberOfPWMWraps() {
+    return numberOfPWMWraps;
 }
 
 void Controller::powerOn() {

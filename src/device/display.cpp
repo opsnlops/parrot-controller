@@ -85,6 +85,9 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
 
     auto display = (Display*)pvParameters;
 
+    auto controller = display->getController();
+    auto io = display->getIOHandler();
+
     /**
      * So this is a bit weird. The display needs some time to settle after the I2C bus
      * is set up. If the main task (before the scheduler is started) is delayed, FreeRTOS
@@ -95,8 +98,9 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
      */
     vTaskDelay(pdMS_TO_TICKS(250));
     display->createOLEDDisplay();
+    auto oled = display->getOLED();
 
-    display->getOLED()->setOrientation(false);  // False means horizontally
+    oled->setOrientation(false);  // False means horizontally
 
     // Allocate one buffer_line_one for the display
     char buffer[DISPLAY_NUMBER_OF_LINES][DISPLAY_BUFFER_SIZE + 1];
@@ -110,25 +114,28 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
     for (EVER) {
 
         // Clear the display
-        display->getOLED()->clear();
+        oled->clear();
 
         // Null out the buffers
         for(auto & i : buffer)
             memset(i, '\0', DISPLAY_BUFFER_SIZE + 1);
 
-        sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d", Controller::numberOfPWMWraps, Controller::getServoPosition(0), Controller::getServoPosition(1));
-        sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, display->getController()->isPoweredOn() ? "On" : "Off");
-        sprintf(buffer[2], "  DMX: %-5lu  Mem: %d", display->getIOHandler()->getNumberOfFramesReceived(), xPortGetFreeHeapSize());
+        sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d",
+                controller->getNumberOfPWMWraps(),
+                controller->getServoPosition(0),
+                controller->getServoPosition(1));
+        sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, controller->isPoweredOn() ? "On" : "Off");
+        sprintf(buffer[2], "Frame: %-5lu  Mem: %d", io->getNumberOfFramesReceived(), xPortGetFreeHeapSize());
         sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", (int)dmx_buffer[1], (int)dmx_buffer[2], (int)dmx_buffer[3],
                 (int)dmx_buffer[4], (int)dmx_buffer[5],(int)dmx_buffer[6]);
 
 
-        drawText(display->getOLED(), font_5x8, buffer[0], 0, 0);
-        drawText(display->getOLED(), font_5x8, buffer[1], 0, 7);
-        drawText(display->getOLED(), font_5x8, buffer[2], 0, 14);
-        drawText(display->getOLED(), font_5x8, buffer[3], 0, 21);
+        drawText(oled, font_5x8, buffer[0], 0, 0);
+        drawText(oled, font_5x8, buffer[1], 0, 7);
+        drawText(oled, font_5x8, buffer[2], 0, 14);
+        drawText(oled, font_5x8, buffer[3], 0, 21);
 
-        display->getOLED()->sendBuffer();
+        oled->sendBuffer();
 
         vTaskDelay(pdMS_TO_TICKS(DISPLAY_UPDATE_TIME_MS));
     }

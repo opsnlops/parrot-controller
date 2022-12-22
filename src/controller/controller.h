@@ -15,9 +15,10 @@ public:
                    uint16_t maxPulseUs, bool inverted);
 
     static void __isr on_pwm_wrap_handler();
-    static uint32_t numberOfPWMWraps;
 
-    static uint16_t getServoPosition(uint8_t indexNumber);
+    uint32_t getNumberOfPWMWraps();
+
+    uint16_t getServoPosition(uint8_t indexNumber);
 
     void start();
 
@@ -27,14 +28,15 @@ public:
     bool isPoweredOn();
 
 
-
-
 private:
     bool poweredOn;
     Relay* powerRelay;
 
+
+    // The ISR needs access to these values
     static Servo* servos[MAX_NUMBER_OF_SERVOS];
     static uint8_t numberOfServosInUse;
+    static uint32_t numberOfPWMWraps;
 
 
     /**
