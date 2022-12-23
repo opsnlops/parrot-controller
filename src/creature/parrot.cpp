@@ -41,7 +41,7 @@ void Parrot::start() {
     xTaskCreate(creature_worker_task,
                 "creature_worker_task",
                 2048,
-                (void*)&info,
+                (void*)info,
                 1,
                 &workerTaskHandle);
 
