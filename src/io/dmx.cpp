@@ -69,10 +69,16 @@ int DMX::start() {
 }
 
 
-BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-uint32_t ulStatusRegister = 0;
 
+/**
+ * An ISR that's called when we receive data from DMX
+ *
+ * @param instance a reference to the `DmxInput` object
+ */
 void __isr DMX::dmxDataGotten(DmxInput* instance) {
+
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    uint32_t ulStatusRegister = 0;
 
     // Send the processor a message
     xTaskNotifyFromISR(dmx_processing_task_handle,

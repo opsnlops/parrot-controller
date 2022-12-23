@@ -30,3 +30,11 @@ public:
 
 };
 
+/**
+ * Used for passing information into our task
+ */
+typedef struct {
+    Controller* controller;
+    uint8_t* joints;
+    Parrot* parrot;
+} ParrotInfo;

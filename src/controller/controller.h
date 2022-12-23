@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include <FreeRTOS.h>
+#include <tasks.h>
+
 #include "controller-config.h"
 #include "device/relay.h"
 #include "device/servo.h"
@@ -17,8 +20,12 @@ public:
     uint32_t getNumberOfPWMWraps();
     uint16_t getServoPosition(uint8_t indexNumber);
 
+    void requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition);
+
     void init();
     void start();
+
+    void setCreatureWorkerTaskHandle(TaskHandle_t creatureWorkerTaskHandle);
 
     void powerOn();
     void powerOff();
@@ -36,11 +43,23 @@ private:
     bool poweredOn;
     Relay* powerRelay;
 
+    /**
+     * An array of all of the servos we have. Set to the max number possible,
+     * and then we wait for whatever creature is this to init the ones it
+     * intends to use.
+     */
+    static Servo* servos[MAX_NUMBER_OF_SERVOS];
+
     // The current state of the input from the controller
     uint8_t* currentFrame;
 
+    /**
+     * A handle to our creature's working task. Used to signal that a new
+     * frame has been received off the wire.
+     */
+    TaskHandle_t creatureWorkerTaskHandle;
+
     // The ISR needs access to these values
-    static Servo* servos[MAX_NUMBER_OF_SERVOS];
     static uint8_t numberOfServosInUse;
     static uint32_t numberOfPWMWraps;
 

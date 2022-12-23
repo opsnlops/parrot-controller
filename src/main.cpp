@@ -1,24 +1,17 @@
 
-
-#include <climits>
+#include "controller-config.h"
 
 #include <FreeRTOS.h>
-#include <queue.h>
 #include <task.h>
 
 #include "pico/stdlib.h"
 
 #include "creature/parrot.h"
-
-#include "controller-config.h"
 #include "controller/controller.h"
-
 #include "logging/logging.h"
 #include "device/display.h"
-
 #include "io/dmx.h"
 #include "io/handler.h"
-#include "io/uart.h"
 
 
 #define INPUT_DMX 1
@@ -51,15 +44,16 @@ int main() {
     auto *display = new Display(controller, io);
     display->init();
 
-
     // Start the things running!
     controller->start();
     display->start();
     parrot->start();
     io->start();
 
-    info("I see a new parrot! Its name is %s!", parrot->getName());
+    // Let the controller know how to find the creature worker task
+    controller->setCreatureWorkerTaskHandle(parrot->getWorkerTaskHandle());
 
+    info("I see a new parrot! Its name is %s!", parrot->getName());
 
     // Turn the power on to the servos
     controller->powerOn();

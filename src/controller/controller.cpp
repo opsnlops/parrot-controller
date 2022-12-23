@@ -23,6 +23,7 @@ Controller::Controller() {
     // Declare some space on the heap for our current frame buffer
     currentFrame = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * DMX_NUMBER_OF_CHANNELS);
 
+    creatureWorkerTaskHandle = nullptr;
     poweredOn = false;
     powerRelay = new Relay(E_STOP_PIN, poweredOn);
 
@@ -40,6 +41,10 @@ void Controller::init() {
         currentFrame[i] = UCHAR_MAX / 2;
     }
 
+}
+
+void Controller::setCreatureWorkerTaskHandle(TaskHandle_t taskHandle) {
+    this->creatureWorkerTaskHandle = taskHandle;
 }
 
 void Controller::start() {
@@ -63,6 +68,18 @@ bool Controller::acceptInput(uint8_t* input) {
     // Copy the incoming buffer into our buffer
     memcpy(currentFrame, input, DMX_NUMBER_OF_CHANNELS);
 
+    /**
+     * If there's no worker task, stop here.
+     */
+    if(creatureWorkerTaskHandle == nullptr) {
+        return false;
+    }
+
+    // Send the processor a message
+    xTaskNotify(creatureWorkerTaskHandle,
+                0,
+                eNoAction);
+
     return true;
 }
 
@@ -85,6 +102,13 @@ void Controller::initServo(uint8_t indexNumber, const char* name, uint16_t minPu
 
 uint16_t Controller::getServoPosition(uint8_t indexNumber) {
    return servos[indexNumber]->getPosition();
+}
+
+void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
+
+    verbose("requested to move servo %d to position %d", servoIndexNumber, requestedPosition);
+    servos[servoIndexNumber]->move(requestedPosition);
+
 }
 
 void __isr Controller::on_pwm_wrap_handler() {
