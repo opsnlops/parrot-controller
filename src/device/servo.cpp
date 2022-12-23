@@ -140,7 +140,7 @@ void Servo::move(uint16_t position) {
     desired_ticks = (float)resolution * frame_active;
     current_position = position;
 
-    verbose("requesting servo %d be set to position %d (%d ticks)",
+    verbose("requesting servo GPIO %d be set to position %d (%d ticks)",
           gpio,
           current_position,
           desired_ticks);

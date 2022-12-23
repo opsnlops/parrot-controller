@@ -106,8 +106,10 @@ uint16_t Controller::getServoPosition(uint8_t indexNumber) {
 
 void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
 
-    verbose("requested to move servo %d to position %d", servoIndexNumber, requestedPosition);
-    servos[servoIndexNumber]->move(requestedPosition);
+    if(servos[servoIndexNumber]->getPosition() != requestedPosition) {
+        debug("requested to move servo %d from %d to position %d", servoIndexNumber, servos[servoIndexNumber]->getPosition(), requestedPosition);
+        servos[servoIndexNumber]->move(requestedPosition);
+    }
 
 }
 

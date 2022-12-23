@@ -34,10 +34,10 @@ uint16_t Creature::convertDmxValueToServoValue(uint8_t dmxValue) {
 
     uint16_t servoRange = MAX_SERVO_POSITION - MIN_SERVO_POSITION;
 
-    double movementPercentage = (double)UCHAR_MAX / (double)dmxValue;
+    double movementPercentage = (double)dmxValue / (double)UCHAR_MAX;
     auto servoValue = (uint16_t)(round((double)servoRange * movementPercentage) + MIN_SERVO_POSITION);
 
-    debug("mapped %d -> %d", dmxValue, servoValue);
+    verbose("mapped %d -> %d", dmxValue, servoValue);
 
     return servoValue;
 }

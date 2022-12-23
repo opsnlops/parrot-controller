@@ -8,7 +8,7 @@
 
 #include "controller/controller.h"
 
-#define NUMBER_OF_SERVOS    7
+#define NUMBER_OF_SERVOS    1
 #define NUMBER_OF_JOINTS    7
 
 class Creature {

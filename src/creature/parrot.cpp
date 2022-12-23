@@ -18,12 +18,14 @@ void Parrot::init(Controller *controller) {
 
     // Create all of our servos
     controller->initServo(NECK_LEFT, "Neck Left", 250, 2500, false);
+#if 0
     controller->initServo(NECK_RIGHT, "Neck Right", 250, 2500, true);
     controller->initServo(NECK_ROTATE, "Neck Rotate", 250, 2500, true);
     controller->initServo(BEAK, "Beak", 250, 2500, false);
     controller->initServo(CHEST, "Chest", 250, 2500, false);
     controller->initServo(BODY_LEAN, "Body Lean", 250, 2500, false);
     controller->initServo(STAND_ROTATE, "Stand Rotate", 250, 2500, false);
+#endif
 }
 
 
