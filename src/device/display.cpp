@@ -16,7 +16,6 @@
 #include "controller/controller.h"
 #include "display.h"
 #include "logging/logging.h"
-#include "io/dmx.h"
 
 
 // Use the namespace for convenience
