@@ -84,7 +84,8 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
         // For now, let's just set the servo to the requested position with no processing
         for(int i = 0; i < NUMBER_OF_SERVOS; i++) {
-            controller->requestServoPosition(i, currentFrame[i]);
+            controller->requestServoPosition(i,
+                                             parrot->convertDmxValueToServoValue(currentFrame[i]));
         }
     }
 #pragma clang diagnostic pop

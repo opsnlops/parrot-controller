@@ -45,13 +45,6 @@ public:
      */
     TaskHandle_t getWorkerTaskHandle();
 
-
-protected:
-
-    const char* name;
-    Controller* controller;
-    TaskHandle_t workerTaskHandle;
-
     /**
      * Converts a value that DMX speaks (0-255) to one the servo controller
      * uses (MIN_SERVO_POSITION to MAX_SERVO_POSITION).
@@ -60,6 +53,13 @@ protected:
      * @return a value between MIN_SERVO_POSITION and MAX_SERVO_POSITION
      */
     uint16_t convertDmxValueToServoValue(uint8_t dmxValue);
+
+
+protected:
+
+    const char* name;
+    Controller* controller;
+    TaskHandle_t workerTaskHandle;
 
 };
 
