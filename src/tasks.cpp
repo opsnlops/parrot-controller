@@ -14,6 +14,3 @@ TaskHandle_t dmx_processing_task_handle;
 #ifdef USE_UART_CONTROL
 TaskHandle_t messageQueueReaderTaskHandle;
 #endif
-
-TaskHandle_t servoDebugTaskHandle;
-TaskHandle_t relayDebugTaskHandle;

@@ -4,6 +4,8 @@
 #include <climits>
 #include <unistd.h>
 
+#include <tasks.h>
+
 #include "controller/controller.h"
 
 #define NUMBER_OF_SERVOS    7
@@ -30,6 +32,13 @@ public:
      * Set up the controller
      */
     virtual void init(Controller* controller) = 0;
+
+    /**
+     * Returns a task to be notified when there is a new frame to process
+     *
+     * @return a `TaskHandle_t` pointing to the task
+     */
+    virtual TaskHandle_t getWorkerTaskHandle() = 0;
 
     /**
      * Start running!
