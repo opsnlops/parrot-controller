@@ -51,16 +51,17 @@ int DMX::init()
 
 int DMX::start() {
 
-    DmxHandlerInfo info {
-        .controller = this->controller,
-        .dmxOffset = DMX_BASE_CHANNEL,
-        .dmx_buffer = this->dmx_buffer
-    };
+    // Allocate the info on the heap, so it'll still be there when this function goes out
+    // of scope. (As it would as a stack var.)
+    auto *info = (DmxHandlerInfo*)pvPortMalloc(sizeof(DmxHandlerInfo));
+    info->controller = this->controller;
+    info->dmxOffset = DMX_BASE_CHANNEL;
+    info->dmx_buffer = this->dmx_buffer;
 
     xTaskCreate(dmx_processing_task,
                 "dmx_processing_task",
                 2048,
-                (void*)(&info),
+                (void*)(info),
                 1,
                 &dmx_processing_task_handle);
 
@@ -93,6 +94,11 @@ portTASK_FUNCTION(dmx_processing_task, pvParameters) {
 
     auto* info = (DmxHandlerInfo*)pvParameters;
     Controller* controller = info->controller;
+    uint8_t dmxOffset = info->dmxOffset;
+    volatile uint8_t* dmx_buffer = info->dmx_buffer;
+
+    // We're done with info, free it!
+    vPortFree(info);
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -110,11 +116,10 @@ portTASK_FUNCTION(dmx_processing_task, pvParameters) {
 
         // Now wait to be signaled
         xTaskNotifyWait(0x00, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY);
-        verbose("DMX says hi");
 
         // Copy the buffer info our local buffer
         for(int i = 0; i < DMX_NUMBER_OF_CHANNELS; i++) {
-            buffer[i] = info->dmx_buffer[i + info->dmxOffset];
+            buffer[i] = dmx_buffer[i + dmxOffset];
         }
 
         // Send this to the controller
