@@ -51,7 +51,7 @@
  */
 #define LOGGING_LEVEL               LOG_LEVEL_DEBUG
 #define LOGGING_QUEUE_LENGTH        40
-#define LOGGING_MESSAGE_MAX_LENGTH  512
+#define LOGGING_MESSAGE_MAX_LENGTH  256
 
 /*
  * Servo bounds
