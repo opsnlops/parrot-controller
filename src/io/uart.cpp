@@ -19,11 +19,13 @@
 
 // Statics
 uint32_t UART::messagesProcessed;
-u_int8_t UART::header[HEADER_SIZE];
+uint8_t UART::header[HEADER_SIZE];
 QueueHandle_t UART::incomingQueue;
 
 
-UART::UART() {
+UART::UART(Controller* controller) {
+
+    this->controller = controller;
 
     messagesProcessed = 0;
 
@@ -77,6 +79,11 @@ int UART::init() {
     return 1;
 }
 
+int UART::start() {
+    // NOOP
+    return 1;
+}
+
 /**
  * ISR that handles incoming characters from the external port
  */
@@ -92,7 +99,7 @@ void __isr UART::on_uart_rx() {
     }
 }
 
-uint16_t UART::convert_dmx_position_to_servo_position(u_int8_t incoming_value) {
+uint16_t UART::convert_dmx_position_to_servo_position(uint8_t incoming_value) {
 
     float percentage_requested = (float) incoming_value / (float) UCHAR_MAX;
 
@@ -104,7 +111,7 @@ uint16_t UART::convert_dmx_position_to_servo_position(u_int8_t incoming_value) {
 
 }
 
-void UART::process_uart_frame(u_int8_t *buffer) {
+void UART::process_uart_frame(uint8_t *buffer) {
 
     debug("processing frame!");
 

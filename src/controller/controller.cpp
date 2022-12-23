@@ -1,5 +1,10 @@
 
 
+#include <climits>
+
+#include <FreeRTOS.h>
+
+
 #include "device/servo.h"
 #include "logging/logging.h"
 
@@ -15,10 +20,8 @@ Controller::Controller() {
 
     debug("setting up the controller");
 
-    // Initialize all the slots in the controller
-    for(auto & servo : servos) {
-        servo = nullptr;
-    }
+    // Declare some space on the heap for our current frame buffer
+    currentFrame = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * DMX_NUMBER_OF_CHANNELS);
 
     poweredOn = false;
     powerRelay = new Relay(E_STOP_PIN, poweredOn);
@@ -26,7 +29,17 @@ Controller::Controller() {
 }
 
 void Controller::init() {
-    // NOOP
+
+    // Initialize all the slots in the controller
+    for(auto & servo : servos) {
+        servo = nullptr;
+    }
+
+    // Set the currentFrame buffer to the middle value as a safe-ish default
+    for(int i = 0; i < DMX_NUMBER_OF_CHANNELS; i++) {
+        currentFrame[i] = UCHAR_MAX / 2;
+    }
+
 }
 
 void Controller::start() {
@@ -39,6 +52,23 @@ void Controller::start() {
 
 }
 
+/**
+ * Accepts input from an IOHandler
+ *
+ * @param input a buffer of size DMX_NUMBER_OF_CHANNELS containing the incoming data
+ * @return true if it worked
+ */
+bool Controller::acceptInput(uint8_t* input) {
+
+    // Copy the incoming buffer into our buffer
+    memcpy(currentFrame, input, DMX_NUMBER_OF_CHANNELS);
+
+    return true;
+}
+
+uint8_t* Controller::getCurrentFrame() {
+   return currentFrame;
+}
 
 void Controller::initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
                            uint16_t maxPulseUs, bool inverted) {
@@ -89,6 +119,6 @@ void Controller::powerToggle() {
     poweredOn ? powerOff() : powerOn();
 }
 
-bool Controller::isPoweredOn() {
+bool Controller::isPoweredOn() const {
     return poweredOn;
 }

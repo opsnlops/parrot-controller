@@ -22,10 +22,8 @@
 // Use the namespace for convenience
 using namespace pico_ssd1306;
 
-extern uint32_t bytes_received;
 extern uint32_t number_of_moves;
-extern uint32_t dmx_packets_read;
-extern volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
+
 
 // Located in tasks.cpp
 extern TaskHandle_t displayUpdateTaskHandle;
@@ -65,15 +63,18 @@ SSD1306* Display::getOLED() {
     return oled;
 }
 
+void Display::init() {
+    // NOOP
+}
+
 void Display::start()
 {
-
-
+    debug("starting display");
     xTaskCreate(displayUpdateTask,
                 "displayUpdateTask",
                 1024,
-                (void*)this,
-                0,          // Low priority
+                (void*)this,         // Pass in a reference to ourselves
+                0,                      // Low priority
                 &displayUpdateTaskHandle);
 }
 
@@ -122,14 +123,17 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
         for(auto & i : buffer)
             memset(i, '\0', DISPLAY_BUFFER_SIZE + 1);
 
+        // Go grab the current frame
+        uint8_t* currentFrame = controller->getCurrentFrame();
+
         sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d",
                 controller->getNumberOfPWMWraps(),
                 controller->getServoPosition(0),
                 controller->getServoPosition(1));
         sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, controller->isPoweredOn() ? "On" : "Off");
         sprintf(buffer[2], "Frame: %-5lu  Mem: %d", io->getNumberOfFramesReceived(), xPortGetFreeHeapSize());
-        sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", (int)dmx_buffer[1], (int)dmx_buffer[2], (int)dmx_buffer[3],
-                (int)dmx_buffer[4], (int)dmx_buffer[5],(int)dmx_buffer[6]);
+        sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", currentFrame[0], currentFrame[1], currentFrame[2],
+                currentFrame[3], currentFrame[4], currentFrame[5]);
 
 
         drawText(oled, font_5x8, buffer[0], 0, 0);

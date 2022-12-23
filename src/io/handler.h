@@ -16,11 +16,14 @@ public:
      */
     virtual int init() = 0;
 
+    virtual int start() = 0;
+
     /**
      * The number of messages this IOHandler has processed
      *
      * @return the number of messages
      */
     virtual uint32_t getNumberOfFramesReceived() = 0;
+
 
 };

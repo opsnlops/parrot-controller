@@ -33,18 +33,22 @@ class UART : public IOHandler {
 
 public:
 
-    UART();
+    explicit UART(Controller* controller);
     int init() override;
+    int start() override;
     uint32_t getNumberOfFramesReceived() override;
 
     static __isr void on_uart_rx();
 
 private:
+
+    Controller* controller;
+
     static uint32_t messagesProcessed;
-    static u_int8_t header[HEADER_SIZE];
+    static uint8_t header[HEADER_SIZE];
     static QueueHandle_t incomingQueue;
 
-    static uint16_t convert_dmx_position_to_servo_position(u_int8_t incoming_value);
-    void process_uart_frame(u_int8_t *buffer);
+    static uint16_t convert_dmx_position_to_servo_position(uint8_t incoming_value);
+    void process_uart_frame(uint8_t *buffer);
 
 };

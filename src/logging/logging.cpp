@@ -110,7 +110,7 @@ void __unused fatal(const char *message, ...) {
         xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
 }
 
-struct LogMessage createMessageObject(u_int8_t level, const char *message, va_list args) {
+struct LogMessage createMessageObject(uint8_t level, const char *message, va_list args) {
     char buffer[LOGGING_MESSAGE_MAX_LENGTH + 1];
     memset(buffer, '\0', LOGGING_MESSAGE_MAX_LENGTH + 1);
 

@@ -14,17 +14,12 @@
 #include "controller/controller.h"
 
 #include "logging/logging.h"
-#include "tasks.h"
-#include "device/relay.h"
 #include "device/display.h"
 
 #include "io/dmx.h"
 #include "io/handler.h"
 #include "io/uart.h"
 
-
-
-extern TaskHandle_t dmx_processing_task_handle;
 
 #define INPUT_DMX 1
 
@@ -36,63 +31,39 @@ int main() {
     logger_init();
     debug("Logging running!");
 
-    // TODO: Just for testing, maybe use a switch?
+    // Bring up the controller
+    auto *controller = new Controller();
+    controller->init();
+
+    // Bring up the I/O
     IOHandler* io = nullptr;
 #ifdef INPUT_DMX
-    io = new DMX();
+    io = new DMX(controller);
     ((DMX *) io)->setInputPin(DMX_GPIO_PIN);
 #elif
-    io = new UATRT();
+    io = new UART(controller);
 #endif
     io->init();
 
-    auto *controller = new Controller();
-    auto *parrot = new Parrot("Beaky92");
-    auto *display = new Display(controller, io);
-
-    controller->init();
+    auto *parrot = new Parrot("Beaky");
     parrot->init(controller);
 
+    auto *display = new Display(controller, io);
+    display->init();
 
+
+    // Start the things running!
     controller->start();
-
-    debug("calling display->start()");
     display->start();
-
-
-    debug("calling start()");
     parrot->start();
+    io->start();
+
     info("I see a new parrot! Its name is %s!", parrot->getName());
 
 
-
-
-    xTaskCreate(dmx_processing_task,
-                "dmx_processing_task",
-                2048,
-                nullptr,
-                1,
-                &dmx_processing_task_handle);
-
+    // Turn the power on to the servos
     controller->powerOn();
 
+    // And fire up the tasks!
     vTaskStartScheduler();
-}
-
-
-
-
-portTASK_FUNCTION(dmx_processing_task, pvParameters) {
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    uint32_t ulNotifiedValue;
-    for (EVER) {
-
-        xTaskNotifyWait(0x00, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY);
-        verbose("DMX says hi");
-
-
-    }
-#pragma clang diagnostic pop
 }

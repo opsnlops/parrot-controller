@@ -15,7 +15,7 @@
 
 
 struct LogMessage {
-    u_int8_t level;
+    uint8_t level;
     char message[LOGGING_MESSAGE_MAX_LENGTH];
 } __attribute__((packed));
 
@@ -34,7 +34,7 @@ void error(const char *message, ...);
 
 void __unused fatal(const char *message, ...);
 
-LogMessage createMessageObject(u_int8_t level, const char *message, va_list args);
+LogMessage createMessageObject(uint8_t level, const char *message, va_list args);
 
 
 void start_log_reader();

@@ -21,11 +21,10 @@ using namespace pico_ssd1306;
  */
 class Display {
 
-
-
 public:
     Display(Controller* controller, IOHandler* io);
 
+    void init();
     void start();
 
     Controller* getController();
