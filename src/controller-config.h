@@ -11,12 +11,16 @@
 //#define USE_UART_CONTROL 1
 
 // The most servos we can control
-#define MAX_NUMBER_OF_SERVOS    16
-#define SERVO_HZ                50
+#define MAX_NUMBER_OF_SERVOS        16
+#define SERVO_HZ                    50
 
+// Devices
+#define E_STOP_PIN                  28
+#define DMX_GPIO_PIN                22
 
-#define E_STOP_PIN          19
-#define DMX_GPIO_PIN        18
+// Debugging shell (UART1)
+#define DEBUG_SHELL_TX              4
+#define DEBUG_SHELL_RX              5
 
 
 /**
@@ -40,9 +44,15 @@
  * Display Stuff
  */
 
+#define DISPLAY_I2C_BAUD_RATE       1000000
+#define DISPLAY_I2C_CONTROLLER      i2c1
+#define DISPLAY_I2C_DEVICE_ADDRESS  0x3C
+#define DISPLAY_SDA_PIN             2
+#define DISPLAY_SCL_PIN             3
+
 // Update every 33ms (roughly 30Hz)
 #define DISPLAY_UPDATE_TIME_MS      33
-#define DISPLAY_BUFFER_SIZE         256
+#define DISPLAY_BUFFER_SIZE         256     // This is per line
 #define DISPLAY_NUMBER_OF_LINES     4
 
 
@@ -62,19 +72,24 @@
 /*
  * Servo <-> GPIO Pin Mappings
  */
-#define SERVO_0_GPIO_PIN            22
-#define SERVO_1_GPIO_PIN            1
-#define SERVO_2_GPIO_PIN            2
-#define SERVO_3_GPIO_PIN            3
-#define SERVO_4_GPIO_PIN            4
-#define SERVO_5_GPIO_PIN            5
-#define SERVO_6_GPIO_PIN            6
-#define SERVO_7_GPIO_PIN            7
-#define SERVO_8_GPIO_PIN            8
-#define SERVO_9_GPIO_PIN            9
-#define SERVO_10_GPIO_PIN           10
-#define SERVO_11_GPIO_PIN           11
-#define SERVO_12_GPIO_PIN           12
-#define SERVO_13_GPIO_PIN           13
-#define SERVO_14_GPIO_PIN           14
-#define SERVO_15_GPIO_PIN           15
+#define SERVO_0_GPIO_PIN            6               // Pin 9,  PMW  3A
+#define SERVO_1_GPIO_PIN            7               // Pin 10, PWM  3B
+#define SERVO_2_GPIO_PIN            8               // Pin 11, PWM  4A
+#define SERVO_3_GPIO_PIN            9               // Pin 12, PWM  4B
+#define SERVO_4_GPIO_PIN            10              // Pin 14, PWM  5A
+#define SERVO_5_GPIO_PIN            11              // Pin 15, PWM  5B
+#define SERVO_6_GPIO_PIN            12              // Pin 16, PWM  6A
+#define SERVO_7_GPIO_PIN            13              // Pin 17, PWM  6B
+#define SERVO_8_GPIO_PIN            14              // Pin 19, PWM  7A
+#define SERVO_9_GPIO_PIN            15              // Pin 20, PWM  7B
+
+// This is the point where it wraps around to the other side of the PCB
+#define SERVO_10_GPIO_PIN           16              // Pin 21, PWM  0A
+#define SERVO_11_GPIO_PIN           17              // Pin 22, PWM  0B
+
+// These last four can be SPI0 pins. If we need SPI, we have to limit
+// ourselves to 12 servos.
+#define SERVO_12_GPIO_PIN           18              // Pin 24, PWM  1A
+#define SERVO_13_GPIO_PIN           19              // Pin 25, PWM  1B
+#define SERVO_14_GPIO_PIN           20              // Pin 26, PWM  2A
+#define SERVO_15_GPIO_PIN           21              // Pin 27, PWM  2B
