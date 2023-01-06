@@ -12,6 +12,7 @@
 #include "device/display.h"
 #include "io/dmx.h"
 #include "io/handler.h"
+#include "shell/shell.h"
 
 
 #define INPUT_DMX 1
@@ -44,11 +45,15 @@ int main() {
     auto *display = new Display(controller, io);
     display->init();
 
+    auto *shell = new DebugShell(parrot, controller, io);
+    shell->init();
+
     // Start the things running!
     controller->start();
     display->start();
     parrot->start();
     io->start();
+    shell->start();
 
     // Let the controller know how to find the creature worker task
     controller->setCreatureWorkerTaskHandle(parrot->getWorkerTaskHandle());

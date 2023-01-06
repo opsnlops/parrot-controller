@@ -21,6 +21,7 @@
 // Debugging shell (UART1)
 #define DEBUG_SHELL_TX              4
 #define DEBUG_SHELL_RX              5
+#define DEBUG_SHELL_BAUD_RATE       57600
 
 
 /**

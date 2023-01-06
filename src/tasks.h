@@ -12,6 +12,7 @@
  * we have.
  */
 
+portTASK_FUNCTION_PROTO(debug_console_task, pvParameters);          // used in debug/shell.cpp
 portTASK_FUNCTION_PROTO(displayUpdateTask, pvParameters);           // used in display.cpp
 portTASK_FUNCTION_PROTO(log_queue_reader_task, pvParameters);       // used in logging/logging.cpp
 portTASK_FUNCTION_PROTO(dmx_processing_task, pvParameters);         // used in io/dmx.cpp
