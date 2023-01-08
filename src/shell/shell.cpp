@@ -2,9 +2,10 @@
 
 #include <cstdio>
 #include <cstring>
-#include <cstdlib>
 
 #include "hardware/gpio.h"
+#include "pico/stdlib.h"
+#include "pico/unique_id.h"
 
 #include "shell.h"
 
@@ -88,6 +89,14 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
     auto io = shell->getIOHandler();
     auto config = shell->getConfig();
 
+    // Grab our unique_id
+    pico_unique_board_id_t board_id;
+    pico_get_unique_board_id(&board_id);
+    auto pico_board_id = (char*)pvPortMalloc(sizeof(char) * (2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1));
+    memset(pico_board_id, '\0', 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1);
+    pico_get_unique_board_id_string(pico_board_id, 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1);
+
+
     // Set up our buffers on the heap
     auto tx_buffer = (char*)pvPortMalloc(sizeof(char) * DS_TX_BUFFER_SIZE);
     auto rx_buffer = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * DS_RX_BUFFER_SIZE);   // The pico SDK wants uint8_t
@@ -127,6 +136,10 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   Servo Frequency: %luHz\n", config->getServoFrequencyHz());
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "          Board ID: %s\n", pico_board_id);
                     uart_puts(uart1, tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -211,8 +224,8 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                                  s->getChannel() == 0 ? "A" : "B",
                                  s->getName(),
                                  s->getPosition(),
-                                 s->getCurrentTicks(),
-                                 s->getDesiredTicks());
+                                 s->getCurrentTick(),
+                                 s->getDesiredTick());
                         uart_puts(uart1, tx_buffer);
                     }
 

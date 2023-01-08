@@ -56,6 +56,7 @@ target_link_libraries(controller
         hardware_uart
         pico_stdlib
         pico_ssd1306
+        pico_unique_id
         picodmx
         )
 
