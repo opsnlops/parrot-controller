@@ -43,13 +43,14 @@ void Controller::init(CreatureConfig* incomingConfig) {
         initServo(i, servo->name, servo->minPulseUs, servo->maxPulseUs, servo->smoothingValue, servo->inverted);
     }
 
+    // Declare some space on the heap for our current frame buffer
+    currentFrame = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * this->numberOfChannels);
+
     // Set the currentFrame buffer to the middle value as a safe-ish default
     for(int i = 0; i < this->numberOfChannels; i++) {
         currentFrame[i] = UCHAR_MAX / 2;
     }
 
-    // Declare some space on the heap for our current frame buffer
-    currentFrame = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * this->numberOfChannels);
 }
 
 void Controller::setCreatureWorkerTaskHandle(TaskHandle_t taskHandle) {
