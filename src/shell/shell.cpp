@@ -89,8 +89,8 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
     auto config = shell->getConfig();
 
     // Set up our buffers on the heap
-    auto tx_buffer = (char*)malloc(sizeof(char) * DS_TX_BUFFER_SIZE);
-    auto rx_buffer = (uint8_t*)malloc(sizeof(uint8_t) * DS_RX_BUFFER_SIZE);     // The pico SDK wants uint8_t
+    auto tx_buffer = (char*)pvPortMalloc(sizeof(char) * DS_TX_BUFFER_SIZE);
+    auto rx_buffer = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * DS_RX_BUFFER_SIZE);   // The pico SDK wants uint8_t
 
     ds_reset_buffers(tx_buffer, rx_buffer);
 
