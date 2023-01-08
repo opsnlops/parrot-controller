@@ -9,9 +9,6 @@
 #include "creature/config.h"
 #include "controller/controller.h"
 
-#define NUMBER_OF_SERVOS    7
-#define NUMBER_OF_JOINTS    7
-
 class Creature {
 
 public:
@@ -21,11 +18,9 @@ public:
     /**
      * Storage space for the joints!
      *
-     * This is static and public since it's accessed constantly, and I want
-     * to save the cost of a function call and a bunch of getters and
-     * setters.
+     * Initialize it to the size of the joints.
      */
-    static uint16_t joints[NUMBER_OF_JOINTS];
+    uint16_t* joints;
 
     /**
      * Set up the controller
@@ -52,19 +47,30 @@ public:
     TaskHandle_t getWorkerTaskHandle();
 
     /**
-     * Converts a value that DMX speaks (0-255) to one the servo controller
+     * Converts a value that input handlers speaks (0-255) to one the servo controller
      * uses (MIN_SERVO_POSITION to MAX_SERVO_POSITION).
      *
-     * @param dmxValue a `uint8_t` to convert to the servo mappings
+     * @param inputValue a `uint8_t` to convert to the servo mappings
      * @return a value between MIN_SERVO_POSITION and MAX_SERVO_POSITION
      */
-    uint16_t convertDmxValueToServoValue(uint8_t dmxValue);
+    static uint16_t convertInputValueToServoValue(uint8_t inputValue);
 
+    /**
+     * Gets the number of joints that this creature has
+     *
+     * @return the number of joints
+     */
+    [[nodiscard]] uint8_t getNumberOfJoints() const;
 
 protected:
 
     Controller* controller;
     TaskHandle_t workerTaskHandle;
+
+    uint8_t numberOfJoints;
+
+    // This is like the Arduino helper map() function. We do this a lot.
+    static uint16_t convertRange(uint16_t input, uint16_t oldMin, uint16_t oldMax, uint16_t newMin, uint16_t newMax);
 
 };
 

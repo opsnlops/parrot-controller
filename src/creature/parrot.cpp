@@ -1,5 +1,6 @@
 
 #include <climits>
+#include <cmath>
 
 #include "creature/config.h"
 
@@ -9,6 +10,10 @@
 
 Parrot::Parrot()
         : Creature() {
+
+    // Calculate the head offset max
+    this->headOffsetMax = lround((double)(MAX_SERVO_POSITION - MIN_SERVO_POSITION) * (double)HEAD_OFFSET_MAX);
+    debug("the head office max is %d", this->headOffsetMax);
 
     info("Bawk!");
 }
@@ -41,7 +46,10 @@ void Parrot::init(Controller *controller) {
     debug("starting creature init");
 
     this->controller = controller;
+    this->numberOfJoints = 7;
 
+    // Initialize the array on for the joints on the heap
+    this->joints = (uint16_t*) pvPortMalloc(sizeof(uint16_t) * numberOfJoints);
 }
 
 void Parrot::start() {
@@ -65,6 +73,24 @@ void Parrot::start() {
     debug("parrot started!");
 }
 
+uint16_t Parrot::convertToHeadHeight(uint16_t y) {
+
+    return Parrot::convertRange(y,
+                                MIN_SERVO_POSITION,
+                                MAX_SERVO_POSITION,
+                                MIN_SERVO_POSITION + (this->headOffsetMax / 2),
+                                MAX_SERVO_POSITION - (this->headOffsetMax / 2));
+
+}
+
+uint16_t Parrot::configToHeadTilt(uint16_t x) {
+   // TODO: Fix this, it won't work since we deal with unsigned values
+    return Parrot::convertRange(x,
+                               MIN_SERVO_POSITION,
+                               MAX_SERVO_POSITION,
+                               1 - (this->headOffsetMax / 2),
+                               this->headOffsetMax / 2);
+}
 
 /**
  * This task is the main worker task for the parrot itself!
@@ -86,6 +112,7 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
     uint32_t ulNotifiedValue;
     uint8_t* currentFrame;
+    uint8_t numberOfJoints = parrot->getNumberOfJoints();
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -99,11 +126,18 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         // Fetch the current frame
         currentFrame = controller->getCurrentFrame();
 
-        // For now, let's just set the servo to the requested position with no processing
-        for(int i = 0; i < NUMBER_OF_SERVOS; i++) {
-            controller->requestServoPosition(i,
-                                             parrot->convertDmxValueToServoValue(currentFrame[i]));
+        // TODO: This is temp
+        for(int i = 0; i < numberOfJoints; i++) {
+            parrot->joints[i] = Parrot::convertInputValueToServoValue(currentFrame[i]);
         }
+
+        // For now, let's just set the servo to the requested position with no processing
+        for(int i = 0; i < numberOfJoints; i++) {
+            controller->requestServoPosition(i,
+                                             parrot->joints[i]);
+        }
+
+
     }
 #pragma clang diagnostic pop
 }

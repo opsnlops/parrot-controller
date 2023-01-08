@@ -120,7 +120,7 @@ void UART::process_uart_frame(uint8_t *buffer) {
     {
         debug("valid frame");
 
-        for(int i = HEADER_SIZE; i < HEADER_SIZE + NUMBER_OF_SERVOS; i++)
+        for(int i = HEADER_SIZE; i < HEADER_SIZE + controller->getNumberOfServosInUse(); i++)
         {
             // TODO: This should fill out the desired state to hand to the controller
             //servo_move(&servos[i - HEADER_SIZE], convert_dmx_position_to_servo_position(buffer[i]));

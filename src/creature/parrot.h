@@ -18,7 +18,9 @@
 #define BODY_LEAN       5
 #define STAND_ROTATE    6
 
-#define SERVO_HZ        50
+
+#define HEAD_OFFSET_MAX  0.35       // The max percent of the total height that the head can be
+
 
 class Parrot : public Creature {
 
@@ -30,6 +32,25 @@ public:
     void init(Controller *controller) override;
     void start() override;
 
+private:
+
+    /**
+     * Convert a given y coordinate to where the head should be
+     * @param y the y coordinate
+     * @return head height
+     */
+    uint16_t convertToHeadHeight(uint16_t y);
+
+
+    /**
+     * Convert the x axis into head tilt
+     * @param x the x axis
+     * @return head tilt
+     */
+    uint16_t configToHeadTilt(uint16_t x);
+
+    uint16_t headOffsetMax;
+
 };
 
 /**
@@ -37,6 +58,6 @@ public:
  */
 typedef struct {
     Controller* controller;
-    uint8_t* joints;
+    uint16_t* joints;
     Parrot* parrot;
 } ParrotInfo;
