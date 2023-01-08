@@ -5,6 +5,7 @@
 #include <tasks.h>
 
 #include "controller-config.h"
+#include "creature/config.h"
 #include "device/relay.h"
 #include "device/servo.h"
 
@@ -14,15 +15,14 @@ class Controller {
 public:
     Controller();
 
-    void initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
-                   uint16_t maxPulseUs, bool inverted);
+    CreatureConfig* getConfig();
 
     uint32_t getNumberOfPWMWraps();
     uint16_t getServoPosition(uint8_t indexNumber);
 
     void requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition);
 
-    void init();
+    void init(CreatureConfig* incomingConfig);
     void start();
 
     void setCreatureWorkerTaskHandle(TaskHandle_t creatureWorkerTaskHandle);
@@ -43,6 +43,9 @@ private:
     bool poweredOn;
     Relay* powerRelay;
 
+    // The configuration to use
+    CreatureConfig* config;
+
     /**
      * An array of all of the servos we have. Set to the max number possible,
      * and then we wait for whatever creature is this to init the ones it
@@ -53,6 +56,9 @@ private:
     // The current state of the input from the controller
     uint8_t* currentFrame;
 
+    // How many channels we're expecting from the I/O handler
+    uint16_t numberOfChannels;
+
     /**
      * A handle to our creature's working task. Used to signal that a new
      * frame has been received off the wire.
@@ -62,6 +68,9 @@ private:
     // The ISR needs access to these values
     static uint8_t numberOfServosInUse;
     static uint32_t numberOfPWMWraps;
+
+    void initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
+                   uint16_t maxPulseUs, float smoothingValue, bool inverted);
 
     /**
      * Map the servo index to the GPO pin to use

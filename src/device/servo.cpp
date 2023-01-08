@@ -31,25 +31,26 @@ uint32_t number_of_moves = 0;
  * on before we're ready to go.
  *
  * @param gpio The GPIO pin this servo is connected to
- * @param frequency PWM frequency
  * @param min_pulse_us Min pulse length in microseconds
  * @param max_pulse_us Max pulse length in microseconds
  * @param inverted are this servo's movements inverted?
+ * @param frequency PWM frequency
  */
-Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted) {
+Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pulse_us,
+             float smoothingValue, bool inverted, uint32_t frequency) {
 
     gpio_set_function(gpio, GPIO_FUNC_PWM);
     this->gpio = gpio;
     this->name = name;
-    this->frequency = SERVO_HZ;
     this->min_pulse_us = min_pulse_us;
     this->max_pulse_us = max_pulse_us;
-    this->frame_length_us = 1000000 / this->frequency;   // Number of microseconds in each frame (frequency)
+    this->smoothingValue = smoothingValue;
+    this->frame_length_us = 1000000 / frequency;   // Number of microseconds in each frame (frequency)
     this->slice = pwm_gpio_to_slice_num(gpio);
     this->channel = pwm_gpio_to_channel(gpio);
     this->resolution = pwm_set_freq_duty(this->slice,
                                          this->channel,
-                                         this->frequency,
+                                         frequency,
                                          0);
     this->inverted = inverted;
     this->desired_ticks = 0;
@@ -166,6 +167,10 @@ uint Servo::getChannel() const {
 
 uint Servo::getDesiredTicks() const {
     return desired_ticks;
+}
+
+float Servo::getSmoothingValue() const {
+    return smoothingValue;
 }
 
 /**

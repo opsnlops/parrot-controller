@@ -5,6 +5,7 @@
 
 #include "logging/logging.h"
 
+#include "creature/config.h"
 #include "device/relay.h"
 #include "device/servo.h"
 
@@ -23,8 +24,9 @@ class Parrot : public Creature {
 
 public:
 
-    explicit Parrot(const char* name);
+    explicit Parrot();
 
+    CreatureConfig* getDefaultConfig() override;
     void init(Controller *controller) override;
     void start() override;
 

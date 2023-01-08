@@ -6,16 +6,17 @@
 
 #include <tasks.h>
 
+#include "creature/config.h"
 #include "controller/controller.h"
 
-#define NUMBER_OF_SERVOS    1
+#define NUMBER_OF_SERVOS    7
 #define NUMBER_OF_JOINTS    7
 
 class Creature {
 
 public:
 
-    explicit Creature(const char* name);
+    explicit Creature();
 
     /**
      * Storage space for the joints!
@@ -26,8 +27,6 @@ public:
      */
     static uint16_t joints[NUMBER_OF_JOINTS];
 
-    const char* getName();
-
     /**
      * Set up the controller
      */
@@ -37,6 +36,13 @@ public:
      * Start running!
      */
     virtual void start() = 0;
+
+    /**
+     * Create the default config for this creature
+     *
+     * @return a non-customized configuration for this creature
+     */
+    virtual CreatureConfig* getDefaultConfig() = 0;
 
     /**
      * Returns a task to be notified when there is a new frame to process
@@ -57,7 +63,6 @@ public:
 
 protected:
 
-    const char* name;
     Controller* controller;
     TaskHandle_t workerTaskHandle;
 

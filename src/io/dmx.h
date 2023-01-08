@@ -14,7 +14,8 @@
 // Used to pass information into the task
 typedef struct {
     Controller* controller;
-    uint8_t dmxOffset;
+    uint16_t baseChannel;
+    uint16_t numberOfChannels;
     volatile uint8_t*    dmx_buffer;
 } DmxHandlerInfo;
 
@@ -38,9 +39,12 @@ public:
 private:
     int inputPin;
 
-    DmxInput dmx_input;
-    volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS)];
+    uint16_t baseChannel;
+    uint16_t numberOfChannels;
 
+    DmxInput dmx_input;
     Controller* controller;
+
+    volatile uint8_t dmx_buffer[];
 
 };

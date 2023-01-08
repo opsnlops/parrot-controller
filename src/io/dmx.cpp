@@ -33,18 +33,14 @@ int DMX::init()
 {
     // TODO: Assert that the input pin is assigned
 
+
     info("Starting up DMX on pin %d", inputPin);
 
-    int dmx_status = dmx_input.begin(inputPin, DMX_BASE_CHANNEL, DMX_NUMBER_OF_CHANNELS);
+    this->baseChannel = controller->getConfig()->getDmxBaseChannel();
+    this->numberOfChannels = controller->getConfig()->getNumberOfServos() + 1; // The number of servos + the e-stop
 
-    if(dmx_status != dmx_input.SUCCESS) {
-        error("Unable to start DMX! Error code: %d", dmx_status);
-        return 0;
-    }
-
-    dmx_input.read_async(dmx_buffer, dmxDataGotten);
-
-    debug("DMX started!");
+    dmx_buffer[DMXINPUT_BUFFER_SIZE(this->baseChannel,
+                                    this->numberOfChannels)];
 
     return 1;
 }
@@ -55,8 +51,19 @@ int DMX::start() {
     // of scope. (As it would as a stack var.)
     auto *info = (DmxHandlerInfo*)pvPortMalloc(sizeof(DmxHandlerInfo));
     info->controller = this->controller;
-    info->dmxOffset = DMX_BASE_CHANNEL;
     info->dmx_buffer = this->dmx_buffer;
+
+    int dmx_status = dmx_input.begin(inputPin,
+                                     this->baseChannel,
+                                     this->numberOfChannels);
+
+    if(dmx_status != dmx_input.SUCCESS) {
+        error("Unable to start DMX! Error code: %d", dmx_status);
+        return 0;
+    }
+
+    dmx_input.read_async(dmx_buffer, dmxDataGotten);
+    debug("DMX started!");
 
     xTaskCreate(dmx_processing_task,
                 "dmx_processing_task",
@@ -100,7 +107,8 @@ portTASK_FUNCTION(dmx_processing_task, pvParameters) {
 
     auto* info = (DmxHandlerInfo*)pvParameters;
     Controller* controller = info->controller;
-    uint8_t dmxOffset = info->dmxOffset;
+    uint16_t baseChannel = info->baseChannel;
+    uint16_t numberOfChannels = info->numberOfChannels;
     volatile uint8_t* dmx_buffer = info->dmx_buffer;
 
     // We're done with info, free it!
@@ -110,13 +118,13 @@ portTASK_FUNCTION(dmx_processing_task, pvParameters) {
 #pragma ide diagnostic ignored "EndlessLoop"
 
     // Create a buffer to copy the dmx info into
-    auto buffer = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * DMX_NUMBER_OF_CHANNELS);
+    auto buffer = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * numberOfChannels);
 
     uint32_t ulNotifiedValue;
     for (EVER) {
 
         // Initialize the buffer
-        for(int i = 0; i < DMX_NUMBER_OF_CHANNELS; i++) {
+        for(int i = 0; i < numberOfChannels; i++) {
             buffer[i] = (uint8_t)0;
         }
 
@@ -124,8 +132,8 @@ portTASK_FUNCTION(dmx_processing_task, pvParameters) {
         xTaskNotifyWait(0x00, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY);
 
         // Copy the buffer info our local buffer
-        for(int i = 0; i < DMX_NUMBER_OF_CHANNELS; i++) {
-            buffer[i] = dmx_buffer[i + dmxOffset];
+        for(int i = 0; i < numberOfChannels; i++) {
+            buffer[i] = dmx_buffer[i + baseChannel];
         }
 
         // Send this to the controller

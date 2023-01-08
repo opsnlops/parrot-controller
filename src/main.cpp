@@ -25,9 +25,14 @@ int main() {
     logger_init();
     debug("Logging running!");
 
+    auto *parrot = new Parrot();
+
     // Bring up the controller
     auto *controller = new Controller();
-    controller->init();
+
+    // Load the config! For now, since we don't have a way to store the config somewhere, let's
+    // just use the default
+    controller->init(parrot->getDefaultConfig());
 
     // Bring up the I/O
     IOHandler* io = nullptr;
@@ -39,7 +44,6 @@ int main() {
 #endif
     io->init();
 
-    auto *parrot = new Parrot("Beaky");
     parrot->init(controller);
 
     auto *display = new Display(controller, io);
@@ -58,7 +62,7 @@ int main() {
     // Let the controller know how to find the creature worker task
     controller->setCreatureWorkerTaskHandle(parrot->getWorkerTaskHandle());
 
-    info("I see a new parrot! Its name is %s!", parrot->getName());
+    info("I see a new parrot! Its name is %s!", controller->getConfig()->getName());
 
     // Turn the power on to the servos
     controller->powerOn();

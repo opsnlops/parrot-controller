@@ -12,7 +12,6 @@
 
 // The most servos we can control
 #define MAX_NUMBER_OF_SERVOS        16
-#define SERVO_HZ                    50
 
 // Devices
 #define E_STOP_PIN                  28
@@ -31,14 +30,7 @@
  * Everything is defined as an offset from the base. The values are
  * DMX_BASE_CHANNEL + the offset for the desired value.
  */
-#define DMX_BASE_CHANNEL            1
 #define DMX_E_STOP_CHANNEL_OFFSET   0
-#define DMX_SMOOTHING_OFFSET        1
-
-#define DMX_NUMBER_OF_CHANNELS      9
-
-
-
 
 
 /*
@@ -68,7 +60,7 @@
  * Servo bounds
  */
 #define MIN_SERVO_POSITION          0
-#define MAX_SERVO_POSITION          999
+#define MAX_SERVO_POSITION          1023
 
 /*
  * Servo <-> GPIO Pin Mappings

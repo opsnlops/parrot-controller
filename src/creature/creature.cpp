@@ -7,21 +7,16 @@
 #include "logging/logging.h"
 
 
-Creature::Creature(const char* name) {
+Creature::Creature() {
 
-    this->name = name;
     this->controller = nullptr;
     this->workerTaskHandle = nullptr;
 
-    debug("Creature() called! name: %s", this->name);
+    debug("Creature() called!");
 }
 
 TaskHandle_t Creature::getWorkerTaskHandle() {
     return workerTaskHandle;
-}
-
-const char* Creature::getName() {
-    return this->name;
 }
 
 void Creature::init(Controller *c) {

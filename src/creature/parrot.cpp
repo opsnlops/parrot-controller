@@ -1,40 +1,55 @@
 
 #include <climits>
 
+#include "creature/config.h"
+
 #include "parrot.h"
 #include "creature.h"
 #include "tasks.h"
 
-Parrot::Parrot(const char* name)
-        : Creature(name) {
+Parrot::Parrot()
+        : Creature() {
 
-    info("Hello! My name is %s!", name);
+    info("Bawk!");
 }
+
+CreatureConfig* Parrot::getDefaultConfig() {
+
+    auto config = new CreatureConfig("Beaky", 50, 7,1);
+
+    config->setServoConfig(NECK_LEFT,
+                           new ServoConfig("Neck Left", 250, 2500, 0.95, false));
+    config->setServoConfig(NECK_RIGHT,
+                           new ServoConfig("Neck Right", 250, 2500, 0.95, true));
+    config->setServoConfig(NECK_ROTATE,
+                           new ServoConfig("Neck Rotate", 250, 2500, 0.95, true));
+    config->setServoConfig(BEAK,
+                           new ServoConfig("Beak", 250, 2500, 0.95, false));
+    config->setServoConfig(CHEST,
+                           new ServoConfig("Chest", 250, 2500, 0.95, false));
+    config->setServoConfig(BODY_LEAN,
+                           new ServoConfig("Body Lean", 250, 2500, 0.95, false));
+    config->setServoConfig(STAND_ROTATE,
+                           new ServoConfig("Stand Rotate", 250, 2500, 0.95, false));
+
+    return config;
+
+}
+
 
 void Parrot::init(Controller *controller) {
     debug("starting creature init");
 
     this->controller = controller;
 
-    // Create all of our servos
-    controller->initServo(NECK_LEFT, "Neck Left", 250, 2500, false);
-#if 0
-    controller->initServo(NECK_RIGHT, "Neck Right", 250, 2500, true);
-    controller->initServo(NECK_ROTATE, "Neck Rotate", 250, 2500, true);
-    controller->initServo(BEAK, "Beak", 250, 2500, false);
-    controller->initServo(CHEST, "Chest", 250, 2500, false);
-    controller->initServo(BODY_LEAN, "Body Lean", 250, 2500, false);
-    controller->initServo(STAND_ROTATE, "Stand Rotate", 250, 2500, false);
-#endif
 }
-
 
 void Parrot::start() {
 
     // Make sure we have a controller
     assert(this->controller != nullptr);
 
-    // Declare this on the heap so it lasts once start() goes out of scope
+    // Declare this on the heap, so it lasts once start() goes out of scope
     auto info = (ParrotInfo*)pvPortMalloc(sizeof(ParrotInfo));
     info->controller = this->controller;
     info->parrot= this;

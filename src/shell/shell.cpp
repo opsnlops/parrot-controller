@@ -109,7 +109,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                 default:
                     const char *helpMenu = "\n\n%s Debug Shell\n\n  d = show debug data\n  p = toggle power\n";
 
-                    snprintf(tx_buffer, 256, helpMenu, creature->getName());
+                    snprintf(tx_buffer, 256, helpMenu, controller->getConfig()->getName());
                     uart_puts(uart1, tx_buffer);
             }
 

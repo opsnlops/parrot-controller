@@ -20,27 +20,36 @@ Controller::Controller() {
 
     debug("setting up the controller");
 
-    // Declare some space on the heap for our current frame buffer
-    currentFrame = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * DMX_NUMBER_OF_CHANNELS);
-
     creatureWorkerTaskHandle = nullptr;
     poweredOn = false;
     powerRelay = new Relay(E_STOP_PIN, poweredOn);
 
 }
 
-void Controller::init() {
+void Controller::init(CreatureConfig* incomingConfig) {
+
+    this->config = incomingConfig;
+    this->numberOfChannels = this->config->getNumberOfServos() + 1; // The number of servos + the e-stop
 
     // Initialize all the slots in the controller
     for(auto & servo : servos) {
         servo = nullptr;
     }
 
+    // Set up the servos
+    for(int i = 0; i < this->config->getNumberOfServos(); i++)
+    {
+        ServoConfig* servo = this->config->getServoConfig(i);
+        initServo(i, servo->name, servo->minPulseUs, servo->maxPulseUs, servo->smoothingValue, servo->inverted);
+    }
+
     // Set the currentFrame buffer to the middle value as a safe-ish default
-    for(int i = 0; i < DMX_NUMBER_OF_CHANNELS; i++) {
+    for(int i = 0; i < this->numberOfChannels; i++) {
         currentFrame[i] = UCHAR_MAX / 2;
     }
 
+    // Declare some space on the heap for our current frame buffer
+    currentFrame = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * this->numberOfChannels);
 }
 
 void Controller::setCreatureWorkerTaskHandle(TaskHandle_t taskHandle) {
@@ -66,7 +75,7 @@ void Controller::start() {
 bool Controller::acceptInput(uint8_t* input) {
 
     // Copy the incoming buffer into our buffer
-    memcpy(currentFrame, input, DMX_NUMBER_OF_CHANNELS);
+    memcpy(currentFrame, input, this->numberOfChannels);
 
     /**
      * If there's no worker task, stop here.
@@ -88,16 +97,21 @@ uint8_t* Controller::getCurrentFrame() {
 }
 
 void Controller::initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
-                           uint16_t maxPulseUs, bool inverted) {
+                           uint16_t maxPulseUs, float smoothingValue, bool inverted) {
 
     uint8_t gpioPin = pinMappings[indexNumber];
 
     servos[indexNumber] = new Servo(gpioPin, name, minPulseUs,
-                                    maxPulseUs, inverted);
+                                    maxPulseUs, smoothingValue, inverted,
+                                    this->config->getServoFrequencyHz());
     numberOfServosInUse++;
 
     info("servo init: index: %d, pin: %d, name: %s", indexNumber, gpioPin, name);
 
+}
+
+CreatureConfig* Controller::getConfig() {
+    return config;
 }
 
 uint16_t Controller::getServoPosition(uint8_t indexNumber) {

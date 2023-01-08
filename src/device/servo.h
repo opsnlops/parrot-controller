@@ -24,13 +24,15 @@
 class Servo {
 
 public:
-    Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pulse_us, bool inverted);
+    Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pulse_us,
+          float smoothingValue, bool inverted, uint32_t frequency);
     void turnOn();
     void turnOff();
     uint16_t getPosition() const;
     uint getSlice() const;
     uint getChannel() const;
     uint getDesiredTicks() const;
+    float getSmoothingValue() const;
     const char* getName() const;
     void move(uint16_t position);
 
@@ -41,13 +43,13 @@ private:
     uint slice;                 // PWM slice for this servo
     uint channel;               // PWM channel for this servo
     uint32_t resolution;        // The resolution for this servo
-    uint32_t frequency;         // The PWM frequency for this servo in Hz (recommended: 50)
     uint32_t frame_length_us;   // How many microseconds are in each frame
     uint16_t current_position;  // Where we think the servo currently is
     bool on;                    // Is the servo active?
     bool inverted;              // Should the movements be inverted?
     uint32_t desired_ticks;     // The number of ticks we should be set to on the next cycle
     const char* name;           // This servo's name
+    float smoothingValue;       // The constant to use when smoothing the input
 
     static uint32_t pwm_set_freq_duty(uint slice_num, uint chan, uint32_t frequency, int d);
 };
