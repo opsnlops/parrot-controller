@@ -7,8 +7,11 @@
 #include "shell/shell.h"
 #include "controller/controller.h"
 #include "io/handler.h"
+#include "creature/config.h"
 #include "creature/creature.h"
 
+#define DS_TX_BUFFER_SIZE       1024
+#define DS_RX_BUFFER_SIZE       1
 
 class DebugShell {
 
@@ -21,6 +24,7 @@ public:
     Creature* getCreature();
     Controller* getController();
     IOHandler* getIOHandler();
+    CreatureConfig* getConfig();
 
 
 private:
@@ -28,5 +32,6 @@ private:
     Creature* creature;
     Controller* controller;
     IOHandler* io;
+    CreatureConfig* config;
 
 };
