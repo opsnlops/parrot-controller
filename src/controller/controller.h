@@ -38,6 +38,8 @@ public:
 
     bool acceptInput(uint8_t* input);
 
+    uint8_t getNumberOfServosInUse();
+
     // Get the servo, used for debugging
     static Servo* getServo(uint8_t index);
 

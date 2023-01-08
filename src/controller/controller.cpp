@@ -11,8 +11,11 @@
 #include "controller.h"
 
 
+extern TaskHandle_t controllerHousekeeperTaskHandle;
+BaseType_t isrPriorityTaskWoken = pdFALSE;
+
 // Initialize the static members
-Servo* Controller::servos[MAX_NUMBER_OF_SERVOS] = {};
+Servo *Controller::servos[MAX_NUMBER_OF_SERVOS] = {};
 uint8_t Controller::numberOfServosInUse = 0;
 uint32_t Controller::numberOfPWMWraps = 0;
 
@@ -26,28 +29,27 @@ Controller::Controller() {
 
 }
 
-void Controller::init(CreatureConfig* incomingConfig) {
+void Controller::init(CreatureConfig *incomingConfig) {
 
     this->config = incomingConfig;
     this->numberOfChannels = this->config->getNumberOfServos() + 1; // The number of servos + the e-stop
 
     // Initialize all the slots in the controller
-    for(auto & servo : servos) {
+    for (auto &servo: servos) {
         servo = nullptr;
     }
 
     // Set up the servos
-    for(int i = 0; i < this->config->getNumberOfServos(); i++)
-    {
-        ServoConfig* servo = this->config->getServoConfig(i);
+    for (int i = 0; i < this->config->getNumberOfServos(); i++) {
+        ServoConfig *servo = this->config->getServoConfig(i);
         initServo(i, servo->name, servo->minPulseUs, servo->maxPulseUs, servo->smoothingValue, servo->inverted);
     }
 
     // Declare some space on the heap for our current frame buffer
-    currentFrame = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * this->numberOfChannels);
+    currentFrame = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * this->numberOfChannels);
 
     // Set the currentFrame buffer to the middle value as a safe-ish default
-    for(int i = 0; i < this->numberOfChannels; i++) {
+    for (int i = 0; i < this->numberOfChannels; i++) {
         currentFrame[i] = UCHAR_MAX / 2;
     }
 
@@ -65,6 +67,14 @@ void Controller::start() {
     irq_set_exclusive_handler(PWM_IRQ_WRAP, Controller::on_pwm_wrap_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
+    // Fire off the housekeeper
+    xTaskCreate(controller_housekeeper_task,
+                "controller_housekeeper_task",
+                256,
+                (void *) this,
+                1,
+                &controllerHousekeeperTaskHandle);
+
 }
 
 /**
@@ -73,7 +83,7 @@ void Controller::start() {
  * @param input a buffer of size DMX_NUMBER_OF_CHANNELS containing the incoming data
  * @return true if it worked
  */
-bool Controller::acceptInput(uint8_t* input) {
+bool Controller::acceptInput(uint8_t *input) {
 
     // Copy the incoming buffer into our buffer
     memcpy(currentFrame, input, this->numberOfChannels);
@@ -81,7 +91,7 @@ bool Controller::acceptInput(uint8_t* input) {
     /**
      * If there's no worker task, stop here.
      */
-    if(creatureWorkerTaskHandle == nullptr) {
+    if (creatureWorkerTaskHandle == nullptr) {
         return false;
     }
 
@@ -93,11 +103,11 @@ bool Controller::acceptInput(uint8_t* input) {
     return true;
 }
 
-uint8_t* Controller::getCurrentFrame() {
-   return currentFrame;
+uint8_t *Controller::getCurrentFrame() {
+    return currentFrame;
 }
 
-void Controller::initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
+void Controller::initServo(uint8_t indexNumber, const char *name, uint16_t minPulseUs,
                            uint16_t maxPulseUs, float smoothingValue, bool inverted) {
 
     uint8_t gpioPin = getPinMapping(indexNumber);
@@ -111,7 +121,7 @@ void Controller::initServo(uint8_t indexNumber, const char* name, uint16_t minPu
 
 }
 
-CreatureConfig* Controller::getConfig() {
+CreatureConfig *Controller::getConfig() {
     return config;
 }
 
@@ -120,13 +130,14 @@ uint8_t Controller::getPinMapping(uint8_t servoNumber) {
 }
 
 uint16_t Controller::getServoPosition(uint8_t indexNumber) {
-   return servos[indexNumber]->getPosition();
+    return servos[indexNumber]->getPosition();
 }
 
 void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
 
-    if(servos[servoIndexNumber]->getPosition() != requestedPosition) {
-        debug("requested to move servo %d from %d to position %d", servoIndexNumber, servos[servoIndexNumber]->getPosition(), requestedPosition);
+    if (servos[servoIndexNumber]->getPosition() != requestedPosition) {
+        debug("requested to move servo %d from %d to position %d", servoIndexNumber,
+              servos[servoIndexNumber]->getPosition(), requestedPosition);
         servos[servoIndexNumber]->move(requestedPosition);
     }
 
@@ -134,14 +145,27 @@ void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t request
 
 void __isr Controller::on_pwm_wrap_handler() {
 
-    for(int i = 0; i < numberOfServosInUse; i++)
+    for (int i = 0; i < numberOfServosInUse; i++)
+
         pwm_set_chan_level(servos[i]->getSlice(),
                            servos[i]->getChannel(),
-                           servos[i]->getDesiredTicks());
+                           servos[i]->getCurrentTick());
 
     pwm_clear_irq(servos[0]->getSlice());
 
     Controller::numberOfPWMWraps++;
+
+ /**
+ * If there's no worker task, stop here.
+ */
+    if (controllerHousekeeperTaskHandle != nullptr) {
+
+        // Tell the housekeeper to go when it can
+        xTaskNotifyFromISR(controllerHousekeeperTaskHandle,
+                    0,
+                    eNoAction,
+                    &isrPriorityTaskWoken);
+    }
 }
 
 uint32_t Controller::getNumberOfPWMWraps() {
@@ -149,9 +173,9 @@ uint32_t Controller::getNumberOfPWMWraps() {
 }
 
 void Controller::powerOn() {
-   powerRelay->turnOn();
-   poweredOn = true;
-   info("turned on the power");
+    powerRelay->turnOn();
+    poweredOn = true;
+    info("turned on the power");
 }
 
 void Controller::powerOff() {
@@ -168,6 +192,37 @@ bool Controller::isPoweredOn() const {
     return poweredOn;
 }
 
-Servo* Controller::getServo(uint8_t index) {
+uint8_t Controller::getNumberOfServosInUse() {
+    return numberOfServosInUse;
+}
+
+Servo *Controller::getServo(uint8_t index) {
     return servos[index];
+}
+
+portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
+
+    auto controller = (Controller *) pvParameters;
+
+    uint32_t ulNotifiedValue;
+
+    debug("controller housekeeper running");
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
+    for (EVER) {
+
+        // Wait for the ISR to signal us to go
+        xTaskNotifyWait(0x00, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY);
+
+        for (int i = 0; i < controller->getNumberOfServosInUse(); i++) {
+
+            // Do housekeeping on each servo
+            controller->getServo(i)->calculateNextTick();
+
+        }
+
+    }
+#pragma clang diagnostic pop
 }

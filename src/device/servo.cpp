@@ -1,5 +1,6 @@
 
 #include <cassert>
+#include <cmath>
 
 #include "controller-config.h"
 
@@ -56,6 +57,9 @@ Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pu
     this->desired_ticks = 0;
     this->current_ticks = 0;
     this->current_position = MIN_SERVO_POSITION / 2;
+
+    // Force a calculation for the current tick
+    calculateNextTick();
 
     // Turn the servo on by default
     pwm_set_enabled(this->slice, true);
@@ -142,7 +146,7 @@ void Servo::move(uint16_t position) {
     desired_ticks = (float)resolution * frame_active;
     current_position = position;
 
-    debug("requesting servo GPIO %d be set to position %d (%d ticks)",
+    verbose("requesting servo GPIO %d be set to position %d (%d ticks)",
           gpio,
           current_position,
           desired_ticks);
@@ -172,16 +176,23 @@ uint Servo::getChannel() const {
     return channel;
 }
 
-uint32_t Servo::getDesiredTicks() const {
+uint32_t Servo::getDesiredTick() const {
     return desired_ticks;
 }
 
-uint32_t Servo::getCurrentTicks() const {
+uint32_t Servo::getCurrentTick() const {
     return current_ticks;
 }
 
 float Servo::getSmoothingValue() const {
     return smoothingValue;
+}
+
+void Servo::calculateNextTick() {
+    uint32_t last_tick = current_ticks;
+
+    current_ticks =  lround(((double)desired_ticks * (1.0 - smoothingValue)) + ((double)last_tick * smoothingValue));
+    //debug("-- set current_ticks to %ul", current_ticks);
 }
 
 /**

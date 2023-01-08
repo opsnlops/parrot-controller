@@ -33,12 +33,14 @@ public:
     uint getChannel() const;
 
     // These are PWM values
-    uint32_t getDesiredTicks() const;   // Where we want it to go
-    uint32_t getCurrentTicks() const;   // Where the servo currently is
+    uint32_t getDesiredTick() const;   // Where we want it to go
+    uint32_t getCurrentTick() const;   // Where the servo currently is
 
     float getSmoothingValue() const;
     const char* getName() const;
     void move(uint16_t position);
+
+    void calculateNextTick();
 
 private:
     uint gpio;                  // GPIO pin the servo is connected to
