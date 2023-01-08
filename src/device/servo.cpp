@@ -154,7 +154,13 @@ const char* Servo::getName() const {
 }
 
 uint16_t Servo::getPosition() const {
-    return current_position;
+
+    // If this is an inverted servo, show the inverted value
+    if(inverted) {
+        return MAX_SERVO_POSITION - current_position;
+    } else {
+        return current_position;
+    }
 }
 
 uint Servo::getSlice() const {
