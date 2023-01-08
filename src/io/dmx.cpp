@@ -52,6 +52,8 @@ int DMX::start() {
     auto *info = (DmxHandlerInfo*)pvPortMalloc(sizeof(DmxHandlerInfo));
     info->controller = this->controller;
     info->dmx_buffer = this->dmx_buffer;
+    info->baseChannel = this->baseChannel;
+    info->numberOfChannels = this->numberOfChannels;
 
     int dmx_status = dmx_input.begin(inputPin,
                                      this->baseChannel,
