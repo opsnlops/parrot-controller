@@ -12,7 +12,7 @@
 
 #include "tasks.h"
 
-
+extern uint32_t number_of_moves;
 extern TaskHandle_t debug_console_task_handle;
 
 DebugShell::DebugShell(Creature *creature, Controller *controller, IOHandler *io) {
@@ -101,7 +101,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 
         // Block until there's something to read
         if(uart_is_readable(uart1)) {
-            uart_read_blocking(uart1, rx_buffer, DS_RX_BUFFER_SIZE);
+            uart_read_blocking(uart1, rx_buffer, 1);
 
             // Echo back the input from the user
             uart_puts(uart1, (char*)rx_buffer);
@@ -114,7 +114,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     uart_puts(uart1, tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "              Name: %s\n",config->getName());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "              Name: %s\n", config->getName());
                     uart_puts(uart1, tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -150,17 +150,69 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                                  config->getServoConfig(i)->smoothingValue,
                                  config->getServoConfig(i)->inverted ? "yes" : "no");
                         uart_puts(uart1, tx_buffer);
-                        ds_reset_buffers(tx_buffer, rx_buffer);
-                    }
+                        }
 
                     break;
 
                 case('d'):
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\nWraps: %lu, Mem: %d, Frames: %lu",
-                             controller->getNumberOfPWMWraps(),
-                             xPortGetFreeHeapSize(),
-                             io->getNumberOfFramesReceived());
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\n Info:\n");
                     uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     wraps: %lu\n", controller->getNumberOfPWMWraps());
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    frames: %lu\n", io->getNumberOfFramesReceived());
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     moves: %lu\n", number_of_moves);
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  free mem: %d\n", xPortGetFreeHeapSize());
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   min mem: %d\n", xPortGetMinimumEverFreeHeapSize());
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    uptime: %lums\n", to_ms_since_boot(get_absolute_time()));
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n Servos:\n");
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      num | gpio | sl | ch |         name           |  pos  |  ctick  |  dtick \n");
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      --------------------------------------------------------------------------\n");
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    for(int i = 0; i < config->getNumberOfServos(); i++) {
+
+                        Servo* s = Controller::getServo(i);
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      %3d |  %2d  | %2d |  %s |  %-21s |  %4d |  %5lu  |  %5lu\n",
+                                 i,
+                                 controller->getPinMapping(i),
+                                 s->getSlice(),
+                                 s->getChannel() == 0 ? "A" : "B",
+                                 s->getName(),
+                                 s->getPosition(),
+                                 s->getCurrentTicks(),
+                                 s->getDesiredTicks());
+                        uart_puts(uart1, tx_buffer);
+                    }
+
+
                     break;
 
                 case('p'):

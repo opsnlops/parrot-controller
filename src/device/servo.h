@@ -31,7 +31,11 @@ public:
     uint16_t getPosition() const;
     uint getSlice() const;
     uint getChannel() const;
-    uint getDesiredTicks() const;
+
+    // These are PWM values
+    uint32_t getDesiredTicks() const;   // Where we want it to go
+    uint32_t getCurrentTicks() const;   // Where the servo currently is
+
     float getSmoothingValue() const;
     const char* getName() const;
     void move(uint16_t position);
@@ -44,10 +48,11 @@ private:
     uint channel;               // PWM channel for this servo
     uint32_t resolution;        // The resolution for this servo
     uint32_t frame_length_us;   // How many microseconds are in each frame
-    uint16_t current_position;  // Where we think the servo currently is
+    uint16_t current_position;  // Where we think the servo currently is in our position
     bool on;                    // Is the servo active?
     bool inverted;              // Should the movements be inverted?
     uint32_t desired_ticks;     // The number of ticks we should be set to on the next cycle
+    uint32_t current_ticks;     // Which tick is the servo at
     const char* name;           // This servo's name
     float smoothingValue;       // The constant to use when smoothing the input
 

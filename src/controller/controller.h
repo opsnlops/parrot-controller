@@ -34,7 +34,12 @@ public:
 
     uint8_t* getCurrentFrame();
 
+    uint8_t getPinMapping(uint8_t servoNumber);
+
     bool acceptInput(uint8_t* input);
+
+    // Get the servo, used for debugging
+    static Servo* getServo(uint8_t index);
 
     // ISR, called when the PWM wraps
     static void __isr on_pwm_wrap_handler();

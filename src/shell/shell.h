@@ -11,7 +11,7 @@
 #include "creature/creature.h"
 
 #define DS_TX_BUFFER_SIZE       1024
-#define DS_RX_BUFFER_SIZE       1
+#define DS_RX_BUFFER_SIZE       16
 
 class DebugShell {
 

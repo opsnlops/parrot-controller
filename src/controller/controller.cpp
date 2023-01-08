@@ -100,7 +100,7 @@ uint8_t* Controller::getCurrentFrame() {
 void Controller::initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
                            uint16_t maxPulseUs, float smoothingValue, bool inverted) {
 
-    uint8_t gpioPin = pinMappings[indexNumber];
+    uint8_t gpioPin = getPinMapping(indexNumber);
 
     servos[indexNumber] = new Servo(gpioPin, name, minPulseUs,
                                     maxPulseUs, smoothingValue, inverted,
@@ -113,6 +113,10 @@ void Controller::initServo(uint8_t indexNumber, const char* name, uint16_t minPu
 
 CreatureConfig* Controller::getConfig() {
     return config;
+}
+
+uint8_t Controller::getPinMapping(uint8_t servoNumber) {
+    return pinMappings[servoNumber];
 }
 
 uint16_t Controller::getServoPosition(uint8_t indexNumber) {
@@ -162,4 +166,8 @@ void Controller::powerToggle() {
 
 bool Controller::isPoweredOn() const {
     return poweredOn;
+}
+
+Servo* Controller::getServo(uint8_t index) {
+    return servos[index];
 }

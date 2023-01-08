@@ -54,7 +54,8 @@ Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pu
                                          0);
     this->inverted = inverted;
     this->desired_ticks = 0;
-    this->current_position = MIN_SERVO_POSITION;
+    this->current_ticks = 0;
+    this->current_position = MIN_SERVO_POSITION / 2;
 
     // Turn the servo on by default
     pwm_set_enabled(this->slice, true);
@@ -141,7 +142,7 @@ void Servo::move(uint16_t position) {
     desired_ticks = (float)resolution * frame_active;
     current_position = position;
 
-    verbose("requesting servo GPIO %d be set to position %d (%d ticks)",
+    debug("requesting servo GPIO %d be set to position %d (%d ticks)",
           gpio,
           current_position,
           desired_ticks);
@@ -171,8 +172,12 @@ uint Servo::getChannel() const {
     return channel;
 }
 
-uint Servo::getDesiredTicks() const {
+uint32_t Servo::getDesiredTicks() const {
     return desired_ticks;
+}
+
+uint32_t Servo::getCurrentTicks() const {
+    return current_ticks;
 }
 
 float Servo::getSmoothingValue() const {
