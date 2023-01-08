@@ -160,6 +160,10 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     uart_puts(uart1, tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     power: %s\n", controller->isPoweredOn() ? "on" : "off");
+                    uart_puts(uart1, tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     wraps: %lu\n", controller->getNumberOfPWMWraps());
                     uart_puts(uart1, tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
