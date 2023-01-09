@@ -40,23 +40,23 @@ uint16_t Creature::convertInputValueToServoValue(uint8_t inputValue) {
     return servoValue;
 }
 
-uint16_t Creature::convertRange(uint16_t input, uint16_t oldMin, uint16_t oldMax, uint16_t newMin, uint16_t newMax) {
+int32_t Creature::convertRange(int32_t input, int32_t oldMin, int32_t oldMax, int32_t newMin, int32_t newMax) {
 
     if( input > oldMax ) {
-        uint16_t newInput = oldMax;
+        int32_t newInput = oldMax;
         warning("input (%d) is out of range %d to %d. capping at %d", input, oldMin, oldMax, newInput);
         input = newInput;
     }
 
     if( input < oldMin ) {
-        uint16_t newInput = oldMin;
+        int32_t newInput = oldMin;
         warning("input (%d) is out of range %d to %d. capping at %d", input, oldMin, oldMax, newInput);
         input = newInput;
     }
 
-    uint16_t oldRange = oldMax - oldMin;
-    uint16_t newRange = newMax - newMin;
-    uint16_t newValue = (((input - oldMin) * newRange) / oldRange) + newMin;;
+    int32_t oldRange = oldMax - oldMin;
+    int32_t newRange = newMax - newMin;
+    int32_t newValue = (((input - oldMin) * newRange) / oldRange) + newMin;;
 
     verbose("mapped %d -> %d", input, newValue);
     return newValue;

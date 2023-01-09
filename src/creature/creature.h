@@ -70,7 +70,7 @@ protected:
     uint8_t numberOfJoints;
 
     // This is like the Arduino helper map() function. We do this a lot.
-    static uint16_t convertRange(uint16_t input, uint16_t oldMin, uint16_t oldMax, uint16_t newMin, uint16_t newMax);
+    static int32_t convertRange(int32_t input, int32_t oldMin, int32_t oldMax, int32_t newMin, int32_t newMax);
 
 };
 

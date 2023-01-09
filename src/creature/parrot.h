@@ -19,8 +19,24 @@
 #define STAND_ROTATE    6
 
 
-#define HEAD_OFFSET_MAX  0.35       // The max percent of the total height that the head can be
+// Input mapping. Defines which axis is each
+#define INPUT_HEAD_HEIGHT   3
+#define INPUT_HEAD_TILT     2
+#define INPUT_BODY_LEAN     4
+#define INPUT_BEAK          5
+#define INPUT_NECK_ROTATE   0
+#define INPUT_CHEST         1
+#define INPUT_STAND_ROTATE  6
 
+
+
+#define HEAD_OFFSET_MAX  0.30       // The max percent of the total height that the head can be
+
+
+typedef struct {
+    uint16_t left;
+    uint16_t right;
+} head_position_t;
 
 class Parrot : public Creature {
 
@@ -31,8 +47,6 @@ public:
     CreatureConfig* getDefaultConfig() override;
     void init(Controller *controller) override;
     void start() override;
-
-private:
 
     /**
      * Convert a given y coordinate to where the head should be
@@ -47,7 +61,11 @@ private:
      * @param x the x axis
      * @return head tilt
      */
-    uint16_t configToHeadTilt(uint16_t x);
+    int32_t configToHeadTilt(uint16_t x);
+
+    head_position_t calculateHeadPosition(uint16_t height, int32_t offset);
+
+private:
 
     uint16_t headOffsetMax;
 

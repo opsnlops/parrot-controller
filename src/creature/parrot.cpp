@@ -27,15 +27,15 @@ CreatureConfig* Parrot::getDefaultConfig() {
     config->setServoConfig(NECK_RIGHT,
                            new ServoConfig("Neck Right", 250, 2500, 0.94, true));
     config->setServoConfig(NECK_ROTATE,
-                           new ServoConfig("Neck Rotate", 250, 2500, 0.95, true));
+                           new ServoConfig("Neck Rotate", 250, 2500, 0.95, false));
     config->setServoConfig(BEAK,
-                           new ServoConfig("Beak", 250, 2500, 0.95, false));
+                           new ServoConfig("Beak", 250, 2500, 0.4, false));
     config->setServoConfig(CHEST,
-                           new ServoConfig("Chest", 250, 2500, 0.95, false));
+                           new ServoConfig("Chest", 250, 2500, 0.99, false));
     config->setServoConfig(BODY_LEAN,
-                           new ServoConfig("Body Lean", 250, 2500, 0.9999, false));
+                           new ServoConfig("Body Lean", 250, 1400, 0.95, true));
     config->setServoConfig(STAND_ROTATE,
-                           new ServoConfig("Stand Rotate", 250, 2500, 0.95, false));
+                           new ServoConfig("Stand Rotate", 250, 2500, 0.99, false));
 
     return config;
 
@@ -83,13 +83,29 @@ uint16_t Parrot::convertToHeadHeight(uint16_t y) {
 
 }
 
-uint16_t Parrot::configToHeadTilt(uint16_t x) {
-   // TODO: Fix this, it won't work since we deal with unsigned values
+int32_t Parrot::configToHeadTilt(uint16_t x) {
+
     return Parrot::convertRange(x,
                                MIN_SERVO_POSITION,
                                MAX_SERVO_POSITION,
                                1 - (this->headOffsetMax / 2),
                                this->headOffsetMax / 2);
+}
+
+
+head_position_t Parrot::calculateHeadPosition(uint16_t height, int32_t offset) {
+
+    uint16_t right = height + offset;
+    uint16_t left = height - offset;
+
+    head_position_t headPosition;
+    headPosition.left = left;
+    headPosition.right = right;
+
+    verbose("calculated head position: height: %d, offset: %d -> %d, %d", height, offset, right, left);
+
+    return headPosition;
+
 }
 
 /**
@@ -126,12 +142,30 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         // Fetch the current frame
         currentFrame = controller->getCurrentFrame();
 
-        // TODO: This is temp
-        for(int i = 0; i < numberOfJoints; i++) {
-            parrot->joints[i] = Parrot::convertInputValueToServoValue(currentFrame[i]);
-        }
 
-        // For now, let's just set the servo to the requested position with no processing
+        uint16_t headHeight = parrot->convertToHeadHeight(Parrot::convertInputValueToServoValue(currentFrame[INPUT_HEAD_HEIGHT]));
+        int32_t headTilt = parrot->configToHeadTilt(Parrot::convertInputValueToServoValue(currentFrame[INPUT_HEAD_TILT]));
+
+        verbose("head height: %d, head tilt: %d", headHeight, headTilt);
+
+        head_position_t headPosition = parrot->calculateHeadPosition(headHeight, headTilt);
+
+        parrot->joints[NECK_LEFT] = headPosition.left;
+        parrot->joints[NECK_RIGHT] = headPosition.right;
+
+
+        uint16_t bodyLean = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BODY_LEAN]);
+        parrot->joints[BODY_LEAN] = bodyLean;
+
+
+        // For the others, copy in what's on the wire for now
+        parrot->joints[NECK_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_NECK_ROTATE]);
+        parrot->joints[BEAK] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BEAK]);
+        parrot->joints[CHEST] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_CHEST]);
+        parrot->joints[STAND_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_STAND_ROTATE]);
+
+
+        // Request these positions from the controller
         for(int i = 0; i < numberOfJoints; i++) {
             controller->requestServoPosition(i,
                                              parrot->joints[i]);
