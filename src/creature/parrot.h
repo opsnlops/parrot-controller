@@ -30,7 +30,7 @@
 
 
 
-#define HEAD_OFFSET_MAX  0.30       // The max percent of the total height that the head can be
+#define HEAD_OFFSET_MAX  0.4       // The max percent of the total height that the head can be
 
 
 typedef struct {
