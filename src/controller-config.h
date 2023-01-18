@@ -14,6 +14,8 @@
 #define MAX_NUMBER_OF_SERVOS        16
 
 // Devices
+#define DMX_PIO                     pio0
+#define DMX_INVERTED                false
 #define E_STOP_PIN                  28
 #define DMX_GPIO_PIN                22
 
@@ -21,6 +23,11 @@
 #define DEBUG_SHELL_TX              4
 #define DEBUG_SHELL_RX              5
 #define DEBUG_SHELL_BAUD_RATE       57600
+
+// Stepper UART
+#define STEPPER_UART_PIO            pio1
+#define STEPPER_UART_BAUD_RATE      57600
+#define STEPPER_UART_GPIO_PIN       26
 
 
 /**

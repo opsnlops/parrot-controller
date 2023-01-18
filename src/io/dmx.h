@@ -45,6 +45,8 @@ private:
     DmxInput dmx_input;
     Controller* controller;
 
+    PIO pio;
+
     volatile uint8_t dmx_buffer[];
 
 };

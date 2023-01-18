@@ -44,7 +44,7 @@ On hotot it's in `~/code` and symlinked into the project.
 | 28  | GND  |          |          |
 | 29  | GP22 | GPIO     | DMX In   |
 | 30  |      | Run      | Connect to ground to reset |
-| 31  | GP26 | --       | Spare    |
+| 31  | GP26 | --       | PIO UART (to steppers) |
 | 32  | GP27 | --       | Spare    |
 | 33  | (A)GND | --     | (Also the analog ground) |
 | 34  | GP28 | GPIO     | E-Stop Relay |

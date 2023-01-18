@@ -42,6 +42,8 @@ int DMX::init()
     dmx_buffer[DMXINPUT_BUFFER_SIZE(this->baseChannel,
                                     this->numberOfChannels)];
 
+    pio = DMX_PIO;
+
     return 1;
 }
 
@@ -57,7 +59,9 @@ int DMX::start() {
 
     int dmx_status = dmx_input.begin(inputPin,
                                      this->baseChannel,
-                                     this->numberOfChannels);
+                                     this->numberOfChannels,
+                                     this->pio,
+                                     DMX_INVERTED);
 
     if(dmx_status != dmx_input.SUCCESS) {
         error("Unable to start DMX! Error code: %d", dmx_status);
