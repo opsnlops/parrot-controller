@@ -110,10 +110,14 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
     for(auto & i : buffer)
         memset(i, '\0', DISPLAY_BUFFER_SIZE + 1);
 
+    TickType_t lastDrawTime;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
     for (EVER) {
+
+        // Make note of now
+        lastDrawTime = xTaskGetTickCount();
 
         // Clear the display
         oled->clear();
@@ -142,7 +146,7 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
 
         oled->sendBuffer();
 
-        vTaskDelay(pdMS_TO_TICKS(DISPLAY_UPDATE_TIME_MS));
+        vTaskDelayUntil(&lastDrawTime, pdMS_TO_TICKS(DISPLAY_UPDATE_TIME_MS));
     }
 #pragma clang diagnostic pop
 }
