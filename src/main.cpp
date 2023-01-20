@@ -12,7 +12,7 @@
 #include "device/display.h"
 #include "io/dmx.h"
 #include "io/handler.h"
-#include "io/stepper_uart.h"
+#include "io/pio_uart.h"
 #include "shell/shell.h"
 
 
@@ -53,15 +53,15 @@ int main() {
     auto *shell = new DebugShell(parrot, controller, io);
     shell->init();
 
-    auto *stepper_uart = new StepperUART();
-    stepper_uart->init();
+    auto *pio_uart = new PioUART();
+    pio_uart->init(STEPPER_UART_PIO, STEPPER_UART_TX_GPIO_PIN, STEPPER_UART_BAUD_RATE);
 
     // Start the things running!
     controller->start();
     display->start();
     parrot->start();
     io->start();
-    stepper_uart->start();
+    pio_uart->start();
     shell->start();
 
     // Let the controller know how to find the creature worker task

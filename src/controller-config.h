@@ -26,8 +26,8 @@
 
 // Stepper UART
 #define STEPPER_UART_PIO            pio1
-#define STEPPER_UART_BAUD_RATE      57600
-#define STEPPER_UART_GPIO_PIN       26
+#define STEPPER_UART_BAUD_RATE      115200
+#define STEPPER_UART_TX_GPIO_PIN    26
 
 
 /**
