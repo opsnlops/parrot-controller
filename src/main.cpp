@@ -54,7 +54,10 @@ int main() {
     shell->init();
 
     auto *pio_uart = new PioUART();
-    pio_uart->init(STEPPER_UART_PIO, STEPPER_UART_TX_GPIO_PIN, STEPPER_UART_BAUD_RATE);
+    pio_uart->init(STEPPER_UART_PIO,
+                   STEPPER_UART_RX_GPIO_PIN,
+                   STEPPER_UART_TX_GPIO_PIN,
+                   STEPPER_UART_BAUD_RATE);
 
     // Start the things running!
     controller->start();

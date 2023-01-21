@@ -55,7 +55,10 @@ target_link_libraries(
 )
 
 # PIO-based UART from the Pico examples
-pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_tx.pio)
+pico_generate_pio_header(controller
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_rx.pio
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_tx.pio
+        )
 
 # pull in common dependencies
 target_link_libraries(controller
