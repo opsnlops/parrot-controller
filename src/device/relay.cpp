@@ -24,7 +24,6 @@ Relay::Relay(uint8_t gpio_pin, bool on) {
 
     gpio_init(gpio_pin);
     gpio_set_dir(gpio_pin, true);   // This is an output pin
-    gpio_set_outover(gpio_pin, GPIO_OVERRIDE_INVERT); // The relays are active low
     gpio_put(gpio_pin, on);
 
 }
