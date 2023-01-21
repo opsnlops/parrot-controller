@@ -21,8 +21,6 @@ include_directories(
         src/
         )
 
-file(GLOB_RECURSE TMCStepper_source TMCStepper/src/*.cpp)
-
 # Our source files
 file(GLOB sourceFiles
         src/*
@@ -36,23 +34,15 @@ file(GLOB sourceFiles
 
 add_executable(controller
         ${sourceFiles}
-        ${TMCStepper_source}
         FreeRTOSConfig.h
         )
 
 target_include_directories(controller PRIVATE
         .
         ${CMAKE_CURRENT_LIST_DIR}
-        TMCStepper/src/
         )
 
 add_subdirectory(pico-ssd1306)
-add_library(TMCStepper ${TMCStepper_source})
-target_link_libraries(
-        TMCStepper
-        pico_stdlib
-        hardware_spi
-)
 
 # PIO-based UART from the Pico examples
 pico_generate_pio_header(controller
@@ -73,7 +63,6 @@ target_link_libraries(controller
         pico_ssd1306
         pico_unique_id
         picodmx
-        TMCStepper
         )
 
 # Enable the shell over UART (which is the picoprobe!)
