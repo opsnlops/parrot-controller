@@ -1,11 +1,13 @@
 
 #include <cstdio>
-#include <cstdarg>
 #include <cstring>
 
 
 #include "controller-config.h"
 
+#include "hardware/pio.h"
+#include "uart_rx.pio.h"
+#include "uart_tx.pio.h"
 
 #include "pico/time.h"
 
@@ -15,18 +17,21 @@
 #include "io/pio_uart.h"
 
 
-extern TaskHandle_t stepper_uart_task_handle;
-
-int PioUART::init(PIO tx_pio, uint8_t tx_pin, uint32_t tx_baud_rate) {
+int PioUART::init(PIO uart_pio, uint8_t rx_pin, uint8_t tx_pin, uint32_t baud_rate) {
 
     debug("initing a PioUART");
 
-    pio = tx_pio;
-    sm = 0;
-    offset = pio_add_program(pio, &uart_tx_program);
-    uart_tx_program_init(pio, sm, offset, tx_pin, tx_baud_rate);
+    this->pio = uart_pio;
 
-    debug("PIO uart created! sm: %d, offset: %d", sm, offset);
+    this->tx_offset = pio_add_program(this->pio, &uart_tx_program);
+    uart_tx_program_init(this->pio, this->tx_state_machine, this->tx_offset, tx_pin, baud_rate);
+
+    this->rx_offset = pio_add_program(this->pio, &uart_rx_program);
+    uart_rx_program_init(this->pio, this->rx_state_machine, this->rx_offset, rx_pin, baud_rate);
+
+    debug("PIO uart created! tx offset: %d (%d), rx offset: %d (%d)",
+          this->tx_offset, this->tx_state_machine,
+          this->rx_offset, this->rx_state_machine);
 
     return 1;
 
@@ -34,16 +39,7 @@ int PioUART::init(PIO tx_pio, uint8_t tx_pin, uint32_t tx_baud_rate) {
 
 int PioUART::start() {
 
-
-    xTaskCreate(stepper_uart_task,
-                "stepper_uart_task",
-                512,
-                (void*)(this),
-                1,
-                &stepper_uart_task_handle);
-
-    info("started the PIO-based UART for the steppers");
-
+    // NOOP
     return 1;
 }
 
@@ -78,7 +74,7 @@ portTASK_FUNCTION(stepper_uart_task, pvParameters) {
 
         // For now just toss a message down the pipe
         for(uint8_t i = 0; i < actual_length; i++)
-            uart_tx_program_putc(ourInstance->pio, ourInstance->sm, buffer[i]);
+            uart_tx_program_putc(ourInstance->pio, ourInstance->tx_state_machine, buffer[i]);
 
         memset(buffer, '\0', max_length);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(50));
