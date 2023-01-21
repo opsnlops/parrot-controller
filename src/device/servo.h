@@ -28,16 +28,16 @@ public:
           float smoothingValue, bool inverted, uint32_t frequency);
     void turnOn();
     void turnOff();
-    uint16_t getPosition() const;
-    uint getSlice() const;
-    uint getChannel() const;
+    [[nodiscard]] uint16_t getPosition() const;
+    [[nodiscard]] uint getSlice() const;
+    [[nodiscard]] uint getChannel() const;
 
     // These are PWM values
-    uint32_t getDesiredTick() const;   // Where we want it to go
-    uint32_t getCurrentTick() const;   // Where the servo currently is
+    [[nodiscard]] uint32_t getDesiredTick() const;   // Where we want it to go
+    [[nodiscard]] uint32_t getCurrentTick() const;   // Where the servo currently is
 
-    float getSmoothingValue() const;
-    const char* getName() const;
+    [[nodiscard]] float getSmoothingValue() const;
+    [[nodiscard]] const char* getName() const;
     void move(uint16_t position);
 
     void calculateNextTick();
