@@ -43,42 +43,14 @@ int PioUART::start() {
     return 1;
 }
 
+void PioUART::putc(char c) {
+    uart_tx_program_putc(this->pio, this->tx_state_machine, c);
+}
 
-portTASK_FUNCTION(stepper_uart_task, pvParameters) {
+void PioUART::puts(const char *s) const {
+    uart_tx_program_puts(this->pio, this->tx_state_machine, s);
+}
 
-    auto* ourInstance = (PioUART*)pvParameters;
-
-    uint8_t max_length = 100;
-    uint8_t actual_length;
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    auto buffer = (char*)pvPortMalloc(max_length);
-    memset(buffer, '\0', max_length);
-
-    TickType_t xLastWakeTime;
-    for (EVER) {
-
-        // Just because I'm testing timing for PIO things
-        xLastWakeTime = xTaskGetTickCount();
-
-        snprintf(buffer, max_length-1, "Hellorld!!! %lu\n\r", to_ms_since_boot(get_absolute_time()));
-        actual_length = strlen(buffer);
-
-        /*
-         * There is an "uart_tx_program_puts()" but it's non-blocking, and we
-         * pass a buffer into it. Let's do it character by character, which is
-         * blocking, and seems to behave a lot better.
-         */
-
-        // For now just toss a message down the pipe
-        for(uint8_t i = 0; i < actual_length; i++)
-            uart_tx_program_putc(ourInstance->pio, ourInstance->tx_state_machine, buffer[i]);
-
-        memset(buffer, '\0', max_length);
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(50));
-
-    }
-#pragma clang diagnostic pop
+char PioUART::getc() {
+    return uart_rx_program_getc(this->pio, this->rx_state_machine);
 }

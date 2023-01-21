@@ -19,8 +19,8 @@ On hotot it's in `~/code` and symlinked into the project.
 | 3   | GND  |           |        |
 | 4   | GP2  | I2C1 SDA | Display SDA |
 | 5   | GP3  | I2C1 SCL | Display SCL |
-| 6   | GP4  | UART1 TX | Debug Shell TX |
-| 7   | GP5  | UART1 RX | Debug Shell RX |
+| 6   | GP4  | UART1 TX |         |
+| 7   | GP5  | UART1 RX |         |
 | 8   | GND  |          |         |
 | 9   | GP6  | PWM 3A   | Servo 0 |
 | 10  | GP7  | PWM 3B   | Servo 1 |
@@ -44,8 +44,8 @@ On hotot it's in `~/code` and symlinked into the project.
 | 28  | GND  |          |          |
 | 29  | GP22 | GPIO     | DMX In   |
 | 30  |      | Run      | Connect to ground to reset |
-| 31  | GP26 | --       | PIO UART (to steppers) |
-| 32  | GP27 | --       | Spare    |
+| 31  | GP26 | --       | Debug Shell TX |
+| 32  | GP27 | --       | Debug Shell RX |
 | 33  | (A)GND | --     | (Also the analog ground) |
 | 34  | GP28 | GPIO     | E-Stop Relay |
 | 35  |      | ADC_VREF | Unused   |

@@ -7,6 +7,7 @@
 #include "shell/shell.h"
 #include "controller/controller.h"
 #include "io/handler.h"
+#include "io/pio_uart.h"
 #include "creature/config.h"
 #include "creature/creature.h"
 
@@ -25,6 +26,7 @@ public:
     Controller* getController();
     IOHandler* getIOHandler();
     CreatureConfig* getConfig();
+    PioUART* getUart();
 
 
 private:
@@ -33,5 +35,6 @@ private:
     Controller* controller;
     IOHandler* io;
     CreatureConfig* config;
+    PioUART* uart;
 
 };
