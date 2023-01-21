@@ -10,7 +10,14 @@
 #include "logging/logging.h"
 #include "tasks.h"
 
-
+/*
+ * This class provides a clean way to use a PIO-based UART
+ *
+ * The PIO code is taken from the RPI Pico examples. It's unchanged.
+ *
+ * This classes uses two state machines on one PIO. (SM 0 and SM 1.) In theory,
+ * it could be extended to run two terminals, but there's no reason to do this.
+ */
 class PioUART {
 
 public:
