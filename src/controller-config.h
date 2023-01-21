@@ -19,16 +19,16 @@
 #define E_STOP_PIN                  28
 #define DMX_GPIO_PIN                22
 
-// Debugging shell (UART1)
-#define DEBUG_SHELL_TX              4
-#define DEBUG_SHELL_RX              5
+// Debugging shell (PIO-based UART)
+#define DEBUG_SHELL_UART_PIO        pio1
+#define DEBUG_SHELL_TX              26
+#define DEBUG_SHELL_RX              27
 #define DEBUG_SHELL_BAUD_RATE       57600
 
-// Stepper UART
-#define STEPPER_UART_PIO            pio1
+// Stepper (UART1)
 #define STEPPER_UART_BAUD_RATE      115200
-#define STEPPER_UART_TX_GPIO_PIN    26
-#define STEPPER_UART_RX_GPIO_PIN    27
+#define STEPPER_UART_TX             4
+#define STEPPER_UART_RX             5
 
 
 /**
