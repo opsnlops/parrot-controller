@@ -26,7 +26,11 @@
 #define DEBUG_SHELL_BAUD_RATE       57600
 
 // Stepper (UART1)
+#define STEPPER_UART                uart1
 #define STEPPER_UART_BAUD_RATE      115200
+#define STEPPER_PARITY              UART_PARITY_NONE
+#define STEPPER_DATA_BITS           8
+#define STEPPER_STOP_BITS           1
 #define STEPPER_UART_TX             4
 #define STEPPER_UART_RX             5
 
