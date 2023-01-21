@@ -6,7 +6,6 @@ This requires the following libraries:
 ```
 https://github.com/Harbys/pico-ssd1306
 https://github.com/jostlowe/Pico-DMX
-https://github.com/opsnlops/TMCStepper (branch Release_v1)
 ```
 
 On hotot it's in `~/code` and symlinked into the project.

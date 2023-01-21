@@ -25,10 +25,6 @@ int Stepper::init() {
     // Turn off FIFO's - we want to do this character by character
     uart_set_fifo_enabled(STEPPER_UART, false);
 
-    TMC_HAL::TMC_UART(STEPPER_UART);
-
-    this->stepper = new TMC2209Stepper(STEPPER_UART, 0.11);
-
     return 1;
 
 }
