@@ -6,6 +6,7 @@ This requires the following libraries:
 ```
 https://github.com/Harbys/pico-ssd1306
 https://github.com/jostlowe/Pico-DMX
+https://github.com/trinamic/TMC-API
 ```
 
 On hotot it's in `~/code` and symlinked into the project.
@@ -19,8 +20,8 @@ On hotot it's in `~/code` and symlinked into the project.
 | 3   | GND  |           |        |
 | 4   | GP2  | I2C1 SDA | Display SDA |
 | 5   | GP3  | I2C1 SCL | Display SCL |
-| 6   | GP4  | UART1 TX |         |
-| 7   | GP5  | UART1 RX |         |
+| 6   | GP4  | UART1 TX | Stepper Chain TX |
+| 7   | GP5  | UART1 RX | Stepper Chain RX |
 | 8   | GND  |          |         |
 | 9   | GP6  | PWM 3A   | Servo 0 |
 | 10  | GP7  | PWM 3B   | Servo 1 |

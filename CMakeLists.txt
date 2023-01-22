@@ -19,6 +19,7 @@ include(Pico-DMX/interfaceLibForPicoSDK.cmake)
 # Set up our includes
 include_directories(
         src/
+        TMC-API/
         )
 
 # Our source files
@@ -30,6 +31,9 @@ file(GLOB sourceFiles
         src/io/*
         src/logging/*
         src/shell/*
+        TMC-API/tmc/helpers/*
+        TMC-API/tmc/ic/TMC2209/*
+        TMC-API/tmc/ramp/*
         )
 
 add_executable(controller
@@ -37,18 +41,16 @@ add_executable(controller
         FreeRTOSConfig.h
         )
 
+# PIO-based UART from the Pico examples
+pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_rx.pio)
+pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_tx.pio)
+
 target_include_directories(controller PRIVATE
         .
         ${CMAKE_CURRENT_LIST_DIR}
         )
 
 add_subdirectory(pico-ssd1306)
-
-# PIO-based UART from the Pico examples
-pico_generate_pio_header(controller
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_rx.pio
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_tx.pio
-        )
 
 # pull in common dependencies
 target_link_libraries(controller
