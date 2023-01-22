@@ -1,10 +1,14 @@
 
 #include "controller-config.h"
 
+#include "pico/time.h"
 
 #include "logging/logging.h"
 
+#include "tmc2209_wrapper.h"
 #include "stepper.h"
+
+
 
 
 int Stepper::init() {
@@ -24,6 +28,8 @@ int Stepper::init() {
 
     // Turn off FIFO's - we want to do this character by character
     uart_set_fifo_enabled(STEPPER_UART, false);
+
+    stepper_init(&stepper1, 1, 0, &stepper_config, 0);
 
     return 1;
 
