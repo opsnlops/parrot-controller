@@ -5,9 +5,10 @@
 #include "pico/stdlib.h"
 #include "pico/time.h"
 
+
 #include "tmc/ic/TMC2209/TMC2209.h"
 
-
+//#include "logging/logging.h"
 
 #include "tmc2209_wrapper.h"
 
@@ -31,6 +32,8 @@ void stepper_init(TMC2209TypeDef* tmc2209, uint8_t channel, uint8_t slave_addres
  * @param readLength how many bytes to write INTO the buffer
  */
 void tmc2209_readWriteArray(uint8_t channel, uint8_t *data, size_t writeLength, size_t readLength) {
+
+    //debug("hi");
 
     // Write the bytes
     for(int i = 0; i < writeLength; i++) {
