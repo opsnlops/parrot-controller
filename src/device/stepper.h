@@ -20,5 +20,9 @@ public:
     uint32_t current_step;
     uint32_t desired_step;
     uint32_t max_steps;
+
+    bool is_high;
+
+    bool getHighAndInvert();
 };
 

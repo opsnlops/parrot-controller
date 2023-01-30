@@ -14,6 +14,7 @@ Stepper::Stepper() {
     current_step = 0;
     max_steps = 40000;
     desired_step = 0;
+    is_high = false;
 
 }
 
@@ -21,4 +22,9 @@ int Stepper::init() {
 
     return 1;
 
+}
+
+bool Stepper::getHighAndInvert() {
+    is_high = !is_high;
+    return !is_high;
 }
