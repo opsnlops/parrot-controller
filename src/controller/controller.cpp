@@ -3,6 +3,7 @@
 #include <climits>
 
 #include <FreeRTOS.h>
+#include <cstdlib>
 
 
 #include "device/servo.h"
@@ -271,11 +272,13 @@ portTASK_FUNCTION(stepper_step_task, pvParameters) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
-    add_repeating_timer_us(750, step, controller->getStepper(0), &timer);
+    add_repeating_timer_us(100, step, controller->getStepper(0), &timer);
 
 
     for (EVER) {
 
+        controller->getStepper(0)->desired_step = rand() % 1600;
+        debug("set desired to %d", controller->getStepper(0)->desired_step);
 
         vTaskDelay(pdMS_TO_TICKS(1000));
 
@@ -284,15 +287,46 @@ portTASK_FUNCTION(stepper_step_task, pvParameters) {
 #pragma clang diagnostic pop
 }
 
-bool high = true;
 
 // A free function to be an interrupt handler
 bool step(struct repeating_timer *t) {
 
-    auto* s = (Stepper*)(t->user_data);
+    auto *s = (Stepper *) (t->user_data);
 
-    gpio_put(s->stepsPin, high);
-    high = !high;
+    if(s->is_high)
+    {
+        s->is_high = false;
+        gpio_put(s->stepsPin, false);
+        // Leave the direction pin alone
+    }
+
+    else
+    {
+        // If we need to move, let's move!
+        if(s->current_step != s->desired_step) {
+
+            // If we have to move, let's move
+            if (s->current_step != s->desired_step) {
+
+                if (s->current_step < s->desired_step) {
+
+                    gpio_put(s->directionPin, false);
+                    s->current_step++;
+                } else {
+
+                    gpio_put(s->directionPin, true);
+                    s->current_step--;
+                }
+
+                gpio_put(s->stepsPin, true);
+                s->is_high = true;
+            }
+        }
+        // They're equal, no steps needed
+        else {
+            gpio_put(s->stepsPin, false);
+        }
+    }
 
     return true;
 }
