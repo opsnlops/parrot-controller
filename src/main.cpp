@@ -10,7 +10,6 @@
 #include "controller/controller.h"
 #include "logging/logging.h"
 #include "device/display.h"
-#include "device/stepper.h"
 #include "io/dmx.h"
 #include "io/handler.h"
 #include "shell/shell.h"
@@ -59,9 +58,6 @@ int main() {
     parrot->start();
     io->start();
     shell->start();
-
-    auto *stepper = new Stepper();
-    stepper->init();
 
     // Let the controller know how to find the creature worker task
     controller->setCreatureWorkerTaskHandle(parrot->getWorkerTaskHandle());

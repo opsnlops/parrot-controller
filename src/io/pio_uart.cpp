@@ -19,7 +19,7 @@
 
 int PioUART::init(PIO uart_pio, uint8_t rx_pin, uint8_t tx_pin, uint32_t baud_rate) {
 
-    debug("initing a PioUART");
+    debug("init-ing a PioUART on pix %d / %d", rx_pin, tx_pin);
 
     this->pio = uart_pio;
 

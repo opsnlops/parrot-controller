@@ -8,6 +8,7 @@
 #include "creature/config.h"
 #include "device/relay.h"
 #include "device/servo.h"
+#include "device/stepper.h"
 
 
 class Controller {
@@ -30,7 +31,7 @@ public:
     void powerOn();
     void powerOff();
     void powerToggle();
-    bool isPoweredOn() const;
+    [[nodiscard]] bool isPoweredOn() const;
 
     uint8_t* getCurrentFrame();
 
@@ -42,6 +43,8 @@ public:
 
     // Get the servo, used for debugging
     static Servo* getServo(uint8_t index);
+
+    Stepper* getStepper(uint8_t index);
 
     // ISR, called when the PWM wraps
     static void __isr on_pwm_wrap_handler();
@@ -59,6 +62,8 @@ private:
      * intends to use.
      */
     static Servo* servos[MAX_NUMBER_OF_SERVOS];
+
+    Stepper* steppers[1];
 
     // The current state of the input from the controller
     uint8_t* currentFrame;

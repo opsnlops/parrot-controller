@@ -10,6 +10,7 @@ TaskHandle_t debug_console_task_handle;
 TaskHandle_t displayUpdateTaskHandle;
 TaskHandle_t log_queue_reader_task_handle;
 TaskHandle_t dmx_processing_task_handle;
+TaskHandle_t stepper_step_task_handle;
 volatile TaskHandle_t controllerHousekeeperTaskHandle;
 
 #ifdef USE_UART_CONTROL
