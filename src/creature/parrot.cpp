@@ -13,7 +13,7 @@ Parrot::Parrot()
 
     // Calculate the head offset max
     this->headOffsetMax = lround((double)(MAX_SERVO_POSITION - MIN_SERVO_POSITION) * (double)HEAD_OFFSET_MAX);
-    debug("the head office max is %d", this->headOffsetMax);
+    debug("the head offset max is %d", this->headOffsetMax);
 
     info("Bawk!");
 }

@@ -12,12 +12,16 @@
 
 
 extern TaskHandle_t controllerHousekeeperTaskHandle;
+extern TaskHandle_t stepper_step_task_handle;
 BaseType_t isrPriorityTaskWoken = pdFALSE;
 
 // Initialize the static members
 Servo *Controller::servos[MAX_NUMBER_OF_SERVOS] = {};
 uint8_t Controller::numberOfServosInUse = 0;
 uint32_t Controller::numberOfPWMWraps = 0;
+
+// TODO: Nope
+bool step(struct repeating_timer *t);
 
 Controller::Controller() {
 
@@ -39,6 +43,10 @@ void Controller::init(CreatureConfig *incomingConfig) {
         servo = nullptr;
     }
 
+    for (auto &stepper: steppers) {
+        stepper = nullptr;
+    }
+
     // Set up the servos
     for (int i = 0; i < this->config->getNumberOfServos(); i++) {
         ServoConfig *servo = this->config->getServoConfig(i);
@@ -52,6 +60,19 @@ void Controller::init(CreatureConfig *incomingConfig) {
     for (int i = 0; i < this->numberOfChannels; i++) {
         currentFrame[i] = UCHAR_MAX / 2;
     }
+
+    // TODO: This is all temp
+    steppers[0] = new Stepper();
+    steppers[0]->directionPin = STEPPER_DIR_PIN;
+    steppers[0]->stepsPin = STEPPER_STEPS_PIN;
+
+    gpio_init(steppers[0]->directionPin);
+    gpio_set_dir(steppers[0]->directionPin, true);   // This is an output pin
+    gpio_put(steppers[0]->directionPin, true);
+
+    gpio_init(steppers[0]->stepsPin);
+    gpio_set_dir(steppers[0]->stepsPin, true);   // This is an output pin
+    gpio_put(steppers[0]->stepsPin, true);
 
 }
 
@@ -74,6 +95,14 @@ void Controller::start() {
                 (void *) this,
                 1,
                 &controllerHousekeeperTaskHandle);
+
+    // Fire off the stepper task
+    xTaskCreate(stepper_step_task,
+                "stepper_step_task",
+                256,
+                (void *) this,
+                1,
+                &stepper_step_task_handle);
 
 }
 
@@ -200,6 +229,10 @@ Servo *Controller::getServo(uint8_t index) {
     return servos[index];
 }
 
+Stepper *Controller::getStepper(uint8_t index) {
+    return steppers[index];
+}
+
 portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
 
     auto controller = (Controller *) pvParameters;
@@ -225,4 +258,41 @@ portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
 
     }
 #pragma clang diagnostic pop
+}
+
+portTASK_FUNCTION(stepper_step_task, pvParameters) {
+
+    auto controller = (Controller *) pvParameters;
+
+    debug("stepper step task running");
+
+    struct repeating_timer timer;
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
+    add_repeating_timer_us(750, step, controller->getStepper(0), &timer);
+
+
+    for (EVER) {
+
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+
+    }
+#pragma clang diagnostic pop
+}
+
+bool high = true;
+
+// A free function to be an interrupt handler
+bool step(struct repeating_timer *t) {
+
+    auto* s = (Stepper*)(t->user_data);
+
+    gpio_put(s->stepsPin, high);
+    high = !high;
+
+    return true;
 }

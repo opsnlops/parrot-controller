@@ -19,7 +19,6 @@ include(Pico-DMX/interfaceLibForPicoSDK.cmake)
 # Set up our includes
 include_directories(
         src/
-        TMC-API/
         )
 
 # Our source files
@@ -31,9 +30,6 @@ file(GLOB sourceFiles
         src/io/*
         src/logging/*
         src/shell/*
-        TMC-API/tmc/helpers/*
-        TMC-API/tmc/ic/TMC2209/*
-        TMC-API/tmc/ramp/*
         )
 
 add_executable(controller

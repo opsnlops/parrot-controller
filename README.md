@@ -6,7 +6,6 @@ This requires the following libraries:
 ```
 https://github.com/Harbys/pico-ssd1306
 https://github.com/jostlowe/Pico-DMX
-https://github.com/trinamic/TMC-API
 ```
 
 On hotot it's in `~/code` and symlinked into the project.
@@ -20,8 +19,8 @@ On hotot it's in `~/code` and symlinked into the project.
 | 3   | GND  |           |        |
 | 4   | GP2  | I2C1 SDA | Display SDA |
 | 5   | GP3  | I2C1 SCL | Display SCL |
-| 6   | GP4  | UART1 TX | Stepper Chain TX |
-| 7   | GP5  | UART1 RX | Stepper Chain RX |
+| 6   | GP4  | UART1 TX |         |
+| 7   | GP5  | UART1 RX |         |
 | 8   | GND  |          |         |
 | 9   | GP6  | PWM 3A   | Servo 0 |
 | 10  | GP7  | PWM 3B   | Servo 1 |
@@ -38,12 +37,12 @@ On hotot it's in `~/code` and symlinked into the project.
 | 21  | GP16 | PWM 0A   | Servo 10 |
 | 22  | GP17 | PWM 0B   | Servo 11 |
 | 23  | GND  |          |          |
-| 24  | GP18 | PWM 1A   | Servo 12 (or SPI0 SCK) |
-| 25  | GP19 | PWM 1B   | Servo 13 (or SPI0 TX)  |
-| 26  | GP20 | PWM 2A   | Servo 14 (or SPI0 RX)  |
-| 27  | GP21 | PWM 2B   | Servo 15 (or SPI0 CSn) |
-| 28  | GND  |          |          |
-| 29  | GP22 | GPIO     | DMX In   |
+| 24  | GP18 | PWM 1A   |         |
+| 25  | GP19 | PWM 1B   |         |
+| 26  | GP20 | PWM 2A   | Stepper Steps |
+| 27  | GP21 | PWM 2B   | Stepper Dir   |
+| 28  | GND  |          |         |
+| 29  | GP22 | GPIO     | DMX In  |
 | 30  |      | Run      | Connect to ground to reset |
 | 31  | GP26 | --       | Debug Shell TX |
 | 32  | GP27 | --       | Debug Shell RX |
