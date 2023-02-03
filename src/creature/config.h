@@ -40,6 +40,18 @@ public:
 };
 
 
+class StepperConfig {
+    StepperConfig();
+    StepperConfig(const char* name, uint32_t minSteps, uint32_t maxSteps, float smoothingValue, bool inverted);
+
+    char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1];
+    uint32_t minSteps;
+    uint32_t maxSteps;
+    float smoothingValue;
+    bool inverted;
+};
+
+
 class CreatureConfig {
 
 public:

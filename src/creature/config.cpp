@@ -71,3 +71,31 @@ ServoConfig::ServoConfig(const char* name, uint16_t minPulseUs, uint16_t maxPuls
     this->inverted = inverted;
 
 }
+
+
+StepperConfig::StepperConfig() {
+
+    // Initialize the name
+    memset(this->name, '\0', CREATURE_CONFIG_NAME_MAX_SIZE + 1);
+    strncpy(this->name, "???", CREATURE_CONFIG_NAME_MAX_SIZE);
+
+    this->minSteps = 0;
+    this->maxSteps = 0;
+    this->smoothingValue = 0.0f;
+    this->inverted = false;
+}
+
+
+StepperConfig::StepperConfig(const char* name, uint32_t minSteps, uint32_t maxSteps,
+                             float smoothingValue, bool inverted) {
+
+    // Initialize the name
+    memset(this->name, '\0', CREATURE_CONFIG_NAME_MAX_SIZE + 1);
+    strncpy(this->name, name, CREATURE_CONFIG_NAME_MAX_SIZE);
+
+    this->minSteps = minSteps;
+    this->maxSteps = maxSteps;
+    this->smoothingValue = smoothingValue;
+    this->inverted = inverted;
+
+}
