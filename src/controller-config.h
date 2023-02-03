@@ -13,6 +13,9 @@
 // The most servos we can control
 #define MAX_NUMBER_OF_SERVOS        16
 
+// The number of steppers we can control
+#define MAX_NUMBER_OF_STEPPERS      8
+
 // Devices
 #define DMX_PIO                     pio0
 #define DMX_INVERTED                false

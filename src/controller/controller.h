@@ -63,7 +63,7 @@ private:
      */
     static Servo* servos[MAX_NUMBER_OF_SERVOS];
 
-    Stepper* steppers[1];
+    Stepper* steppers[MAX_NUMBER_OF_STEPPERS];
 
     // The current state of the input from the controller
     uint8_t* currentFrame;
