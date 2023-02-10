@@ -26,8 +26,6 @@ public:
     Controller* getController();
     IOHandler* getIOHandler();
     CreatureConfig* getConfig();
-    PioUART* getUart();
-
 
 private:
 
@@ -35,6 +33,5 @@ private:
     Controller* controller;
     IOHandler* io;
     CreatureConfig* config;
-    PioUART* uart;
 
 };

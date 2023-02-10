@@ -2,17 +2,24 @@
 #include <cstdio>
 #include <cstring>
 
+
+#include <FreeRTOS.h>
+#include <queue.h>
+
 #include "pico/stdlib.h"
 #include "pico/unique_id.h"
 
 #include "shell.h"
 
 #include "logging/logging.h"
+#include "usb/usb.h"
 
 #include "tasks.h"
 
 extern uint32_t number_of_moves;
 extern TaskHandle_t debug_console_task_handle;
+
+QueueHandle_t debug_shell_incoming_keys;
 
 DebugShell::DebugShell(Creature *creature, Controller *controller, IOHandler *io) {
 
@@ -22,7 +29,6 @@ DebugShell::DebugShell(Creature *creature, Controller *controller, IOHandler *io
     this->controller = controller;
     this->io = io;
     this->config = controller->getConfig();
-    this->uart = new PioUART();
 }
 
 
@@ -30,9 +36,12 @@ uint8_t DebugShell::init() {
 
     debug("init()-ing the debug shell");
 
-    // Set up our UART
-    this->uart->init(DEBUG_SHELL_UART_PIO, DEBUG_SHELL_RX,
-                     DEBUG_SHELL_TX, DEBUG_SHELL_BAUD_RATE);
+    // Create a small queue
+    debug_shell_incoming_keys = xQueueCreate(1, sizeof(uint8_t));
+    vQueueAddToRegistry(debug_shell_incoming_keys, "debug_shell_incoming_keys");
+
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
 
     return 1;
 }
@@ -45,7 +54,7 @@ uint8_t DebugShell::start() {
     xTaskCreate(debug_console_task,
                 "debug_console_task",
                 512,
-                (void*)this,         // Pass in a reference to ourselves
+                (void *) this,         // Pass in a reference to ourselves
                 0,                      // Low priority
                 &debug_console_task_handle);
 
@@ -68,26 +77,63 @@ CreatureConfig *DebugShell::getConfig() {
     return config;
 }
 
-PioUART *DebugShell::getUart() {
-    return uart;
-}
-
 void ds_reset_buffers(char *tx_buffer, uint8_t *rx_buffer) {
     memset(rx_buffer, '\0', DS_RX_BUFFER_SIZE);
     memset(tx_buffer, '\0', DS_TX_BUFFER_SIZE);
+}
+
+/**
+ * Invoked from TUSB when there's data to be read
+ *
+ * This prevents us from having to poll, which is nice!
+ *
+ * @param itf the CDC interface number
+ */
+void tud_cdc_rx_cb(uint8_t itf) {
+    debug("callback from tusb that there's data there");
+    uint8_t ch = tud_cdc_read_char();
+    xQueueSendToBack(debug_shell_incoming_keys, &ch, (TickType_t) 10);
+}
+
+/**
+ * Write a line to the CDC port
+ *
+ * TODO: This isn't the best way to do this, but it works. Figure something else out that's faster.
+ *
+ * @param line the line to write
+ */
+void write_to_cdc(char* line) {
+
+    uint32_t count = strlen(line);
+    for(int i = 0; i < count; i++) {
+
+        // Use the onboard LED as a "TX" light
+        gpio_put(LED_PIN, true);
+
+        tud_cdc_n_write_char(0, line[i]);
+        tud_cdc_n_write_flush(0);
+
+        // If we go to fast it overwhelms the buffers
+        vTaskDelay(1);
+
+        gpio_put(LED_PIN, false);
+    }
+
 }
 
 portTASK_FUNCTION(debug_console_task, pvParameters) {
 
     debug("hello from the debug shell task!");
 
-    auto shell = (DebugShell*)pvParameters;
+    auto shell = (DebugShell *) pvParameters;
 
     auto creature = shell->getCreature();
     auto controller = shell->getController();
     auto io = shell->getIOHandler();
     auto config = shell->getConfig();
-    auto uart = shell->getUart();
+
+    // Our prompt
+    char prompt[5] = "\n\r> ";
 
     // Grab our unique_id
     pico_unique_board_id_t board_id;
@@ -98,8 +144,8 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 
 
     // Set up our buffers on the heap
-    auto tx_buffer = (char*)pvPortMalloc(sizeof(char) * DS_TX_BUFFER_SIZE);
-    auto rx_buffer = (uint8_t*)pvPortMalloc(sizeof(uint8_t) * DS_RX_BUFFER_SIZE);   // The pico SDK wants uint8_t
+    auto tx_buffer = (char *) pvPortMalloc(sizeof(char) * DS_TX_BUFFER_SIZE);
+    auto rx_buffer = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * DS_RX_BUFFER_SIZE);   // The pico SDK wants uint8_t
 
     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -108,153 +154,161 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 #pragma ide diagnostic ignored "EndlessLoop"
     for (EVER) {
 
-        // Block until there's something to read
-        rx_buffer[0] = uart->getc();
+        uint8_t ch;
+        if (xQueueReceive(debug_shell_incoming_keys, &ch, (TickType_t) portMAX_DELAY) == pdPASS) {
 
-        // Echo back the input from the user
-        uart->puts((char*)rx_buffer);
+            // Look at just the first keypress
+            rx_buffer[0] = ch;
 
-        switch (rx_buffer[0]) {
+            // Echo back the input from the user
+            tud_cdc_n_write_char(0, rx_buffer[0]);
 
-            case ('c'):
+            switch (rx_buffer[0]) {
 
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                         "\n\r\n\r Creature Controller Config\n\r --------------------------\n\r\n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
+                case ('c'):
 
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "              Name: %s\n\r", config->getName());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of Servos: %d\n\r", config->getNumberOfServos());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Base Channel: %d\n\r", config->getDmxBaseChannel());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   Servo Frequency: %luHz\n\r", config->getServoFrequencyHz());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "          Board ID: %s\n\r", pico_board_id);
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r   Servo Config:\n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                         "      num |        name           |   min   |   max   | smooth | inverted\n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                         "      ---------------------------------------------------------------------\n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                for (int i = 0; i < config->getNumberOfServos(); i++) {
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d | %-21s |  %6d |  %6d | %.4f |   %3s\n\r",
-                             i,
-                             config->getServoConfig(i)->name,
-                             config->getServoConfig(i)->minPulseUs,
-                             config->getServoConfig(i)->maxPulseUs,
-                             config->getServoConfig(i)->smoothingValue,
-                             config->getServoConfig(i)->inverted ? "yes" : "no");
-                    uart->puts(tx_buffer);
-                }
-
-                break;
-
-            case ('d'):
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r\n\r Info:\n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     power: %s\n\r", controller->isPoweredOn() ? "on" : "off");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     wraps: %lu\n\r", controller->getNumberOfPWMWraps());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    frames: %lu\n\r", io->getNumberOfFramesReceived());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     moves: %lu\n\r", number_of_moves);
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  free mem: %d\n\r", xPortGetFreeHeapSize());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   min mem: %d\n\r", xPortGetMinimumEverFreeHeapSize());
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    uptime: %lums\n\r", to_ms_since_boot(get_absolute_time()));
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r Servos:\n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                         "      num | gpio | sl | ch |         name           |  pos  |  ctick  |  dtick \n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                         "      --------------------------------------------------------------------------\n\r");
-                uart->puts(tx_buffer);
-                ds_reset_buffers(tx_buffer, rx_buffer);
-
-                for (int i = 0; i < config->getNumberOfServos(); i++) {
-
-                    Servo *s = Controller::getServo(i);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      %3d |  %2d  | %2d |  %s |  %-21s |  %4d |  %5lu  |  %5lu\n\r",
-                             i,
-                             controller->getPinMapping(i),
-                             s->getSlice(),
-                             s->getChannel() == 0 ? "A" : "B",
-                             s->getName(),
-                             s->getPosition(),
-                             s->getCurrentTick(),
-                             s->getDesiredTick());
-                    uart->puts(tx_buffer);
-                }
+                             "\n\r\n\r Creature Controller Config\n\r --------------------------\n\r\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "              Name: %s\n\r", config->getName());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of Servos: %d\n\r", config->getNumberOfServos());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Base Channel: %d\n\r", config->getDmxBaseChannel());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   Servo Frequency: %luHz\n\r",
+                             config->getServoFrequencyHz());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "          Board ID: %s\n\r", pico_board_id);
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r   Servo Config:\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      num |        name           |   min   |   max   | smooth | inverted\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      ---------------------------------------------------------------------\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    for (int i = 0; i < config->getNumberOfServos(); i++) {
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d | %-21s |  %6d |  %6d | %.4f |   %3s\n\r",
+                                 i,
+                                 config->getServoConfig(i)->name,
+                                 config->getServoConfig(i)->minPulseUs,
+                                 config->getServoConfig(i)->maxPulseUs,
+                                 config->getServoConfig(i)->smoothingValue,
+                                 config->getServoConfig(i)->inverted ? "yes" : "no");
+                        write_to_cdc(tx_buffer);
+                    }
+
+                    break;
+
+                case ('d'):
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r\n\r Info:\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     power: %s\n\r",
+                             controller->isPoweredOn() ? "on" : "off");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     wraps: %lu\n\r", controller->getNumberOfPWMWraps());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    frames: %lu\n\r", io->getNumberOfFramesReceived());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     moves: %lu\n\r", number_of_moves);
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  free mem: %d\n\r", xPortGetFreeHeapSize());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   min mem: %d\n\r", xPortGetMinimumEverFreeHeapSize());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    uptime: %lums\n\r",
+                             to_ms_since_boot(get_absolute_time()));
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
 
 
-                break;
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r Servos:\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
 
-            case ('p'):
-                controller->powerToggle();
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      num | gpio | sl | ch |         name           |  pos  |  ctick  |  dtick \n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      --------------------------------------------------------------------------\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
 
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\rPower is now %s", controller->isPoweredOn() ? "on" : "off");
-                uart->puts(tx_buffer);
-                break;
+                    for (int i = 0; i < config->getNumberOfServos(); i++) {
 
-            default:
-                const char *helpMenu = "\n\r\n\r%s Debug Shell\n\r\n\r  c = show running config\n\r  d = show debug data\n\r  p = toggle power\n\r";
+                        Servo *s = Controller::getServo(i);
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                                 "      %3d |  %2d  | %2d |  %s |  %-21s |  %4d |  %5lu  |  %5lu\n\r",
+                                 i,
+                                 controller->getPinMapping(i),
+                                 s->getSlice(),
+                                 s->getChannel() == 0 ? "A" : "B",
+                                 s->getName(),
+                                 s->getPosition(),
+                                 s->getCurrentTick(),
+                                 s->getDesiredTick());
+                        write_to_cdc(tx_buffer);
+                    }
 
-                snprintf(tx_buffer, DS_TX_BUFFER_SIZE, helpMenu, controller->getConfig()->getName());
-                uart->puts(tx_buffer);
+
+                    break;
+
+                case ('p'):
+                    controller->powerToggle();
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\rPower is now %s",
+                             controller->isPoweredOn() ? "on" : "off");
+                    write_to_cdc(tx_buffer);
+                    break;
+
+                default:
+                    const char *helpMenu = "\n\r\n\r%s Debug Shell\n\r\n\r  c = show running config\n\r  d = show debug data\n\r  p = toggle power\n\r";
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, helpMenu, controller->getConfig()->getName());
+                    write_to_cdc(tx_buffer);
+            }
+
+            // Show the prompt
+            write_to_cdc(prompt);
+
+            // Wipe out the buffers for next time
+            ds_reset_buffers(tx_buffer, rx_buffer);
         }
-
-        // Show the prompt
-        uart->puts("\n\r> ");
-
-        // Wipe out the buffers for next time
-        ds_reset_buffers(tx_buffer, rx_buffer);
     }
 #pragma clang diagnostic pop
 

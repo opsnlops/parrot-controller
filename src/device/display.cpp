@@ -73,7 +73,7 @@ void Display::start()
                 "displayUpdateTask",
                 1024,
                 (void*)this,         // Pass in a reference to ourselves
-                0,                      // Low priority
+                1,                      // Low priority
                 &displayUpdateTaskHandle);
 }
 

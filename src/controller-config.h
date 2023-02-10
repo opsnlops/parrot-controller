@@ -10,6 +10,8 @@
 
 //#define USE_UART_CONTROL 1
 
+#define LED_PIN                     25
+
 // The most servos we can control
 #define MAX_NUMBER_OF_SERVOS        16
 
