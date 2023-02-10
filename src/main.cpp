@@ -4,6 +4,10 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+// TinyUSB
+#include "bsp/board.h"
+#include "tusb.h"
+
 #include "pico/stdlib.h"
 
 #include "creature/parrot.h"
@@ -13,6 +17,7 @@
 #include "io/dmx.h"
 #include "io/handler.h"
 #include "shell/shell.h"
+#include "usb/usb.h"
 
 
 #define INPUT_DMX 1
@@ -66,6 +71,10 @@ int main() {
 
     // Turn the power on to the servos
     controller->powerOn();
+
+
+    board_init();
+    start_usb_tasks();
 
     // And fire up the tasks!
     vTaskStartScheduler();

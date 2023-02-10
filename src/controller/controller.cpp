@@ -272,12 +272,12 @@ portTASK_FUNCTION(stepper_step_task, pvParameters) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
-    add_repeating_timer_us(100, step, controller->getStepper(0), &timer);
+    add_repeating_timer_us(250, step, controller->getStepper(0), &timer);
 
 
     for (EVER) {
 
-        controller->getStepper(0)->desired_step = rand() % 1600;
+        controller->getStepper(0)->desired_step = rand() % 300;
         debug("set desired to %d", controller->getStepper(0)->desired_step);
 
         vTaskDelay(pdMS_TO_TICKS(1000));

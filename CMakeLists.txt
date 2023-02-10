@@ -6,7 +6,7 @@ include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 # Pull in FreeRTOS
 include($ENV{FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/FreeRTOS_Kernel_import.cmake)
 
-project(app C CXX ASM)
+project(controller C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -30,6 +30,7 @@ file(GLOB sourceFiles
         src/io/*
         src/logging/*
         src/shell/*
+        src/usb/*
         )
 
 add_executable(controller
@@ -57,6 +58,8 @@ target_link_libraries(controller
         hardware_pio
         hardware_pwm
         hardware_uart
+        tinyusb_device
+        tinyusb_board
         pico_stdlib
         pico_ssd1306
         pico_unique_id
