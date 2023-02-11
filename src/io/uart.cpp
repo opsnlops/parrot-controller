@@ -103,7 +103,7 @@ uint16_t UART::convert_dmx_position_to_servo_position(uint8_t incoming_value) {
 
     float percentage_requested = (float) incoming_value / (float) UCHAR_MAX;
 
-    uint16_t local_requested = MAX_SERVO_POSITION * percentage_requested;
+    uint16_t local_requested = MAX_POSITION * percentage_requested;
 
     verbose("converted %d -> %d", incoming_value, local_requested);
 

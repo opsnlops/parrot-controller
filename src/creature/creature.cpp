@@ -30,10 +30,10 @@ uint16_t Creature::convertInputValueToServoValue(uint8_t inputValue) {
 
     // TODO: Play with the results if we do bit shifts instead (8 -> 10)
 
-    uint16_t servoRange = MAX_SERVO_POSITION - MIN_SERVO_POSITION;
+    uint16_t servoRange = MAX_POSITION - MIN_POSITION;
 
     double movementPercentage = (double)inputValue / (double)UCHAR_MAX;
-    auto servoValue = (uint16_t)(round((double)servoRange * movementPercentage) + MIN_SERVO_POSITION);
+    auto servoValue = (uint16_t)(round((double)servoRange * movementPercentage) + MIN_POSITION);
 
     verbose("mapped %d -> %d", inputValue, servoValue);
 
