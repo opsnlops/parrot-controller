@@ -62,11 +62,16 @@ public:
      */
     [[nodiscard]] uint8_t getNumberOfJoints() const;
 
+    [[nodiscard]] uint8_t getNumberOfServos() const;
+    [[nodiscard]] uint8_t getNumberOfSteppers() const;
+
 protected:
 
     Controller* controller;
     TaskHandle_t workerTaskHandle;
 
+    uint8_t numberOfServos;
+    uint8_t numberOfSteppers;
     uint8_t numberOfJoints;
 
     // This is like the Arduino helper map() function. We do this a lot.

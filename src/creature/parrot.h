@@ -9,16 +9,16 @@
 #include "device/relay.h"
 #include "device/servo.h"
 
-// Servo mappings
+// joint -> servo mappings
 #define NECK_LEFT       0
 #define NECK_RIGHT      1
 #define BEAK            2
 #define CHEST           3
 
-// Stepper mappings
-#define NECK_ROTATE     0
-#define BODY_LEAN       1
-#define STAND_ROTATE    2
+// joint -> stepper mappings
+#define NECK_ROTATE     4
+#define BODY_LEAN       5
+#define STAND_ROTATE    6
 
 
 // Input mapping. Defines which axis is each

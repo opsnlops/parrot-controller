@@ -12,6 +12,8 @@ Creature::Creature() {
     this->controller = nullptr;
     this->workerTaskHandle = nullptr;
     this->numberOfJoints = 0;
+    this->numberOfServos = 0;
+    this->numberOfSteppers = 0;
 
     debug("Creature() called!");
 }
@@ -56,7 +58,7 @@ int32_t Creature::convertRange(int32_t input, int32_t oldMin, int32_t oldMax, in
 
     int32_t oldRange = oldMax - oldMin;
     int32_t newRange = newMax - newMin;
-    int32_t newValue = (((input - oldMin) * newRange) / oldRange) + newMin;;
+    int32_t newValue = (((input - oldMin) * newRange) / oldRange) + newMin;
 
     verbose("mapped %d -> %d", input, newValue);
     return newValue;
@@ -65,4 +67,12 @@ int32_t Creature::convertRange(int32_t input, int32_t oldMin, int32_t oldMax, in
 
 uint8_t Creature::getNumberOfJoints() const {
     return numberOfJoints;
+}
+
+uint8_t Creature::getNumberOfServos() const {
+    return numberOfServos;
+}
+
+uint8_t Creature::getNumberOfSteppers() const {
+    return numberOfSteppers;
 }
