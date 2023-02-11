@@ -14,7 +14,7 @@ public:
     int init();
     int start();
 
-    uint8_t stepsPin = STEPPER_STEPS_PIN;
+    uint8_t stepsPin = STEPPER_STEP_PIN;
     uint8_t directionPin = STEPPER_DIR_PIN;
 
     uint32_t current_step;

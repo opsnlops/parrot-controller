@@ -81,6 +81,8 @@ private:
     static uint8_t numberOfServosInUse;
     static uint32_t numberOfPWMWraps;
 
+    static void configureGPIO(uint8_t pin, bool out, bool initialValue);
+
     void initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
                    uint16_t maxPulseUs, float smoothingValue, bool inverted);
 
@@ -95,13 +97,21 @@ private:
             SERVO_4_GPIO_PIN,
             SERVO_5_GPIO_PIN,
             SERVO_6_GPIO_PIN,
-            SERVO_7_GPIO_PIN,
-            SERVO_8_GPIO_PIN,
-            SERVO_9_GPIO_PIN,
-            SERVO_10_GPIO_PIN,
-            SERVO_11_GPIO_PIN,
-            SERVO_12_GPIO_PIN,
-            SERVO_13_GPIO_PIN,
-            SERVO_14_GPIO_PIN,
-            SERVO_15_GPIO_PIN};
+            SERVO_7_GPIO_PIN};
+
+    /**
+     * Simple array for setting the address lines of the stepper latches
+     */
+    bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
+
+            {false,     false,      false},     // 0
+            {false,     false,      true},      // 1
+            {false,     true,       false},     // 2
+            {false,     true,       true},      // 3
+            {true,      false,      false},     // 4
+            {true,      false,      true},      // 5
+            {true,      true,       false},     // 6
+            {true,      true,       true}       // 7
+    };
+
 };
