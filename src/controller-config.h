@@ -73,10 +73,10 @@
 #define LOGGING_MESSAGE_MAX_LENGTH  256
 
 /*
- * Servo bounds
+ * Position bounds
  */
-#define MIN_SERVO_POSITION          0
-#define MAX_SERVO_POSITION          1023
+#define MIN_POSITION                0
+#define MAX_POSITION                1023
 
 /*
  * Servo <-> GPIO Pin Mappings

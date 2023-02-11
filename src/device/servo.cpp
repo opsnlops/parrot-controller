@@ -23,8 +23,8 @@ uint32_t number_of_moves = 0;
  * 50Hz on a standard servo.)
  *
  * We work off pulse widths to servos, not percentages. The min and max pulse need
- * to be defined in microseconds. This will be mapped to the MIN_SERVO_POSITION and
- * MAX_SERVO_POSITION as defined in controller.h. (0-999 is typical.) The size of the
+ * to be defined in microseconds. This will be mapped to the MIN_POSITION and
+ * MAX_POSITION as defined in controller.h. (0-999 is typical.) The size of the
  * pulses need to be set to the particular servo and what it does inside of the
  * creature itself. (ie, don't bend a joint further than it should go!)
  *
@@ -56,7 +56,7 @@ Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pu
     this->inverted = inverted;
     this->desired_ticks = 0;
     this->current_ticks = 0;
-    this->current_position = MIN_SERVO_POSITION / 2;
+    this->current_position = MIN_POSITION / 2;
 
     // Force a calculation for the current tick
     calculateNextTick();
@@ -101,7 +101,7 @@ void Servo::turnOff() {
 /**
  * @brief Requests that a servo be moved to a given position
  *
- * The value must be between `MIN_SERVO_POSITION` and `MAX_SERVO_POSITION`. An
+ * The value must be between `MIN_POSITION` and `MAX_POSITION`. An
  * assert will be fired in not to prevent damage to the creature or a motor.
  *
  * `servo_move()` does not actually move the servo. Instead, it marks it's requested
@@ -129,15 +129,15 @@ void Servo::move(uint16_t position) {
 
     // Error checking. This could result in damage to a motor or
     // creature if not met, so this is a hard stop if it's wrong. 😱
-    assert(position >= MIN_SERVO_POSITION && position <= MAX_SERVO_POSITION);
+    assert(position >= MIN_POSITION && position <= MAX_POSITION);
 
-    // TODO: This assumes that MIN_SERVO_POSITION is always 0. Is that okay?
+    // TODO: This assumes that MIN_POSITION is always 0. Is that okay?
 
     // If this servo is inverted, do it now
-    if(inverted) position = MAX_SERVO_POSITION - position;
+    if(inverted) position = MAX_POSITION - position;
 
     // What percentage of our travel is expected?
-    float travel_percentage = (float)position / MAX_SERVO_POSITION;
+    float travel_percentage = (float)position / MAX_POSITION;
     float desired_pulse_length_us = (float)(((max_pulse_us - min_pulse_us)) * travel_percentage)
             + (float)min_pulse_us;
 
@@ -163,7 +163,7 @@ uint16_t Servo::getPosition() const {
 
     // If this is an inverted servo, show the inverted value
     if(inverted) {
-        return MAX_SERVO_POSITION - current_position;
+        return MAX_POSITION - current_position;
     } else {
         return current_position;
     }

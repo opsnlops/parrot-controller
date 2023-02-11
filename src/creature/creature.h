@@ -48,10 +48,10 @@ public:
 
     /**
      * Converts a value that input handlers speaks (0-255) to one the servo controller
-     * uses (MIN_SERVO_POSITION to MAX_SERVO_POSITION).
+     * uses (MIN_POSITION to MAX_POSITION).
      *
      * @param inputValue a `uint8_t` to convert to the servo mappings
-     * @return a value between MIN_SERVO_POSITION and MAX_SERVO_POSITION
+     * @return a value between MIN_POSITION and MAX_POSITION
      */
     static uint16_t convertInputValueToServoValue(uint8_t inputValue);
 

@@ -12,7 +12,7 @@ Parrot::Parrot()
         : Creature() {
 
     // Calculate the head offset max
-    this->headOffsetMax = lround((double)(MAX_SERVO_POSITION - MIN_SERVO_POSITION) * (double)HEAD_OFFSET_MAX);
+    this->headOffsetMax = lround((double)(MAX_POSITION - MIN_POSITION) * (double)HEAD_OFFSET_MAX);
     debug("the head offset max is %d", this->headOffsetMax);
 
     info("Bawk!");
@@ -78,18 +78,18 @@ void Parrot::start() {
 uint16_t Parrot::convertToHeadHeight(uint16_t y) {
 
     return Parrot::convertRange(y,
-                                MIN_SERVO_POSITION,
-                                MAX_SERVO_POSITION,
-                                MIN_SERVO_POSITION + (this->headOffsetMax / 2),
-                                MAX_SERVO_POSITION - (this->headOffsetMax / 2));
+                                MIN_POSITION,
+                                MAX_POSITION,
+                                MIN_POSITION + (this->headOffsetMax / 2),
+                                MAX_POSITION - (this->headOffsetMax / 2));
 
 }
 
 int32_t Parrot::configToHeadTilt(uint16_t x) {
 
     return Parrot::convertRange(x,
-                               MIN_SERVO_POSITION,
-                               MAX_SERVO_POSITION,
+                                MIN_POSITION,
+                                MAX_POSITION,
                                1 - (this->headOffsetMax / 2),
                                this->headOffsetMax / 2);
 }
