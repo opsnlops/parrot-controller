@@ -8,12 +8,10 @@
 // Just because it's funny
 #define EVER ;;
 
-//#define USE_UART_CONTROL 1
-
 #define LED_PIN                     25
 
 // The most servos we can control
-#define MAX_NUMBER_OF_SERVOS        16
+#define MAX_NUMBER_OF_SERVOS        8
 
 // The number of steppers we can control
 #define MAX_NUMBER_OF_STEPPERS      8
@@ -24,15 +22,21 @@
 #define E_STOP_PIN                  28
 #define DMX_GPIO_PIN                22
 
-// Debugging shell (PIO-based UART)
-#define DEBUG_SHELL_UART_PIO        pio1
-#define DEBUG_SHELL_TX              26
-#define DEBUG_SHELL_RX              27
-#define DEBUG_SHELL_BAUD_RATE       57600
 
 // Stepper
-#define STEPPER_STEPS_PIN           20
-#define STEPPER_DIR_PIN             21
+#define STEPPER_MUX_BITS            3
+#define STEPPER_STEP_PIN            26
+#define STEPPER_DIR_PIN             27
+#define STEPPER_MS1_PIN             17
+#define STEPPER_MS2_PIN             16
+#define STEPPER_A0_PIN              18
+#define STEPPER_A1_PIN              19
+#define STEPPER_A2_PIN              20
+#define STEPPER_LATCH_PIN           21
+#define STEPPER_SLEEP_PIN           4
+#define STEPPER_FAULT_PIN           5
+#define STEPPER_END_S_LOW_PIN       14
+#define STEPPER_END_S_HIGH_PIN      15
 
 
 /**
@@ -85,16 +89,3 @@
 #define SERVO_5_GPIO_PIN            11              // Pin 15, PWM  5B
 #define SERVO_6_GPIO_PIN            12              // Pin 16, PWM  6A
 #define SERVO_7_GPIO_PIN            13              // Pin 17, PWM  6B
-#define SERVO_8_GPIO_PIN            14              // Pin 19, PWM  7A
-#define SERVO_9_GPIO_PIN            15              // Pin 20, PWM  7B
-
-// This is the point where it wraps around to the other side of the PCB
-#define SERVO_10_GPIO_PIN           16              // Pin 21, PWM  0A
-#define SERVO_11_GPIO_PIN           17              // Pin 22, PWM  0B
-
-// These last four can be SPI0 pins. If we need SPI, we have to limit
-// ourselves to 12 servos.
-#define SERVO_12_GPIO_PIN           18              // Pin 24, PWM  1A
-#define SERVO_13_GPIO_PIN           19              // Pin 25, PWM  1B
-#define SERVO_14_GPIO_PIN           20              // Pin 26, PWM  2A
-#define SERVO_15_GPIO_PIN           21              // Pin 27, PWM  2B

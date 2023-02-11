@@ -62,18 +62,34 @@ void Controller::init(CreatureConfig *incomingConfig) {
         currentFrame[i] = UCHAR_MAX / 2;
     }
 
-    // TODO: This is all temp
-    steppers[0] = new Stepper();
-    steppers[0]->directionPin = STEPPER_DIR_PIN;
-    steppers[0]->stepsPin = STEPPER_STEPS_PIN;
+    debug("setting up the stepper pins");
 
-    gpio_init(steppers[0]->directionPin);
-    gpio_set_dir(steppers[0]->directionPin, true);   // This is an output pin
-    gpio_put(steppers[0]->directionPin, true);
+    // Output Pins
+    configureGPIO(STEPPER_STEP_PIN, true, false);
+    configureGPIO(STEPPER_DIR_PIN, true, false);
+    configureGPIO(STEPPER_MS1_PIN, true, false);
+    configureGPIO(STEPPER_MS2_PIN, true, false);
+    configureGPIO(STEPPER_A0_PIN, true, false);
+    configureGPIO(STEPPER_A1_PIN, true, false);
+    configureGPIO(STEPPER_A2_PIN, true, false);
+    configureGPIO(STEPPER_LATCH_PIN, true, false);
+    configureGPIO(STEPPER_SLEEP_PIN, true, false);
 
-    gpio_init(steppers[0]->stepsPin);
-    gpio_set_dir(steppers[0]->stepsPin, true);   // This is an output pin
-    gpio_put(steppers[0]->stepsPin, true);
+    // Input pins
+    configureGPIO(STEPPER_FAULT_PIN, false, false);
+    configureGPIO(STEPPER_END_S_LOW_PIN, false, false);
+    configureGPIO(STEPPER_END_S_HIGH_PIN, false, false);
+
+   debug("done setting up the stepper pins");
+
+}
+
+void Controller::configureGPIO(uint8_t pin, bool out, bool initialValue) {
+
+    verbose("setting up stepper pin %d", pin);
+    gpio_init(pin);
+    gpio_set_dir(pin, out);
+    gpio_put(pin, initialValue);
 
 }
 
