@@ -15,6 +15,9 @@ Parrot::Parrot()
     this->headOffsetMax = lround((double)(MAX_POSITION - MIN_POSITION) * (double)HEAD_OFFSET_MAX);
     debug("the head offset max is %d", this->headOffsetMax);
 
+    this->numberOfSteppers = 3;
+    this->numberOfServos = 4;
+
     info("Bawk!");
 }
 
@@ -154,24 +157,25 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
         parrot->joints[NECK_LEFT] = headPosition.left;
         parrot->joints[NECK_RIGHT] = headPosition.right;
+        parrot->joints[BEAK] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BEAK]);
+        parrot->joints[CHEST] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_CHEST]);
 
 
-        uint16_t bodyLean = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BODY_LEAN]);
-        parrot->joints[BODY_LEAN] = bodyLean;
+        //uint16_t bodyLean = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BODY_LEAN]);
+        //parrot->joints[BODY_LEAN] = bodyLean;
 
 
         // For the others, copy in what's on the wire for now
-        parrot->joints[NECK_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_NECK_ROTATE]);
-        parrot->joints[BEAK] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BEAK]);
-        parrot->joints[CHEST] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_CHEST]);
-        parrot->joints[STAND_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_STAND_ROTATE]);
+        //parrot->joints[NECK_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_NECK_ROTATE]);
+
+        //parrot->joints[STAND_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_STAND_ROTATE]);
 
 
         // Request these positions from the controller
-        for(int i = 0; i < numberOfJoints; i++) {
-            controller->requestServoPosition(i,
-                                             parrot->joints[i]);
-        }
+        controller->requestServoPosition(NECK_LEFT,parrot->joints[NECK_LEFT]);
+        controller->requestServoPosition(NECK_RIGHT,parrot->joints[NECK_RIGHT]);
+        controller->requestServoPosition(BEAK,parrot->joints[BEAK]);
+        controller->requestServoPosition(CHEST,parrot->joints[CHEST]);
 
 
     }

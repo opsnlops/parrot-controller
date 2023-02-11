@@ -34,6 +34,8 @@ public:
     uint32_t getCurrentStep();   // Where the servo currently is
     void setDesiredStep(uint32_t desiredStep);
 
+    uint32_t positionToSteps(uint16_t position);
+
     float getSmoothingValue();
 
     const char* getName();
