@@ -20,22 +20,24 @@ Parrot::Parrot()
 
 CreatureConfig* Parrot::getDefaultConfig() {
 
-    auto config = new CreatureConfig("Beaky", 50, 7,1);
+    auto config = new CreatureConfig("Beaky", 50, 4, 3, 1);
 
     config->setServoConfig(NECK_LEFT,
                            new ServoConfig("Neck Left", 250, 2500, 0.92, false));
     config->setServoConfig(NECK_RIGHT,
                            new ServoConfig("Neck Right", 250, 2500, 0.92, true));
-    config->setServoConfig(NECK_ROTATE,
-                           new ServoConfig("Neck Rotate", 250, 2500, 0.95, false));
     config->setServoConfig(BEAK,
                            new ServoConfig("Beak", 250, 2500, 0.4, false));
     config->setServoConfig(CHEST,
                            new ServoConfig("Chest", 250, 2500, 0.99, false));
-    config->setServoConfig(BODY_LEAN,
-                           new ServoConfig("Body Lean", 250, 1400, 0.8, false));
-    config->setServoConfig(STAND_ROTATE,
-                           new ServoConfig("Stand Rotate", 250, 2500, 0.99, false));
+
+
+    config->setStepperConfig(NECK_ROTATE,
+                           new StepperConfig("Neck Rotate", 1000, 0.95, false));
+    config->setStepperConfig(BODY_LEAN,
+                           new StepperConfig("Body Lean", 1000, 0.95, false));
+    config->setStepperConfig(STAND_ROTATE,
+                           new StepperConfig("Stand Rotate", 1000, 0.95, false));
 
     return config;
 

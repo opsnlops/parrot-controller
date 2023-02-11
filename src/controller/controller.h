@@ -39,12 +39,13 @@ public:
 
     bool acceptInput(uint8_t* input);
 
-    uint8_t getNumberOfServosInUse();
+    static uint8_t getNumberOfServosInUse();
+    static uint8_t getNumberOfSteppersInUse();
 
     // Get the servo, used for debugging
     static Servo* getServo(uint8_t index);
 
-    Stepper* getStepper(uint8_t index);
+    static Stepper* getStepper(uint8_t index);
 
     // ISR, called when the PWM wraps
     static void __isr on_pwm_wrap_handler();
@@ -63,7 +64,7 @@ private:
      */
     static Servo* servos[MAX_NUMBER_OF_SERVOS];
 
-    Stepper* steppers[MAX_NUMBER_OF_STEPPERS];
+    static Stepper* steppers[MAX_NUMBER_OF_STEPPERS];
 
     // The current state of the input from the controller
     uint8_t* currentFrame;
@@ -81,10 +82,15 @@ private:
     static uint8_t numberOfServosInUse;
     static uint32_t numberOfPWMWraps;
 
+    static uint8_t numberOfSteppersInUse;
+
     static void configureGPIO(uint8_t pin, bool out, bool initialValue);
 
     void initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
                    uint16_t maxPulseUs, float smoothingValue, bool inverted);
+
+    void initStepper(uint8_t indexNumber, const char* name, uint32_t maxSteps,
+                     float smoothingValue, bool inverted);
 
     /**
      * Map the servo index to the GPO pin to use
@@ -99,19 +105,6 @@ private:
             SERVO_6_GPIO_PIN,
             SERVO_7_GPIO_PIN};
 
-    /**
-     * Simple array for setting the address lines of the stepper latches
-     */
-    bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
 
-            {false,     false,      false},     // 0
-            {false,     false,      true},      // 1
-            {false,     true,       false},     // 2
-            {false,     true,       true},      // 3
-            {true,      false,      false},     // 4
-            {true,      false,      true},      // 5
-            {true,      true,       false},     // 6
-            {true,      true,       true}       // 7
-    };
 
 };

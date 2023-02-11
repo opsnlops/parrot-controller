@@ -285,6 +285,36 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                         write_to_cdc(tx_buffer);
                     }
 
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r Steppers:\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      num | slot |         name          |  cstep  |  dstep \n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      --------------------------------------------------------\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    for (int i = 0; i < config->getNumberOfSteppers(); i++) {
+
+                        Stepper *s = Controller::getStepper(i);
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu\n\r",
+                                 i,
+                                 s->getSlot(),
+                                 s->getName(),
+                                 s->getCurrentStep(),
+                                 s->getDesiredStep());
+                        write_to_cdc(tx_buffer);
+                    }
+
+
+
+
+
 
                     break;
 

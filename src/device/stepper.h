@@ -10,19 +10,33 @@
 class Stepper {
 
 public:
-    Stepper();
+    Stepper(uint8_t slot, const char* name, uint32_t maxSteps, float smoothingValue, bool inverted);
     int init();
     int start();
 
-    uint8_t stepsPin = STEPPER_STEP_PIN;
-    uint8_t directionPin = STEPPER_DIR_PIN;
+    /**
+     * Which slot it is on the mux
+     */
+    uint8_t slot;
 
-    uint32_t current_step;
-    uint32_t desired_step;
-    uint32_t max_steps;
+    const char* name;
+    bool inverted;
 
-    bool is_high;
+    uint32_t currentStep;
+    uint32_t desiredSteps;
+    uint32_t maxSteps;
+    float smoothingValue;       // The constant to use when smoothing the input
 
+    bool isHigh;
+
+    uint8_t getSlot();
+    uint32_t getDesiredStep() ;   // Where we want it to go
+    uint32_t getCurrentStep();   // Where the servo currently is
+    void setDesiredStep(uint32_t desiredStep);
+
+    float getSmoothingValue();
+
+    const char* getName();
     bool getHighAndInvert();
 };
 
