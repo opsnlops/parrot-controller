@@ -67,7 +67,8 @@ Servo::Servo(uint gpio, const char* name, uint16_t min_pulse_us, uint16_t max_pu
 
     // TODO: What's a good default to set the servo to on power on?
 
-    info("set up servo on pin %d", gpio);
+    info("set up servo on pin %d: name: %s, min_pulse: %d, max_pulse: %d, inverted: %s",
+         gpio, name, min_pulse_us, max_pulse_us, inverted ? "yes" : "no");
 }
 
 /**

@@ -41,11 +41,12 @@ public:
 
 
 class StepperConfig {
+
+public:
     StepperConfig();
-    StepperConfig(const char* name, uint32_t minSteps, uint32_t maxSteps, float smoothingValue, bool inverted);
+    StepperConfig(const char* name, uint32_t maxSteps, float smoothingValue, bool inverted);
 
     char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1];
-    uint32_t minSteps;
     uint32_t maxSteps;
     float smoothingValue;
     bool inverted;
@@ -55,9 +56,11 @@ class StepperConfig {
 class CreatureConfig {
 
 public:
-    CreatureConfig(const char* name, uint32_t servoFrequencyHz, uint8_t numberOfServos, uint16_t dmxBaseChannel);
+    CreatureConfig(const char* name, uint32_t servoFrequencyHz, uint8_t numberOfServos,
+                   uint8_t numberOfSteppers, uint16_t dmxBaseChannel);
 
     void setServoConfig(uint8_t index, ServoConfig* config);
+    void setStepperConfig(uint8_t index, StepperConfig* config);
 
     char* getName();
     uint32_t getServoFrequencyHz();
@@ -65,12 +68,18 @@ public:
     uint8_t getNumberOfServos();
     ServoConfig* getServoConfig(uint8_t servoNumber);
 
+    uint8_t getNumberOfSteppers();
+    StepperConfig* getStepperConfig(uint8_t stepperNumber);
+
+
 private:
-    char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1];
+    char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1]{};
 
     uint32_t servoFrequencyHz;
     uint16_t dmxBaseChannel;
     uint8_t numberOfServos;
-    ServoConfig* servoConfigs[MAX_NUMBER_OF_SERVOS];
+    uint8_t numberOfSteppers;
+    ServoConfig* servoConfigs[MAX_NUMBER_OF_SERVOS]{};
+    StepperConfig* stepperConfigs[MAX_NUMBER_OF_STEPPERS]{};
 
 };

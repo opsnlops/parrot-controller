@@ -18,8 +18,26 @@ BaseType_t isrPriorityTaskWoken = pdFALSE;
 
 // Initialize the static members
 Servo *Controller::servos[MAX_NUMBER_OF_SERVOS] = {};
+Stepper *Controller::steppers[MAX_NUMBER_OF_STEPPERS] = {};
 uint8_t Controller::numberOfServosInUse = 0;
+uint8_t Controller::numberOfSteppersInUse = 0;
 uint32_t Controller::numberOfPWMWraps = 0;
+
+
+/**
+ * Simple array for setting the address lines of the stepper latches
+ */
+static bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
+
+        {false,     false,      false},     // 0
+        {false,     false,      true},      // 1
+        {false,     true,       false},     // 2
+        {false,     true,       true},      // 3
+        {true,      false,      false},     // 4
+        {true,      false,      true},      // 5
+        {true,      true,       false},     // 6
+        {true,      true,       true}       // 7
+};
 
 // TODO: Nope
 bool step(struct repeating_timer *t);
@@ -37,7 +55,7 @@ Controller::Controller() {
 void Controller::init(CreatureConfig *incomingConfig) {
 
     this->config = incomingConfig;
-    this->numberOfChannels = this->config->getNumberOfServos() + 1; // The number of servos + the e-stop
+    this->numberOfChannels = this->config->getNumberOfServos() + this->config->getNumberOfSteppers() + 1; // The number of motors + the e-stop
 
     // Initialize all the slots in the controller
     for (auto &servo: servos) {
@@ -49,9 +67,17 @@ void Controller::init(CreatureConfig *incomingConfig) {
     }
 
     // Set up the servos
+    debug("building servo objects");
     for (int i = 0; i < this->config->getNumberOfServos(); i++) {
         ServoConfig *servo = this->config->getServoConfig(i);
         initServo(i, servo->name, servo->minPulseUs, servo->maxPulseUs, servo->smoothingValue, servo->inverted);
+    }
+
+    // Set up the steppers
+    debug("building stepper objects");
+    for (int i = 0; i < this->config->getNumberOfSteppers(); i++) {
+        StepperConfig *stepper = this->config->getStepperConfig(i);
+        initStepper(i, stepper->name, stepper->maxSteps, stepper->smoothingValue, stepper->inverted);
     }
 
     // Declare some space on the heap for our current frame buffer
@@ -86,7 +112,10 @@ void Controller::init(CreatureConfig *incomingConfig) {
 
 void Controller::configureGPIO(uint8_t pin, bool out, bool initialValue) {
 
-    verbose("setting up stepper pin %d", pin);
+    verbose("setting up stepper pin %d: direction: %s, initialValue: %s",
+            pin,
+            out ? "out" : "in",
+            initialValue ? "on" : "off");
     gpio_init(pin);
     gpio_set_dir(pin, out);
     gpio_put(pin, initialValue);
@@ -167,6 +196,17 @@ void Controller::initServo(uint8_t indexNumber, const char *name, uint16_t minPu
 
 }
 
+void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps,
+                             float smoothingValue, bool inverted) {
+
+    steppers[slot] = new Stepper(slot, name, maxSteps, smoothingValue, inverted);
+    numberOfSteppersInUse++;
+
+    info("stepper init: slot: %d, name: %s, max_steps: %d", slot, name, maxSteps);
+
+}
+
+
 CreatureConfig *Controller::getConfig() {
     return config;
 }
@@ -242,6 +282,10 @@ uint8_t Controller::getNumberOfServosInUse() {
     return numberOfServosInUse;
 }
 
+uint8_t Controller::getNumberOfSteppersInUse() {
+    return numberOfSteppersInUse;
+}
+
 Servo *Controller::getServo(uint8_t index) {
     return servos[index];
 }
@@ -288,15 +332,24 @@ portTASK_FUNCTION(stepper_step_task, pvParameters) {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
-    add_repeating_timer_us(250, step, controller->getStepper(0), &timer);
+    // Add the worker
+    add_repeating_timer_us(750, step, nullptr, &timer);
 
 
     for (EVER) {
 
-        controller->getStepper(0)->desired_step = rand() % 300;
-        debug("set desired to %d", controller->getStepper(0)->desired_step);
+        for(int i = 0; i < Controller::getNumberOfSteppersInUse(); i++)
+        {
+            Stepper* stepper = controller->getStepper(i);
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+            uint32_t newStep = rand() % 300;
+            stepper->setDesiredStep(newStep);
+
+            debug("set stepper %d to %d", stepper->slot, newStep);
+
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(500));
 
 
     }
@@ -307,41 +360,68 @@ portTASK_FUNCTION(stepper_step_task, pvParameters) {
 // A free function to be an interrupt handler
 bool step(struct repeating_timer *t) {
 
-    auto *s = (Stepper *) (t->user_data);
 
-    if(s->is_high)
-    {
-        s->is_high = false;
-        gpio_put(s->stepsPin, false);
-        // Leave the direction pin alone
-    }
+    // Look at each stepper we have and adjust if needed
+    for(int i = 0; i < Controller::getNumberOfSteppersInUse(); i++) {
 
-    else
-    {
-        // If we need to move, let's move!
-        if(s->current_step != s->desired_step) {
+        Stepper *s = Controller::getStepper(i);
 
-            // If we have to move, let's move
-            if (s->current_step != s->desired_step) {
+        uint8_t slot = s->getSlot();
 
-                if (s->current_step < s->desired_step) {
+        // Configure the address lines
+        gpio_put(STEPPER_A0_PIN, stepperAddressMapping[slot][2]);
+        gpio_put(STEPPER_A1_PIN, stepperAddressMapping[slot][1]);
+        gpio_put(STEPPER_A2_PIN, stepperAddressMapping[slot][0]);
 
-                    gpio_put(s->directionPin, false);
-                    s->current_step++;
-                } else {
 
-                    gpio_put(s->directionPin, true);
-                    s->current_step--;
+
+        // For now let's use half steps
+        gpio_put(STEPPER_MS1_PIN, true);
+        gpio_put(STEPPER_MS2_PIN, false);
+
+        // Now that we've selected it, let's toggle the bits
+
+        if (s->isHigh) {
+            s->isHigh = false;
+            gpio_put(STEPPER_STEP_PIN, false);
+            // Leave the direction pin alone
+        } else {
+            // If we need to move, let's move!
+            if (s->currentStep != s->desiredSteps) {
+
+                // If we have to move, let's move
+                if (s->currentStep != s->desiredSteps) {
+
+                    if (s->currentStep < s->desiredSteps) {
+
+                        gpio_put(STEPPER_DIR_PIN, false);
+                        s->currentStep++;
+                    } else {
+
+                        gpio_put(STEPPER_DIR_PIN, true);
+                        s->currentStep--;
+                    }
+
+                    gpio_put(STEPPER_STEP_PIN, true);
+                    s->isHigh = true;
+
                 }
-
-                gpio_put(s->stepsPin, true);
-                s->is_high = true;
+            }
+                // They're equal, no steps needed
+            else {
+                gpio_put(STEPPER_STEP_PIN, false);
             }
         }
-        // They're equal, no steps needed
-        else {
-            gpio_put(s->stepsPin, false);
-        }
+
+        // Enable the latch
+        gpio_put(STEPPER_LATCH_PIN, false);     // It's active low
+
+        // Stall long enough to let the latch go
+        for(int j = 0; j < 100; j++) {}
+
+        // Now that we've toggled everything, turn the latch back off
+        gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
+
     }
 
     return true;
