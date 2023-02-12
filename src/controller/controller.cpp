@@ -66,7 +66,7 @@ Controller::Controller() {
 void Controller::init(CreatureConfig *incomingConfig) {
 
     this->config = incomingConfig;
-    this->numberOfChannels = this->config->getNumberOfServos() + this->config->getNumberOfSteppers() + 1; // The number of motors + the e-stop
+    this->numberOfChannels = DMX_NUMBER_OF_CHANNELS;
 
     // Initialize all the slots in the controller
     for (auto &servo: servos) {
@@ -92,10 +92,10 @@ void Controller::init(CreatureConfig *incomingConfig) {
     }
 
     // Declare some space on the heap for our current frame buffer
-    currentFrame = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * this->numberOfChannels);
+    currentFrame = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * numberOfChannels);
 
     // Set the currentFrame buffer to the middle value as a safe-ish default
-    for (int i = 0; i < this->numberOfChannels; i++) {
+    for (int i = 0; i < numberOfChannels; i++) {
         currentFrame[i] = UCHAR_MAX / 2;
     }
 
@@ -167,7 +167,7 @@ void Controller::start() {
 bool Controller::acceptInput(uint8_t *input) {
 
     // Copy the incoming buffer into our buffer
-    memcpy(currentFrame, input, this->numberOfChannels);
+    memcpy(currentFrame, input, numberOfChannels);
 
     /**
      * If there's no worker task, stop here.
@@ -309,6 +309,10 @@ uint8_t Controller::getNumberOfServosInUse() {
 
 uint8_t Controller::getNumberOfSteppersInUse() {
     return numberOfSteppersInUse;
+}
+
+uint16_t Controller::getNumberOfDMXChannels() {
+    return numberOfChannels;
 }
 
 Servo *Controller::getServo(uint8_t index) {

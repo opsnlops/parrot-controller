@@ -36,11 +36,11 @@ CreatureConfig* Parrot::getDefaultConfig() {
 
 
     defaultConfig->setStepperConfig(STEPPER_NECK_ROTATE,
-                                    new StepperConfig("Neck Rotate", 300, 0.95, false));
+                                    new StepperConfig(STEPPER_NECK_ROTATE, "Neck Rotate", 300, 0.95, false));
     defaultConfig->setStepperConfig(STEPPER_BODY_LEAN,
-                                    new StepperConfig("Body Lean", 300, 0.95, false));
+                                    new StepperConfig(STEPPER_BODY_LEAN, "Body Lean", 300, 0.95, false));
     defaultConfig->setStepperConfig(STEPPER_STAND_ROTATE,
-                                    new StepperConfig("Stand Rotate", 300, 0.95, false));
+                                    new StepperConfig(STEPPER_STAND_ROTATE, "Stand Rotate", 300, 0.95, false));
 
     // Make our running defaultConfig point to this
     this->runningConfig = defaultConfig;

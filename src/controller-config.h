@@ -27,8 +27,8 @@
 #define STEPPER_MUX_BITS            3
 #define STEPPER_STEP_PIN            26
 #define STEPPER_DIR_PIN             27
-#define STEPPER_MS1_PIN             17
-#define STEPPER_MS2_PIN             16
+#define STEPPER_MS1_PIN             16
+#define STEPPER_MS2_PIN             17
 #define STEPPER_A0_PIN              18
 #define STEPPER_A1_PIN              19
 #define STEPPER_A2_PIN              20
@@ -47,6 +47,7 @@
  * DMX_BASE_CHANNEL + the offset for the desired value.
  */
 #define DMX_E_STOP_CHANNEL_OFFSET   0
+#define DMX_NUMBER_OF_CHANNELS      13
 
 
 /*

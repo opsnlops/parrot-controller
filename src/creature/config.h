@@ -42,8 +42,9 @@ class StepperConfig {
 
 public:
     StepperConfig();
-    StepperConfig(const char* name, uint32_t maxSteps, float smoothingValue, bool inverted);
+    StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, float smoothingValue, bool inverted);
 
+    uint8_t slot;
     char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1];
     uint32_t maxSteps;
     float smoothingValue;
