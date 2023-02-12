@@ -374,7 +374,6 @@ bool step(struct repeating_timer *t) {
         gpio_put(STEPPER_A2_PIN, stepperAddressMapping[slot][0]);
 
 
-
         // For now let's use half steps
         gpio_put(STEPPER_MS1_PIN, true);
         gpio_put(STEPPER_MS2_PIN, false);
@@ -384,6 +383,8 @@ bool step(struct repeating_timer *t) {
         if (s->isHigh) {
             s->isHigh = false;
             gpio_put(STEPPER_STEP_PIN, false);
+            gpio_put(STEPPER_DIR_PIN, s->getCurrentDirection());
+
             // Leave the direction pin alone
         } else {
             // If we need to move, let's move!
@@ -394,14 +395,14 @@ bool step(struct repeating_timer *t) {
 
                     if (s->currentStep < s->desiredSteps) {
 
-                        gpio_put(STEPPER_DIR_PIN, false);
+                        s->setCurrentDirection(false);
                         s->currentStep++;
                     } else {
-
-                        gpio_put(STEPPER_DIR_PIN, true);
+                        s->setCurrentDirection(true);
                         s->currentStep--;
                     }
 
+                    gpio_put(STEPPER_DIR_PIN, s->getCurrentDirection());
                     gpio_put(STEPPER_STEP_PIN, true);
                     s->isHigh = true;
 
@@ -409,6 +410,7 @@ bool step(struct repeating_timer *t) {
             }
                 // They're equal, no steps needed
             else {
+                gpio_put(STEPPER_DIR_PIN, s->getCurrentDirection());
                 gpio_put(STEPPER_STEP_PIN, false);
             }
         }
@@ -417,7 +419,7 @@ bool step(struct repeating_timer *t) {
         gpio_put(STEPPER_LATCH_PIN, false);     // It's active low
 
         // Stall long enough to let the latch go
-        for(int j = 0; j < 100; j++) {}
+        for(int j = 0; j < 50; j++) {}
 
         // Now that we've toggled everything, turn the latch back off
         gpio_put(STEPPER_LATCH_PIN, true);     // It's active low

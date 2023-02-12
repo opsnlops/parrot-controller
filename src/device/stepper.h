@@ -23,22 +23,26 @@ public:
     bool inverted;
 
     uint32_t currentStep;
+    bool currentDirection;
+
     uint32_t desiredSteps;
     uint32_t maxSteps;
     float smoothingValue;       // The constant to use when smoothing the input
 
     bool isHigh;
 
-    uint8_t getSlot();
-    uint32_t getDesiredStep() ;   // Where we want it to go
-    uint32_t getCurrentStep();   // Where the servo currently is
+    uint8_t getSlot() const;
+    bool getCurrentDirection() const;
+    uint32_t getDesiredStep() const ;   // Where we want it to go
+    uint32_t getCurrentStep() const;   // Where the servo currently is
     void setDesiredStep(uint32_t desiredStep);
+    void setCurrentDirection(bool direction);
 
     uint32_t positionToSteps(uint16_t position);
 
-    float getSmoothingValue();
+    float getSmoothingValue() const;
 
-    const char* getName();
+    const char* getName() const;
     bool getHighAndInvert();
 };
 
