@@ -197,6 +197,11 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "         TinyUSB Version: %d.%d.%d\n\r",
+                             TUSB_VERSION_MAJOR, TUSB_VERSION_MINOR, TUSB_VERSION_REVISION);
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r   Servo Config:\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
