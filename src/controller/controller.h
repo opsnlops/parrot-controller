@@ -16,12 +16,14 @@ class Controller {
 public:
     Controller();
 
-    CreatureConfig* getConfig();
+    CreatureConfig* getRunningConfig();
 
     uint32_t getNumberOfPWMWraps();
     uint16_t getServoPosition(uint8_t indexNumber);
+    uint32_t getStepperPosition(uint8_t indexNumber);
 
     void requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition);
+    void requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition);
 
     void init(CreatureConfig* incomingConfig);
     void start();
@@ -104,7 +106,5 @@ private:
             SERVO_5_GPIO_PIN,
             SERVO_6_GPIO_PIN,
             SERVO_7_GPIO_PIN};
-
-
 
 };

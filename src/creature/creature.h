@@ -40,6 +40,13 @@ public:
     virtual CreatureConfig* getDefaultConfig() = 0;
 
     /**
+     * Get the "running" config in the Cisco IOS sense
+     *
+     * @return a pointer to our running config
+     */
+    CreatureConfig* getRunningConfig();
+
+    /**
      * Returns a task to be notified when there is a new frame to process
      *
      * @return a `TaskHandle_t` pointing to the task
@@ -65,6 +72,9 @@ public:
     [[nodiscard]] uint8_t getNumberOfServos() const;
     [[nodiscard]] uint8_t getNumberOfSteppers() const;
 
+    // This is like the Arduino helper map() function. We do this a lot.
+    static int32_t convertRange(int32_t input, int32_t oldMin, int32_t oldMax, int32_t newMin, int32_t newMax);
+
 protected:
 
     Controller* controller;
@@ -74,8 +84,8 @@ protected:
     uint8_t numberOfSteppers;
     uint8_t numberOfJoints;
 
-    // This is like the Arduino helper map() function. We do this a lot.
-    static int32_t convertRange(int32_t input, int32_t oldMin, int32_t oldMax, int32_t newMin, int32_t newMax);
+    // This is the config that we're currently using. "Running" in the Cisco sense.
+    CreatureConfig* runningConfig;
 
 };
 

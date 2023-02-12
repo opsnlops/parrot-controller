@@ -76,3 +76,7 @@ uint8_t Creature::getNumberOfServos() const {
 uint8_t Creature::getNumberOfSteppers() const {
     return numberOfSteppers;
 }
+
+CreatureConfig* Creature::getRunningConfig() {
+    return runningConfig;
+}

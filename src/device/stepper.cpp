@@ -28,19 +28,6 @@ Stepper::Stepper(uint8_t slot, const char* name, uint32_t maxSteps, float smooth
 
 }
 
-/**
- * Since each stepper is unique, have the stepper itself figure out the
- * number of steps that map to a position.
- *
- * @param position between MIN_POSITION and MAX_POSITION
- * @return the number of steps that map to that position
- */
-uint32_t Stepper::positionToSteps(uint16_t position) {
-
-
-
-}
-
 int Stepper::init() {
     return 1;
 

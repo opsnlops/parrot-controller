@@ -16,14 +16,12 @@
  * the controller can do what it likes with it.
  */
 
-
 #include "controller-config.h"
 
 #include <cctype>
 #include <cstdint>
 
 #define CREATURE_CONFIG_NAME_MAX_SIZE   20
-
 
 class ServoConfig {
 
