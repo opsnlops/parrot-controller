@@ -75,15 +75,10 @@ void tud_resume_cb(void)
 
 void cdc_send(char* buf) {
 
-    uint32_t count = strlen(buf);
-
     if (tud_cdc_connected()) {
 
-        for(int i = 0; i < count; i++) {
-            tud_cdc_n_write_char(0, buf[i]);
-            tud_cdc_n_write_flush(0);
-            vTaskDelay(1);
-        }
+        tud_cdc_n_write_str(0, buf);
+        tud_cdc_n_write_flush(0);
     }
     else {
         info("skipped CDC send");

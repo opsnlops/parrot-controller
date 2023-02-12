@@ -90,9 +90,9 @@ void ds_reset_buffers(char *tx_buffer, uint8_t *rx_buffer) {
  * @param itf the CDC interface number
  */
 void tud_cdc_rx_cb(uint8_t itf) {
-    debug("callback from tusb that there's data there");
+    verbose("callback from tusb that there's data there");
     uint8_t ch = tud_cdc_read_char();
-    xQueueSendToBack(debug_shell_incoming_keys, &ch, (TickType_t) 10);
+    xQueueSendToBackFromISR(debug_shell_incoming_keys, &ch, nullptr);
 }
 
 /**
@@ -104,20 +104,12 @@ void tud_cdc_rx_cb(uint8_t itf) {
  */
 void write_to_cdc(char* line) {
 
-    uint32_t count = strlen(line);
-    for(int i = 0; i < count; i++) {
+    // Use the onboard LED as a "TX" light
+    gpio_put(LED_PIN, true);
 
-        // Use the onboard LED as a "TX" light
-        gpio_put(LED_PIN, true);
+    cdc_send(line);
 
-        tud_cdc_n_write_char(0, line[i]);
-        tud_cdc_n_write_flush(0);
-
-        // If we go to fast it overwhelms the buffers
-        vTaskDelay(1);
-
-        gpio_put(LED_PIN, false);
-    }
+    gpio_put(LED_PIN, false);
 
 }
 
@@ -198,6 +190,10 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                Board ID: %s\n\r", pico_board_id);
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        FreeRTOS Version: %s\n\r", tskKERNEL_VERSION_NUMBER);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
