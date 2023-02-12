@@ -393,8 +393,8 @@ bool step(struct repeating_timer *t) {
                 // If we have to move, let's move
                 if (s->currentStep != s->desiredSteps) {
 
+                    // Which direction?
                     if (s->currentStep < s->desiredSteps) {
-
                         s->setCurrentDirection(false);
                         s->currentStep++;
                     } else {
@@ -418,8 +418,11 @@ bool step(struct repeating_timer *t) {
         // Enable the latch
         gpio_put(STEPPER_LATCH_PIN, false);     // It's active low
 
-        // Stall long enough to let the latch go
-        for(int j = 0; j < 50; j++) {}
+        // Stall long enough to let the latch go! This about 380ns. The datasheet says it
+        // needs 220ns to latch at 2v. (We run at 3.3v) The uint32_t executes faster than an
+        // uint8_t! It surprised me to figure this out. :)
+        volatile uint32_t j;
+        for(j = 0; j < 3; j++) {}
 
         // Now that we've toggled everything, turn the latch back off
         gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
