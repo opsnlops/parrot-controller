@@ -7,6 +7,29 @@
 #include "pico/stdlib.h"
 
 
+class StepperState {
+
+public:
+
+    StepperState();
+
+    uint64_t updatedFrame;
+
+    uint32_t currentStep;
+    uint32_t desiredSteps;
+
+    bool currentDirection;
+
+    bool isHigh;
+    bool isAwake;
+
+    bool ms1State;
+    bool ms2State;
+
+    uint64_t startedSleepingAt;
+
+};
+
 class Stepper {
 
 public:
@@ -22,25 +45,14 @@ public:
     const char* name;
     bool inverted;
 
-    uint32_t currentStep;
-    bool currentDirection;
+    StepperState* state;
 
-    uint32_t desiredSteps;
     uint32_t maxSteps;
     float smoothingValue;       // The constant to use when smoothing the input
 
-    bool isHigh;
-
     [[nodiscard]] uint8_t getSlot() const;
-    [[nodiscard]] bool getCurrentDirection() const;
-    [[nodiscard]] uint32_t getDesiredStep() const ;   // Where we want it to go
-    [[nodiscard]] uint32_t getCurrentStep() const;   // Where the servo currently is
-    void setDesiredStep(uint32_t desiredStep);
-    void setCurrentDirection(bool direction);
 
     [[nodiscard]] float getSmoothingValue() const;
 
     [[nodiscard]] const char* getName() const;
-    bool getHighAndInvert();
 };
-

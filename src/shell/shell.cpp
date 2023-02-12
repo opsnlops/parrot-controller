@@ -344,8 +344,8 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                                  i,
                                  s->getSlot(),
                                  s->getName(),
-                                 s->getCurrentStep(),
-                                 s->getDesiredStep());
+                                 s->state->currentStep,
+                                 s->state->desiredSteps);
                         write_to_cdc(tx_buffer);
                     }
 

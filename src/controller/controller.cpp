@@ -7,6 +7,7 @@
 #include "device/servo.h"
 #include "logging/logging.h"
 
+#include "controller/stepper_handler.h"
 #include "controller.h"
 
 
@@ -24,32 +25,8 @@ uint8_t Controller::numberOfSteppersInUse = 0;
 uint32_t Controller::numberOfPWMWraps = 0;
 
 
-//
-// START OF STEPPER TIMER STUFFS
-//
+struct repeating_timer stepper_timer;
 
-[[nodiscard]] bool stepper_timer_handler(struct repeating_timer *t);
-static struct repeating_timer stepper_timer;
-volatile uint64_t stepper_frame_count = 0L;
-
-/**
- * Simple array for setting the address lines of the stepper latches
- */
-static bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
-
-        {false,     false,      false},     // 0
-        {false,     false,      true},      // 1
-        {false,     true,       false},     // 2
-        {false,     true,       true},      // 3
-        {true,      false,      false},     // 4
-        {true,      false,      true},      // 5
-        {true,      true,       false},     // 6
-        {true,      true,       true}       // 7
-};
-
-//
-// END OF STEPPER TIMER STUFFS
-//
 
 
 Controller::Controller() {
@@ -232,7 +209,7 @@ uint16_t Controller::getServoPosition(uint8_t indexNumber) {
 }
 
 uint32_t Controller::getStepperPosition(uint8_t indexNumber) {
-    return steppers[indexNumber]->getCurrentStep();
+    return steppers[indexNumber]->state->currentStep;
 }
 
 void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
@@ -246,10 +223,10 @@ void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t request
 
 void Controller::requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition) {
 
-    if (steppers[stepperIndexNumber]->getCurrentStep() != requestedPosition) {
+    if (steppers[stepperIndexNumber]->state->currentStep != requestedPosition) {
         debug("requested to move stepper %d from %d to position %d", stepperIndexNumber,
-              steppers[stepperIndexNumber]->getCurrentStep(), requestedPosition);
-        steppers[stepperIndexNumber]->setDesiredStep(requestedPosition);
+              steppers[stepperIndexNumber]->state->currentStep, requestedPosition);
+        steppers[stepperIndexNumber]->state->desiredSteps = requestedPosition;
     }
 }
 
@@ -350,88 +327,3 @@ portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
 }
 
 
-/**
- *
- * Callback for the stepper timer
- *
- * REMEMBER THAT THIS RUNS EVERY FEW MICROSECONDS! :)
- *
- * @param t the repeating timer
- * @return true
- */
-bool stepper_timer_handler(struct repeating_timer *t) {
-
-
-    // Look at each stepper we have and adjust if needed
-    for(int i = 0; i < Controller::getNumberOfSteppersInUse(); i++) {
-
-        Stepper *s = Controller::getStepper(i);
-
-        uint8_t slot = s->getSlot();
-
-        // Configure the address lines
-        gpio_put(STEPPER_A0_PIN, stepperAddressMapping[slot][2]);
-        gpio_put(STEPPER_A1_PIN, stepperAddressMapping[slot][1]);
-        gpio_put(STEPPER_A2_PIN, stepperAddressMapping[slot][0]);
-
-
-        // For now let's use half steps
-        gpio_put(STEPPER_MS1_PIN, true);
-        gpio_put(STEPPER_MS2_PIN, false);
-
-        // Now that we've selected it, let's toggle the bits
-
-        if (s->isHigh) {
-            s->isHigh = false;
-            gpio_put(STEPPER_STEP_PIN, false);
-            gpio_put(STEPPER_DIR_PIN, s->getCurrentDirection());
-
-            // Leave the direction pin alone
-        } else {
-            // If we need to move, let's move!
-            if (s->currentStep != s->desiredSteps) {
-
-                // If we have to move, let's move
-                if (s->currentStep != s->desiredSteps) {
-
-                    // Which direction?
-                    if (s->currentStep < s->desiredSteps) {
-                        s->setCurrentDirection(false);
-                        s->currentStep++;
-                    } else {
-                        s->setCurrentDirection(true);
-                        s->currentStep--;
-                    }
-
-                    gpio_put(STEPPER_DIR_PIN, s->getCurrentDirection());
-                    gpio_put(STEPPER_STEP_PIN, true);
-                    s->isHigh = true;
-                    number_of_moves++;
-
-                }
-            }
-                // They're equal, no steps needed
-            else {
-                gpio_put(STEPPER_DIR_PIN, s->getCurrentDirection());
-                gpio_put(STEPPER_STEP_PIN, false);
-            }
-        }
-
-        // Enable the latch
-        gpio_put(STEPPER_LATCH_PIN, false);     // It's active low
-
-        // Stall long enough to let the latch go! This about 380ns. The datasheet says it
-        // needs 220ns to latch at 2v. (We run at 3.3v) The uint32_t executes faster than an
-        // uint8_t! It surprised me to figure this out. :)
-        volatile uint32_t j;
-        for(j = 0; j < 3; j++) {}
-
-        // Now that we've toggled everything, turn the latch back off
-        gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
-
-    }
-
-    stepper_frame_count++;
-
-    return true;
-}
