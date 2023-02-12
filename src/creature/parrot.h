@@ -10,15 +10,28 @@
 #include "device/servo.h"
 
 // joint -> servo mappings
-#define NECK_LEFT       0
-#define NECK_RIGHT      1
-#define BEAK            2
-#define CHEST           3
+#define JOINT_NECK_LEFT         0
+#define JOINT_NECK_RIGHT        1
+#define JOINT_BEAK              2
+#define JOINT_CHEST             3
 
 // joint -> stepper mappings
-#define NECK_ROTATE     4
-#define BODY_LEAN       5
-#define STAND_ROTATE    6
+#define JOINT_NECK_ROTATE       4
+#define JOINT_BODY_LEAN         5
+#define JOINT_STAND_ROTATE      6
+
+
+// Servo mappings in the servo array
+#define SERVO_NECK_LEFT         0
+#define SERVO_NECK_RIGHT        1
+#define SERVO_BEAK              2
+#define SERVO_CHEST             3
+
+// Stepper mappings in the stepper array
+#define STEPPER_NECK_ROTATE     0
+#define STEPPER_BODY_LEAN       1
+#define STEPPER_STAND_ROTATE    2
+
 
 
 // Input mapping. Defines which axis is each

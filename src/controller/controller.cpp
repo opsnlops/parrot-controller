@@ -12,6 +12,8 @@
 #include "controller.h"
 
 
+uint32_t number_of_moves = 0;
+
 extern TaskHandle_t controllerHousekeeperTaskHandle;
 extern TaskHandle_t stepper_step_task_handle;
 BaseType_t isrPriorityTaskWoken = pdFALSE;
@@ -23,6 +25,13 @@ uint8_t Controller::numberOfServosInUse = 0;
 uint8_t Controller::numberOfSteppersInUse = 0;
 uint32_t Controller::numberOfPWMWraps = 0;
 
+
+//
+// START OF STEPPER TIMER STUFFS
+//
+
+[[nodiscard]] bool stepper_timer_handler(struct repeating_timer *t);
+static struct repeating_timer stepper_timer;
 
 /**
  * Simple array for setting the address lines of the stepper latches
@@ -39,8 +48,10 @@ static bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
         {true,      true,       true}       // 7
 };
 
-// TODO: Nope
-bool step(struct repeating_timer *t);
+//
+// END OF STEPPER TIMER STUFFS
+//
+
 
 Controller::Controller() {
 
@@ -98,7 +109,7 @@ void Controller::init(CreatureConfig *incomingConfig) {
     configureGPIO(STEPPER_A0_PIN, true, false);
     configureGPIO(STEPPER_A1_PIN, true, false);
     configureGPIO(STEPPER_A2_PIN, true, false);
-    configureGPIO(STEPPER_LATCH_PIN, true, false);
+    configureGPIO(STEPPER_LATCH_PIN, true, true);       // The latch is active low
     configureGPIO(STEPPER_SLEEP_PIN, true, false);
 
     // Input pins
@@ -134,6 +145,9 @@ void Controller::start() {
     irq_set_exclusive_handler(PWM_IRQ_WRAP, Controller::on_pwm_wrap_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
+    // Set up the stepper timer
+    add_repeating_timer_us(750, stepper_timer_handler, nullptr, &stepper_timer);
+
     // Fire off the housekeeper
     xTaskCreate(controller_housekeeper_task,
                 "controller_housekeeper_task",
@@ -141,14 +155,6 @@ void Controller::start() {
                 (void *) this,
                 1,
                 &controllerHousekeeperTaskHandle);
-
-    // Fire off the stepper task
-    xTaskCreate(stepper_step_task,
-                "stepper_step_task",
-                256,
-                (void *) this,
-                1,
-                &stepper_step_task_handle);
 
 }
 
@@ -206,8 +212,15 @@ void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps,
 
 }
 
-
-CreatureConfig *Controller::getConfig() {
+/**
+ * Get the configuration that's currently running on the controller
+ *
+ * This might be different than the startup config, if it was tweaked
+ * via the debug shell.
+ *
+ * @return a pointer to our configuration
+ */
+CreatureConfig *Controller::getRunningConfig() {
     return config;
 }
 
@@ -219,6 +232,10 @@ uint16_t Controller::getServoPosition(uint8_t indexNumber) {
     return servos[indexNumber]->getPosition();
 }
 
+uint32_t Controller::getStepperPosition(uint8_t indexNumber) {
+    return steppers[indexNumber]->getCurrentStep();
+}
+
 void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
 
     if (servos[servoIndexNumber]->getPosition() != requestedPosition) {
@@ -226,7 +243,15 @@ void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t request
               servos[servoIndexNumber]->getPosition(), requestedPosition);
         servos[servoIndexNumber]->move(requestedPosition);
     }
+}
 
+void Controller::requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition) {
+
+    if (steppers[stepperIndexNumber]->getCurrentStep() != requestedPosition) {
+        debug("requested to move stepper %d from %d to position %d", stepperIndexNumber,
+              steppers[stepperIndexNumber]->getCurrentStep(), requestedPosition);
+        steppers[stepperIndexNumber]->setDesiredStep(requestedPosition);
+    }
 }
 
 void __isr Controller::on_pwm_wrap_handler() {
@@ -321,44 +346,17 @@ portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
 #pragma clang diagnostic pop
 }
 
-portTASK_FUNCTION(stepper_step_task, pvParameters) {
 
-    auto controller = (Controller *) pvParameters;
-
-    debug("stepper step task running");
-
-    struct repeating_timer timer;
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    // Add the worker
-    add_repeating_timer_us(750, step, nullptr, &timer);
-
-
-    for (EVER) {
-
-        for(int i = 0; i < Controller::getNumberOfSteppersInUse(); i++)
-        {
-            Stepper* stepper = controller->getStepper(i);
-
-            uint32_t newStep = rand() % 300;
-            stepper->setDesiredStep(newStep);
-
-            debug("set stepper %d to %d", stepper->slot, newStep);
-
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(500));
-
-
-    }
-#pragma clang diagnostic pop
-}
-
-
-// A free function to be an interrupt handler
-bool step(struct repeating_timer *t) {
+/**
+ *
+ * Callback for the stepper timer
+ *
+ * REMEMBER THAT THIS RUNS EVERY FEW MICROSECONDS! :)
+ *
+ * @param t the repeating timer
+ * @return true
+ */
+bool stepper_timer_handler(struct repeating_timer *t) {
 
 
     // Look at each stepper we have and adjust if needed
@@ -405,6 +403,7 @@ bool step(struct repeating_timer *t) {
                     gpio_put(STEPPER_DIR_PIN, s->getCurrentDirection());
                     gpio_put(STEPPER_STEP_PIN, true);
                     s->isHigh = true;
+                    number_of_moves++;
 
                 }
             }

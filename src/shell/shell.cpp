@@ -28,7 +28,7 @@ DebugShell::DebugShell(Creature *creature, Controller *controller, IOHandler *io
     this->creature = creature;
     this->controller = controller;
     this->io = io;
-    this->config = controller->getConfig();
+    this->config = controller->getRunningConfig();
 }
 
 
@@ -311,11 +311,6 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                         write_to_cdc(tx_buffer);
                     }
 
-
-
-
-
-
                     break;
 
                 case ('p'):
@@ -329,7 +324,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                 default:
                     const char *helpMenu = "\n\r\n\r%s Debug Shell\n\r\n\r  c = show running config\n\r  d = show debug data\n\r  p = toggle power\n\r";
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, helpMenu, controller->getConfig()->getName());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, helpMenu, controller->getRunningConfig()->getName());
                     write_to_cdc(tx_buffer);
             }
 

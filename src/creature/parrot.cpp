@@ -15,37 +15,39 @@ Parrot::Parrot()
     this->headOffsetMax = lround((double)(MAX_POSITION - MIN_POSITION) * (double)HEAD_OFFSET_MAX);
     debug("the head offset max is %d", this->headOffsetMax);
 
-    this->numberOfSteppers = 3;
     this->numberOfServos = 4;
+    this->numberOfSteppers = 3;
 
     info("Bawk!");
 }
 
 CreatureConfig* Parrot::getDefaultConfig() {
 
-    auto config = new CreatureConfig("Beaky", 50, 4, 3, 1);
+    auto defaultConfig = new CreatureConfig("Beaky", 50, 4, 3, 1);
 
-    config->setServoConfig(NECK_LEFT,
-                           new ServoConfig("Neck Left", 250, 2500, 0.92, false));
-    config->setServoConfig(NECK_RIGHT,
-                           new ServoConfig("Neck Right", 250, 2500, 0.92, true));
-    config->setServoConfig(BEAK,
-                           new ServoConfig("Beak", 250, 2500, 0.4, false));
-    config->setServoConfig(CHEST,
-                           new ServoConfig("Chest", 250, 2500, 0.99, false));
+    defaultConfig->setServoConfig(SERVO_NECK_LEFT,
+                                  new ServoConfig("Neck Left", 250, 2500, 0.92, false));
+    defaultConfig->setServoConfig(SERVO_NECK_RIGHT,
+                                  new ServoConfig("Neck Right", 250, 2500, 0.92, true));
+    defaultConfig->setServoConfig(SERVO_BEAK,
+                                  new ServoConfig("Beak", 250, 2500, 0.4, false));
+    defaultConfig->setServoConfig(SERVO_CHEST,
+                                  new ServoConfig("Chest", 250, 2500, 0.99, false));
 
 
-    config->setStepperConfig(NECK_ROTATE,
-                           new StepperConfig("Neck Rotate", 1000, 0.95, false));
-    config->setStepperConfig(BODY_LEAN,
-                           new StepperConfig("Body Lean", 1000, 0.95, false));
-    config->setStepperConfig(STAND_ROTATE,
-                           new StepperConfig("Stand Rotate", 1000, 0.95, false));
+    defaultConfig->setStepperConfig(STEPPER_NECK_ROTATE,
+                                    new StepperConfig("Neck Rotate", 300, 0.95, false));
+    defaultConfig->setStepperConfig(STEPPER_BODY_LEAN,
+                                    new StepperConfig("Body Lean", 300, 0.95, false));
+    defaultConfig->setStepperConfig(STEPPER_STAND_ROTATE,
+                                    new StepperConfig("Stand Rotate", 300, 0.95, false));
 
-    return config;
+    // Make our running defaultConfig point to this
+    this->runningConfig = defaultConfig;
+
+    return defaultConfig;
 
 }
-
 
 void Parrot::init(Controller *controller) {
     debug("starting creature init");
@@ -134,6 +136,7 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
     uint32_t ulNotifiedValue;
     uint8_t* currentFrame;
     uint8_t numberOfJoints = parrot->getNumberOfJoints();
+    CreatureConfig* runningConfig;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -144,8 +147,9 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         // received off the wire
         xTaskNotifyWait(0x00, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY);
 
-        // Fetch the current frame
+        // Fetch the current frame and configuration
         currentFrame = controller->getCurrentFrame();
+        runningConfig = parrot->getRunningConfig();
 
 
         uint16_t headHeight = parrot->convertToHeadHeight(Parrot::convertInputValueToServoValue(currentFrame[INPUT_HEAD_HEIGHT]));
@@ -155,29 +159,40 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
         head_position_t headPosition = parrot->calculateHeadPosition(headHeight, headTilt);
 
-        parrot->joints[NECK_LEFT] = headPosition.left;
-        parrot->joints[NECK_RIGHT] = headPosition.right;
-        parrot->joints[BEAK] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BEAK]);
-        parrot->joints[CHEST] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_CHEST]);
+        parrot->joints[JOINT_NECK_LEFT] = headPosition.left;
+        parrot->joints[JOINT_NECK_RIGHT] = headPosition.right;
+        parrot->joints[JOINT_BEAK] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BEAK]);
+        parrot->joints[JOINT_CHEST] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_CHEST]);
 
 
-        //uint16_t bodyLean = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BODY_LEAN]);
-        //parrot->joints[BODY_LEAN] = bodyLean;
+        parrot->joints[JOINT_NECK_ROTATE] = Parrot::convertRange(currentFrame[INPUT_NECK_ROTATE],
+                                                                 0,
+                                                                 UCHAR_MAX,
+                                                               0,
+                                                               runningConfig->getStepperConfig(STEPPER_NECK_ROTATE)->maxSteps);
 
+        parrot->joints[JOINT_BODY_LEAN] = Parrot::convertRange(currentFrame[INPUT_BODY_LEAN],
+                                                                 0,
+                                                                 UCHAR_MAX,
+                                                                 0,
+                                                                 runningConfig->getStepperConfig(STEPPER_BODY_LEAN)->maxSteps);
 
-        // For the others, copy in what's on the wire for now
-        //parrot->joints[NECK_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_NECK_ROTATE]);
-
-        //parrot->joints[STAND_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_STAND_ROTATE]);
+        parrot->joints[JOINT_STAND_ROTATE] = Parrot::convertRange(currentFrame[INPUT_STAND_ROTATE],
+                                                                 0,
+                                                                 UCHAR_MAX,
+                                                                 0,
+                                                                 runningConfig->getStepperConfig(STEPPER_STAND_ROTATE)->maxSteps);
 
 
         // Request these positions from the controller
-        controller->requestServoPosition(NECK_LEFT,parrot->joints[NECK_LEFT]);
-        controller->requestServoPosition(NECK_RIGHT,parrot->joints[NECK_RIGHT]);
-        controller->requestServoPosition(BEAK,parrot->joints[BEAK]);
-        controller->requestServoPosition(CHEST,parrot->joints[CHEST]);
+        controller->requestServoPosition(SERVO_NECK_LEFT,parrot->joints[JOINT_NECK_LEFT]);
+        controller->requestServoPosition(SERVO_NECK_RIGHT,parrot->joints[JOINT_NECK_RIGHT]);
+        controller->requestServoPosition(SERVO_BEAK,parrot->joints[JOINT_BEAK]);
+        controller->requestServoPosition(SERVO_CHEST,parrot->joints[JOINT_CHEST]);
 
-
+        controller->requestStepperPosition(STEPPER_NECK_ROTATE, parrot->joints[JOINT_NECK_ROTATE]);
+        controller->requestStepperPosition(STEPPER_BODY_LEAN, parrot->joints[JOINT_BODY_LEAN]);
+        controller->requestStepperPosition(STEPPER_STAND_ROTATE, parrot->joints[JOINT_STAND_ROTATE]);
     }
 #pragma clang diagnostic pop
 }

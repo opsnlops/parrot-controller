@@ -67,7 +67,7 @@ int main() {
     // Let the controller know how to find the creature worker task
     controller->setCreatureWorkerTaskHandle(parrot->getWorkerTaskHandle());
 
-    info("I see a new parrot! Its name is %s!", controller->getConfig()->getName());
+    info("I see a new parrot! Its name is %s!", controller->getRunningConfig()->getName());
 
     // Turn the power on to the servos
     controller->powerOn();

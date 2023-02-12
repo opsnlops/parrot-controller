@@ -31,18 +31,16 @@ public:
 
     bool isHigh;
 
-    uint8_t getSlot() const;
-    bool getCurrentDirection() const;
-    uint32_t getDesiredStep() const ;   // Where we want it to go
-    uint32_t getCurrentStep() const;   // Where the servo currently is
+    [[nodiscard]] uint8_t getSlot() const;
+    [[nodiscard]] bool getCurrentDirection() const;
+    [[nodiscard]] uint32_t getDesiredStep() const ;   // Where we want it to go
+    [[nodiscard]] uint32_t getCurrentStep() const;   // Where the servo currently is
     void setDesiredStep(uint32_t desiredStep);
     void setCurrentDirection(bool direction);
 
-    uint32_t positionToSteps(uint16_t position);
+    [[nodiscard]] float getSmoothingValue() const;
 
-    float getSmoothingValue() const;
-
-    const char* getName() const;
+    [[nodiscard]] const char* getName() const;
     bool getHighAndInvert();
 };
 

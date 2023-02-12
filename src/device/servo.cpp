@@ -13,7 +13,7 @@
 #include "logging/logging.h"
 
 
-uint32_t number_of_moves = 0;
+extern uint32_t number_of_moves;
 
 /**
  * @brief Initializes a servo and gets it ready for use
