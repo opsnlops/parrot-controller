@@ -172,24 +172,32 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "              Name: %s\n\r", config->getName());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                    Name: %s\n\r", config->getName());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of Servos: %d\n\r", config->getNumberOfServos());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Number of Steppers: %d\n\r", config->getNumberOfSteppers());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Base Channel: %d\n\r", config->getDmxBaseChannel());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of DMX Channels: %d\n\r", controller->getNumberOfDMXChannels());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   Servo Frequency: %luHz\n\r",
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        Number of Servos: %d\n\r", config->getNumberOfServos());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Base Channel: %d\n\r", config->getDmxBaseChannel());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "         Servo Frequency: %luHz\n\r",
                              config->getServoFrequencyHz());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "          Board ID: %s\n\r", pico_board_id);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                Board ID: %s\n\r", pico_board_id);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -214,6 +222,30 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                                  config->getServoConfig(i)->maxPulseUs,
                                  config->getServoConfig(i)->smoothingValue,
                                  config->getServoConfig(i)->inverted ? "yes" : "no");
+                        write_to_cdc(tx_buffer);
+                    }
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r   Stepper Config:\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      num | slot |         name          |   max   | smooth | inverted\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
+                             "      ---------------------------------------------------------------\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    for (int i = 0; i < config->getNumberOfSteppers(); i++) {
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu | %.4f |   %3s\n\r",
+                                 i,
+                                 config->getStepperConfig(i)->slot,
+                                 config->getStepperConfig(i)->name,
+                                 config->getStepperConfig(i)->maxSteps,
+                                 config->getStepperConfig(i)->smoothingValue,
+                                 config->getStepperConfig(i)->inverted ? "yes" : "no");
                         write_to_cdc(tx_buffer);
                     }
 
@@ -309,6 +341,20 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                                  s->getCurrentStep(),
                                  s->getDesiredStep());
                         write_to_cdc(tx_buffer);
+                    }
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r Current Frame:\n\r");
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+
+                    for (int i = 0; i < controller->getNumberOfDMXChannels(); i++) {
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        [%3d] %d\n\r",
+                                 i,
+                                 controller->getCurrentFrame()[i]);
+                        write_to_cdc(tx_buffer);
+                        ds_reset_buffers(tx_buffer, rx_buffer);
+
                     }
 
                     break;

@@ -44,6 +44,8 @@ public:
     static uint8_t getNumberOfServosInUse();
     static uint8_t getNumberOfSteppersInUse();
 
+    uint16_t getNumberOfDMXChannels();
+
     // Get the servo, used for debugging
     static Servo* getServo(uint8_t index);
 
@@ -69,7 +71,7 @@ private:
     static Stepper* steppers[MAX_NUMBER_OF_STEPPERS];
 
     // The current state of the input from the controller
-    uint8_t* currentFrame;
+    uint8_t* currentFrame{};
 
     // How many channels we're expecting from the I/O handler
     uint16_t numberOfChannels;

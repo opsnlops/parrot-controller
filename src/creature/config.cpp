@@ -100,12 +100,13 @@ StepperConfig::StepperConfig() {
 }
 
 
-StepperConfig::StepperConfig(const char* name, uint32_t maxSteps, float smoothingValue, bool inverted) {
+StepperConfig::StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, float smoothingValue, bool inverted) {
 
     // Initialize the name
     memset(this->name, '\0', CREATURE_CONFIG_NAME_MAX_SIZE + 1);
     strncpy(this->name, name, CREATURE_CONFIG_NAME_MAX_SIZE);
 
+    this->slot = slot;
     this->maxSteps = maxSteps;
     this->smoothingValue = smoothingValue;
     this->inverted = inverted;

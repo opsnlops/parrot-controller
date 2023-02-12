@@ -8,7 +8,7 @@ https://github.com/Harbys/pico-ssd1306
 https://github.com/jostlowe/Pico-DMX
 ```
 
-On hotot it's in `~/code` and symlinked into the project.
+On lop and cottontail it's in `~/code` and symlinked into the project.
 
 # Pin Mappings
 
@@ -19,8 +19,8 @@ On hotot it's in `~/code` and symlinked into the project.
 | 3   | GND  |           |        |
 | 4   | GP2  | I2C1 SDA | Display SDA |
 | 5   | GP3  | I2C1 SCL | Display SCL |
-| 6   | GP4  | UART1 TX |         |
-| 7   | GP5  | UART1 RX |         |
+| 6   | GP4  | GPIO Out | Stepper Sleep Signal |
+| 7   | GP5  | GPIO In  | Stepper Fault Signal |
 | 8   | GND  |          |         |
 | 9   | GP6  | PWM 3A   | Servo 0 |
 | 10  | GP7  | PWM 3B   | Servo 1 |
@@ -32,22 +32,22 @@ On hotot it's in `~/code` and symlinked into the project.
 | 16  | GP12 | PWM 6A   | Servo 6 |
 | 17  | GP13 | PWM 6B   | Servo 7 |
 | 18  | GND  |          |         |
-| 19  | GP14 | PWM 7A   | Servo 8 |
-| 20  | GP15 | PWM 7B   | Servo 9 |
-| 21  | GP16 | PWM 0A   | Servo 10 |
-| 22  | GP17 | PWM 0B   | Servo 11 |
+| 19  | GP14 | GPIO In  | Stepper Endstop Low  (0th position) |
+| 20  | GP15 | GPIO In  | Stepper Endstop High (`maxSteps`) |
+| 21  | GP16 | GPIO Out | Stepper MS1 |
+| 22  | GP17 | GPIO Out | Stepper MS2 |
 | 23  | GND  |          |          |
-| 24  | GP18 | PWM 1A   |         |
-| 25  | GP19 | PWM 1B   |         |
-| 26  | GP20 | PWM 2A   | Stepper Steps |
-| 27  | GP21 | PWM 2B   | Stepper Dir   |
+| 24  | GP18 | GPIO Out | Stepper Address Line 0 |
+| 25  | GP19 | GPIO Out | Stepper Address Line 1 |
+| 26  | GP20 | GPIO Out | Stepper Address Line 2 |
+| 27  | GP21 | GPIO Out | Stepper Mux Latch |
 | 28  | GND  |          |         |
-| 29  | GP22 | GPIO     | DMX In  |
+| 29  | GP22 | GPIO In  | DMX In  |
 | 30  |      | Run      | Connect to ground to reset |
-| 31  | GP26 | --       | Debug Shell TX |
-| 32  | GP27 | --       | Debug Shell RX |
+| 31  | GP26 | GPIO Out | Stepper STEP Signal |
+| 32  | GP27 | GPIO Out | Stepper DIR Signal |
 | 33  | (A)GND | --     | (Also the analog ground) |
-| 34  | GP28 | GPIO     | E-Stop Relay |
+| 34  | GP28 | GPIO Out | E-Stop Relay |
 | 35  |      | ADC_VREF | Unused   |
 | 36  |      | 3V3_OUT  | ⚡️Power to the display |
 | 37  |      | 3V3_EN   |          |

@@ -37,7 +37,7 @@ int DMX::init()
     info("Starting up DMX on pin %d", inputPin);
 
     this->baseChannel = controller->getRunningConfig()->getDmxBaseChannel();
-    this->numberOfChannels = controller->getRunningConfig()->getNumberOfServos() + 1; // The number of servos + the e-stop
+    this->numberOfChannels = controller->getNumberOfDMXChannels();
 
     dmx_buffer[DMXINPUT_BUFFER_SIZE(this->baseChannel,
                                     this->numberOfChannels)];
@@ -56,6 +56,8 @@ int DMX::start() {
     info->dmx_buffer = this->dmx_buffer;
     info->baseChannel = this->baseChannel;
     info->numberOfChannels = this->numberOfChannels;
+
+    debug("starting DMX! number of channels: %d", this->numberOfChannels);
 
     int dmx_status = dmx_input.begin(inputPin,
                                      this->baseChannel,
