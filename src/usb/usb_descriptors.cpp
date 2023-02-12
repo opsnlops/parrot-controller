@@ -27,19 +27,20 @@
 
 #include "tusb.h"
 
+#include "pico/stdlib.h"
+#include "pico/unique_id.h"
+
 #include "logging/logging.h"
 
-/* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
- * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
- *
- * Auto ProductID layout's Bitmap:
- *   [MSB]         HID | MSC | CDC          [LSB]
- */
-#define _PID_MAP(itf, n)  ( (CFG_TUD_##itf) << (n) )
-#define USB_PID           (0x4000 | _PID_MAP(CDC, 0))
 
-#define USB_VID   0x0666
-#define USB_BCD   0x0200
+#define USB_VID                     0x0666
+#define USB_PID                     0x0001
+#define USB_BCD                     0x0200
+
+#define USB_MANUFACTURER_INDEX      0x01
+#define USB_PRODUCT_INDEX           0x02
+#define USB_SERIAL_NUMBER_INDEX     0x03
+
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -56,11 +57,11 @@ tusb_desc_device_t const desc_device =
 
                 .idVendor           = USB_VID,
                 .idProduct          = USB_PID,
-                .bcdDevice          = 0x0100,
+                .bcdDevice          = 0x0201,               // This is the version number
 
-                .iManufacturer      = 0x01,
-                .iProduct           = 0x02,
-                .iSerialNumber      = 0x03,
+                .iManufacturer      = USB_MANUFACTURER_INDEX,
+                .iProduct           = USB_PRODUCT_INDEX,
+                .iSerialNumber      = USB_SERIAL_NUMBER_INDEX,
 
                 .bNumConfigurations = 0x01
         };
@@ -102,6 +103,7 @@ uint8_t const desc_configuration[] =
 
         };
 
+// No point in doing high speed on a simple CDC connection
 #if TUD_OPT_HIGH_SPEED
 // Per USB specs: high speed capable device must report device_qualifier and other_speed_configuration
 
@@ -147,7 +149,6 @@ uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index)
   // this example use the same configuration for both high and full speed mode
   return desc_other_speed_config;
 }
-
 #endif // highspeed
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -170,7 +171,7 @@ char const *string_desc_arr[] =
                 (const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
                 "Ops 'n Lops",                     // 1: Manufacturer
                 "Creature Controller",              // 2: Product
-                "H0PH0PH0P",                      // 3: Serials, should use chip ID
+                nullptr,                           // Figured out at runtime (serial number)
                 "Debug Console"
         };
 
@@ -183,10 +184,31 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
 
     uint8_t chr_count;
 
+    // Null out the description string
+    memset(_desc_str, '\0', 32);
+
     if (index == 0) {
         memcpy(&_desc_str[1], string_desc_arr[0], 2);
         chr_count = 1;
-    } else {
+    }
+    else if (index == USB_SERIAL_NUMBER_INDEX) {
+
+        // Grab our unique_id
+        pico_unique_board_id_t board_id;
+        pico_get_unique_board_id(&board_id);
+        auto pico_board_id = (char *) pvPortMalloc(sizeof(char) * (2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1));
+        pico_get_unique_board_id_string(pico_board_id, 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1);
+
+        chr_count = strlen(pico_board_id);
+
+        // Shove this into the array
+        for (uint8_t i = 0; i < chr_count; i++) {
+            _desc_str[1 + i] = pico_board_id[i];
+        }
+
+        vPortFree(pico_board_id);
+    }
+    else {
         // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
         // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
 
