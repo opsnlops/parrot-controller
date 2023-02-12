@@ -3,8 +3,6 @@
 #include <climits>
 
 #include <FreeRTOS.h>
-#include <cstdlib>
-
 
 #include "device/servo.h"
 #include "logging/logging.h"
@@ -32,6 +30,7 @@ uint32_t Controller::numberOfPWMWraps = 0;
 
 [[nodiscard]] bool stepper_timer_handler(struct repeating_timer *t);
 static struct repeating_timer stepper_timer;
+volatile uint64_t stepper_frame_count = 0L;
 
 /**
  * Simple array for setting the address lines of the stepper latches
@@ -431,6 +430,8 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
 
     }
+
+    stepper_frame_count++;
 
     return true;
 }

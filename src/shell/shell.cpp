@@ -18,6 +18,7 @@
 
 extern uint32_t number_of_moves;
 extern TaskHandle_t debug_console_task_handle;
+extern volatile uint64_t stepper_frame_count;
 
 QueueHandle_t debug_shell_incoming_keys;
 
@@ -258,32 +259,36 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     power: %s\n\r",
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            power: %s\n\r",
                              controller->isPoweredOn() ? "on" : "off");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     wraps: %lu\n\r", controller->getNumberOfPWMWraps());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            wraps: %lu\n\r", controller->getNumberOfPWMWraps());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    frames: %lu\n\r", io->getNumberOfFramesReceived());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "           frames: %lu\n\r", io->getNumberOfFramesReceived());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "     moves: %lu\n\r", number_of_moves);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    stepper frame: %llu\n\r", stepper_frame_count);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  free mem: %d\n\r", xPortGetFreeHeapSize());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            moves: %lu\n\r", number_of_moves);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "   min mem: %d\n\r", xPortGetMinimumEverFreeHeapSize());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "         free mem: %d\n\r", xPortGetFreeHeapSize());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    uptime: %lums\n\r",
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "          min mem: %d\n\r", xPortGetMinimumEverFreeHeapSize());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "           uptime: %lums\n\r",
                              to_ms_since_boot(get_absolute_time()));
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
