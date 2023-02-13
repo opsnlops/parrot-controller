@@ -15,10 +15,15 @@ public:
 
     uint64_t updatedFrame;
 
+    // The controller requests things in whole steps
+    uint32_t requestedSteps;
+
     uint32_t currentMicrostep;
     uint32_t desiredMicrostep;
 
     bool currentDirection;
+
+    bool moveRequested;
 
     bool isHigh;
     bool isAwake;
@@ -26,6 +31,7 @@ public:
     bool ms1State;
     bool ms2State;
 
+    uint64_t actualSteps;
     uint64_t startedSleepingAt;
 
 };

@@ -23,7 +23,7 @@ public:
     uint32_t getStepperPosition(uint8_t indexNumber);
 
     void requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition);
-    void requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition);
+    static void requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition);
 
     void init(CreatureConfig* incomingConfig);
     void start();

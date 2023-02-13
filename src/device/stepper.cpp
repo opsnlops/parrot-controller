@@ -12,6 +12,8 @@ StepperState::StepperState() {
 
     updatedFrame = 0L;
 
+    requestedSteps = 0;
+
     currentMicrostep = 0;
     desiredMicrostep = 0;
     currentDirection = false;
@@ -19,9 +21,13 @@ StepperState::StepperState() {
     isHigh = false;
     isAwake = true;
 
+    moveRequested = false;
+
     // Default to full steps
     ms1State = false;
     ms2State = false;
+
+    actualSteps = 0L;
 
     startedSleepingAt = 0L;
 

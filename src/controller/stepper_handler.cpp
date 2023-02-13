@@ -88,9 +88,18 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         }
 
         // If we're at the position where we need to be, stop
-        if(state->currentMicrostep == state->desiredMicrostep) {
+        if(state->currentMicrostep == state->desiredMicrostep && !state->moveRequested) {
             goto end;
         }
+
+        /*
+         * If we are on a whole step boundary, update the requested microsteps!
+         *
+         * This is only done on whole step boundaries to avoid drift. If we don't, the
+         * stepper will drift (pretty badly) over time.
+         */
+        if(state->currentMicrostep % STEPPER_MICROSTEP_MAX == 0)
+            state->desiredMicrostep = state->requestedSteps * STEPPER_MICROSTEP_MAX;
 
 
         /*
@@ -104,6 +113,7 @@ bool stepper_timer_handler(struct repeating_timer *t) {
             state->currentDirection = false;
             state->currentMicrostep = state->currentMicrostep + microSteps;
             state->isHigh = true;
+            state->actualSteps += microSteps;
 
             goto transmit;
 
@@ -116,6 +126,7 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         state->currentDirection = true;
         state->currentMicrostep = state->currentMicrostep - microSteps;
         state->isHigh = true;
+        state->actualSteps += microSteps;
 
         goto transmit;
 
@@ -153,6 +164,7 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         // Now that we've toggled everything, turn the latch back off
         gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
 
+        state->moveRequested = false;
         state->updatedFrame = stepper_frame_count;
 
         end:
@@ -166,7 +178,9 @@ bool stepper_timer_handler(struct repeating_timer *t) {
 
 uint32_t set_ms1_ms2_and_get_steps(StepperState* state) {
 
-    uint32_t stepsToGo = abs( (int32_t)state->currentMicrostep - (int32_t)state->desiredMicrostep);
+    uint32_t stepsToGo = (state->currentMicrostep > state->desiredMicrostep) ?
+                         (state->currentMicrostep - state->desiredMicrostep) :
+                         (state->desiredMicrostep - state->currentMicrostep);
 
     // Do full steps
     if(stepsToGo > (STEPPER_MICROSTEP_MAX * 32)) {

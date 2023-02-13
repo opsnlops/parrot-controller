@@ -93,13 +93,18 @@ void ds_reset_buffers(char *tx_buffer, uint8_t *rx_buffer) {
 void tud_cdc_rx_cb(uint8_t itf) {
     verbose("callback from tusb that there's data there");
     uint8_t ch = tud_cdc_read_char();
-    xQueueSendToBackFromISR(debug_shell_incoming_keys, &ch, nullptr);
+
+    // Make sure it's not a control character that accidentally ended up in there
+    if(ch >= 30  && ch <= 126)
+        xQueueSendToBackFromISR(debug_shell_incoming_keys, &ch, nullptr);
+    else {
+        info("discarding character from shell: 0x%x", ch);
+        tud_cdc_n_read_flush(0);
+    }
 }
 
 /**
  * Write a line to the CDC port
- *
- * TODO: This isn't the best way to do this, but it works. Figure something else out that's faster.
  *
  * @param line the line to write
  */
@@ -333,11 +338,11 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |  cstep  |  dstep |  last updated\n\r");
+                             "      num | slot |         name          |  cstep  |  dstep |  last updated  | steps taken\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      -----------------------------------------------------------------------\n\r");
+                             "      -------------------------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -345,13 +350,14 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 
                         Stepper *s = Controller::getStepper(i);
                         snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu  |  %12llu\n\r",
+                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu  |  %12llu  | %12llu\n\r",
                                  i,
                                  s->getSlot(),
                                  s->getName(),
                                  s->state->currentMicrostep,
                                  s->state->desiredMicrostep,
-                                 s->state->updatedFrame);
+                                 s->state->updatedFrame,
+                                 s->state->actualSteps);
                         write_to_cdc(tx_buffer);
                     }
 

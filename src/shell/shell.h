@@ -19,7 +19,7 @@ class DebugShell {
 public:
     DebugShell(Creature* creature, Controller* controller, IOHandler* io);
 
-    uint8_t init();
+    static uint8_t init();
     uint8_t start();
 
     Creature* getCreature();

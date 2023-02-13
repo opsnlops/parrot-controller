@@ -218,25 +218,29 @@ void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t request
         debug("requested to move servo %d from %d to position %d", servoIndexNumber,
               servos[servoIndexNumber]->getPosition(), requestedPosition);
         servos[servoIndexNumber]->move(requestedPosition);
+
     }
+
+
 }
 
 /**
  * Request a position in full steps
  *
- * This will be converted to microsteps transparently
+ * This will be converted to microsteps transparently!
  *
  * @param stepperIndexNumber stepper to modify
  * @param requestedPosition the number of full steps to request
  */
 void Controller::requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition) {
 
-    uint32_t requestedMicrosteps = requestedPosition * STEPPER_MICROSTEP_MAX;
+    if (steppers[stepperIndexNumber]->state->requestedSteps != requestedPosition) {
 
-    if (steppers[stepperIndexNumber]->state->currentMicrostep != requestedMicrosteps) {
         debug("requested to move stepper %d from %d to position %d", stepperIndexNumber,
-              steppers[stepperIndexNumber]->state->currentMicrostep, requestedMicrosteps);
-        steppers[stepperIndexNumber]->state->desiredMicrostep = requestedMicrosteps;
+              steppers[stepperIndexNumber]->state->requestedSteps, requestedPosition);
+
+        steppers[stepperIndexNumber]->state->requestedSteps = requestedPosition;
+        steppers[stepperIndexNumber]->state->moveRequested = true;
     }
 }
 
