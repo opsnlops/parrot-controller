@@ -189,6 +189,10 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                              config->getServoFrequencyHz());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Stepper Loop: %dus\n\r",
+                             STEPPER_LOOP_PERIOD_IN_US);
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                Board ID: %s\n\r", pico_board_id);
                     write_to_cdc(tx_buffer);
@@ -232,20 +236,21 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |   max   | smooth | inverted\n\r");
+                             "      num | slot |         name          |   steps  |  microsteps  | smooth | inverted\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      ---------------------------------------------------------------\n\r");
+                             "      --------------------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     for (int i = 0; i < config->getNumberOfSteppers(); i++) {
-                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu | %.4f |   %3s\n\r",
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu  |      %6lu  | %.4f |   %3s\n\r",
                                  i,
                                  config->getStepperConfig(i)->slot,
                                  config->getStepperConfig(i)->name,
                                  config->getStepperConfig(i)->maxSteps,
+                                 config->getStepperConfig(i)->maxMicrosteps,
                                  config->getStepperConfig(i)->smoothingValue,
                                  config->getStepperConfig(i)->inverted ? "yes" : "no");
                         write_to_cdc(tx_buffer);
@@ -328,11 +333,11 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |  cstep  |  dstep \n\r");
+                             "      num | slot |         name          |  cstep  |  dstep |  last updated\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      --------------------------------------------------------\n\r");
+                             "      -----------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -340,12 +345,13 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 
                         Stepper *s = Controller::getStepper(i);
                         snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu\n\r",
+                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu  |  %12llu\n\r",
                                  i,
                                  s->getSlot(),
                                  s->getName(),
-                                 s->state->currentStep,
-                                 s->state->desiredSteps);
+                                 s->state->currentMicrostep,
+                                 s->state->desiredMicrostep,
+                                 s->state->updatedFrame);
                         write_to_cdc(tx_buffer);
                     }
 

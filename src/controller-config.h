@@ -24,6 +24,9 @@
 
 
 // Stepper
+
+#define STEPPER_LOOP_PERIOD_IN_US   1250
+
 #define STEPPER_MUX_BITS            3
 #define STEPPER_STEP_PIN            26
 #define STEPPER_DIR_PIN             27
@@ -37,6 +40,20 @@
 #define STEPPER_FAULT_PIN           5
 #define STEPPER_END_S_LOW_PIN       14
 #define STEPPER_END_S_HIGH_PIN      15
+
+/*
+ * Microstepping configuration
+ *
+ * Look at the datasheet for the stepper driver currently in use to
+ * know how to set this!
+ *
+ */
+#define STEPPER_MICROSTEP_MAX       8           // "8" means 1/8th step
+#define STEPPER_SPEED_0_MICROSTEPS  8           // At full speed, each step is 8 microsteps
+#define STEPPER_SPEED_1_MICROSTEPS  4           //                          ...4 microsteps
+#define STEPPER_SPEED_2_MICROSTEPS  2           //                          ...2 microsteps
+#define STEPPER_SPEED_3_MICROSTEPS  1
+
 
 
 /**

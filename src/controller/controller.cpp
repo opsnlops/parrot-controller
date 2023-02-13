@@ -122,7 +122,7 @@ void Controller::start() {
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
     // Set up the stepper timer
-    add_repeating_timer_us(750, stepper_timer_handler, nullptr, &stepper_timer);
+    add_repeating_timer_us(STEPPER_LOOP_PERIOD_IN_US, stepper_timer_handler, nullptr, &stepper_timer);
 
     // Fire off the housekeeper
     xTaskCreate(controller_housekeeper_task,
@@ -209,7 +209,7 @@ uint16_t Controller::getServoPosition(uint8_t indexNumber) {
 }
 
 uint32_t Controller::getStepperPosition(uint8_t indexNumber) {
-    return steppers[indexNumber]->state->currentStep;
+    return steppers[indexNumber]->state->currentMicrostep / STEPPER_MICROSTEP_MAX;
 }
 
 void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
@@ -221,12 +221,22 @@ void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t request
     }
 }
 
+/**
+ * Request a position in full steps
+ *
+ * This will be converted to microsteps transparently
+ *
+ * @param stepperIndexNumber stepper to modify
+ * @param requestedPosition the number of full steps to request
+ */
 void Controller::requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition) {
 
-    if (steppers[stepperIndexNumber]->state->currentStep != requestedPosition) {
+    uint32_t requestedMicrosteps = requestedPosition * STEPPER_MICROSTEP_MAX;
+
+    if (steppers[stepperIndexNumber]->state->currentMicrostep != requestedMicrosteps) {
         debug("requested to move stepper %d from %d to position %d", stepperIndexNumber,
-              steppers[stepperIndexNumber]->state->currentStep, requestedPosition);
-        steppers[stepperIndexNumber]->state->desiredSteps = requestedPosition;
+              steppers[stepperIndexNumber]->state->currentMicrostep, requestedMicrosteps);
+        steppers[stepperIndexNumber]->state->desiredMicrostep = requestedMicrosteps;
     }
 }
 

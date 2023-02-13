@@ -12,15 +12,15 @@ StepperState::StepperState() {
 
     updatedFrame = 0L;
 
-    currentStep = 0;
-    desiredSteps = 0;
+    currentMicrostep = 0;
+    desiredMicrostep = 0;
     currentDirection = false;
 
     isHigh = false;
     isAwake = true;
 
-    // Default to half steps
-    ms1State = true;
+    // Default to full steps
+    ms1State = false;
     ms2State = false;
 
     startedSleepingAt = 0L;
@@ -36,6 +36,7 @@ Stepper::Stepper(uint8_t slot, const char* name, uint32_t maxSteps, float smooth
     this->slot = slot;
     this->name = name;
     this->maxSteps = maxSteps;
+    this->maxMicrosteps = maxSteps * STEPPER_MICROSTEP_MAX;
     this->smoothingValue = smoothingValue;
     this->inverted = inverted;
 

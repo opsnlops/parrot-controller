@@ -95,6 +95,7 @@ StepperConfig::StepperConfig() {
     strncpy(this->name, "???", CREATURE_CONFIG_NAME_MAX_SIZE);
 
     this->maxSteps = 0;
+    this->maxMicrosteps = 0;
     this->smoothingValue = 0.0f;
     this->inverted = false;
 }
@@ -108,6 +109,7 @@ StepperConfig::StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, 
 
     this->slot = slot;
     this->maxSteps = maxSteps;
+    this->maxMicrosteps = maxSteps * STEPPER_MICROSTEP_MAX;
     this->smoothingValue = smoothingValue;
     this->inverted = inverted;
 

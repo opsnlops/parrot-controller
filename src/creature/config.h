@@ -47,6 +47,7 @@ public:
     uint8_t slot;
     char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1];
     uint32_t maxSteps;
+    uint32_t maxMicrosteps;
     float smoothingValue;
     bool inverted;
 };

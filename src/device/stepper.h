@@ -15,8 +15,8 @@ public:
 
     uint64_t updatedFrame;
 
-    uint32_t currentStep;
-    uint32_t desiredSteps;
+    uint32_t currentMicrostep;
+    uint32_t desiredMicrostep;
 
     bool currentDirection;
 
@@ -48,6 +48,7 @@ public:
     StepperState* state;
 
     uint32_t maxSteps;
+    uint32_t maxMicrosteps;
     float smoothingValue;       // The constant to use when smoothing the input
 
     [[nodiscard]] uint8_t getSlot() const;

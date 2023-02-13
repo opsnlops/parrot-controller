@@ -34,11 +34,11 @@ CreatureConfig* Parrot::getDefaultConfig() {
     defaultConfig->setServoConfig(SERVO_CHEST,
                                   new ServoConfig("Chest", 250, 2500, 0.99, false));
 
-
+    // "Max Steps" is in full steps (use the datasheet from the stepper to know how big that is)
     defaultConfig->setStepperConfig(STEPPER_NECK_ROTATE,
-                                    new StepperConfig(STEPPER_NECK_ROTATE, "Neck Rotate", 300, 0.95, false));
+                                    new StepperConfig(STEPPER_NECK_ROTATE, "Neck Rotate", 200, 0.95, false));
     defaultConfig->setStepperConfig(STEPPER_BODY_LEAN,
-                                    new StepperConfig(STEPPER_BODY_LEAN, "Body Lean", 300, 0.95, false));
+                                    new StepperConfig(STEPPER_BODY_LEAN, "Body Lean", 200, 0.95, false));
     defaultConfig->setStepperConfig(STEPPER_STAND_ROTATE,
                                     new StepperConfig(STEPPER_STAND_ROTATE, "Stand Rotate", 300, 0.95, false));
 

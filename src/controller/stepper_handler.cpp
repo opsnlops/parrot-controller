@@ -1,5 +1,9 @@
 
+#include <cmath>
+
 #include "controller-config.h"
+
+#include "controller/stepper_handler.h"
 
 #include "logging/logging.h"
 
@@ -33,6 +37,21 @@ static bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
 //
 
 
+/*
+ * Truth Table for the A3967 Stepper (this is the EasyDriver one!)
+ *
+ *     +------------------------------+
+ *     |  MS1  |  MS2  |  Resolution  |
+ *     |-------|-------|--------------|
+ *     |   L   |   L   | Full step    |
+ *     |   H   |   L   | Half step    |
+ *     |   L   |   H   | Quarter step |
+ *     |   H   |   H   | Eighth step  |
+ *     +------------------------------+
+ *
+ */
+
+
 
 /**
  *
@@ -60,16 +79,16 @@ bool stepper_timer_handler(struct repeating_timer *t) {
          */
         StepperState* state = s->state;
 
+        uint32_t microSteps;
 
         // If this stepper is high, there's nothing else to do. Set it to low.
         if(state->isHigh) {
-
             state->isHigh = false;
             goto transmit;
         }
 
         // If we're at the position where we need to be, stop
-        if(state->currentStep == state->desiredSteps) {
+        if(state->currentMicrostep == state->desiredMicrostep) {
             goto end;
         }
 
@@ -78,10 +97,12 @@ bool stepper_timer_handler(struct repeating_timer *t) {
          * So now we know we need to move. Let's figure out which direction.
          */
 
-        if( state->currentStep < state->desiredSteps ) {
+        if( state->currentMicrostep < state->desiredMicrostep ) {
+
+            microSteps = set_ms1_ms2_and_get_steps(state);
 
             state->currentDirection = false;
-            state->currentStep++;
+            state->currentMicrostep = state->currentMicrostep + microSteps;
             state->isHigh = true;
 
             goto transmit;
@@ -89,8 +110,11 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         }
 
         // The only thing left is to move the other way
+
+        microSteps = set_ms1_ms2_and_get_steps(state);
+
         state->currentDirection = true;
-        state->currentStep--;
+        state->currentMicrostep = state->currentMicrostep - microSteps;
         state->isHigh = true;
 
         goto transmit;
@@ -137,4 +161,37 @@ bool stepper_timer_handler(struct repeating_timer *t) {
     }
 
     return true;
+}
+
+
+uint32_t set_ms1_ms2_and_get_steps(StepperState* state) {
+
+    uint32_t stepsToGo = abs( (int32_t)state->currentMicrostep - (int32_t)state->desiredMicrostep);
+
+    // Do full steps
+    if(stepsToGo > (STEPPER_MICROSTEP_MAX * 32)) {
+          state->ms1State = false;
+          state->ms2State = false;
+
+          return STEPPER_SPEED_0_MICROSTEPS;
+    }
+
+    if(stepsToGo > (STEPPER_MICROSTEP_MAX * 16)) {
+        state->ms1State = true;
+        state->ms2State = false;
+
+        return STEPPER_SPEED_1_MICROSTEPS;
+    }
+
+    if(stepsToGo > (STEPPER_MICROSTEP_MAX * 8)) {
+        state->ms1State = false;
+        state->ms2State = true;
+
+        return STEPPER_SPEED_2_MICROSTEPS;
+    }
+
+    state->ms1State = true;
+    state->ms2State = true;
+    return STEPPER_SPEED_3_MICROSTEPS;
+
 }
