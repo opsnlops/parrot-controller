@@ -96,12 +96,15 @@ StepperConfig::StepperConfig() {
 
     this->maxSteps = 0;
     this->maxMicrosteps = 0;
-    this->smoothingValue = 0.0f;
+    this->decelerationAggressiveness = 0;
+    this->sleepWakeupPauseTimeUs = 0;
+    this->sleepAfterUs = 0;
     this->inverted = false;
 }
 
 
-StepperConfig::StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, float smoothingValue, bool inverted) {
+StepperConfig::StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
+        uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted) {
 
     // Initialize the name
     memset(this->name, '\0', CREATURE_CONFIG_NAME_MAX_SIZE + 1);
@@ -110,7 +113,9 @@ StepperConfig::StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, 
     this->slot = slot;
     this->maxSteps = maxSteps;
     this->maxMicrosteps = maxSteps * STEPPER_MICROSTEP_MAX;
-    this->smoothingValue = smoothingValue;
+    this->decelerationAggressiveness = decelerationAggressiveness;
+    this->sleepWakeupPauseTimeUs = sleepWakeupPauseTimeUs;
+    this->sleepAfterUs = sleepAfterUs;
     this->inverted = inverted;
 
 }

@@ -241,7 +241,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |   steps  |  microsteps  | smooth | inverted\n\r");
+                             "      num | slot |         name          |   steps  |  microsteps  |   dec  | inverted\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
@@ -250,13 +250,13 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     for (int i = 0; i < config->getNumberOfSteppers(); i++) {
-                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu  |      %6lu  | %.4f |   %3s\n\r",
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu  |      %6lu  | %5u  |   %3s\n\r",
                                  i,
                                  config->getStepperConfig(i)->slot,
                                  config->getStepperConfig(i)->name,
                                  config->getStepperConfig(i)->maxSteps,
                                  config->getStepperConfig(i)->maxMicrosteps,
-                                 config->getStepperConfig(i)->smoothingValue,
+                                 config->getStepperConfig(i)->decelerationAggressiveness,
                                  config->getStepperConfig(i)->inverted ? "yes" : "no");
                         write_to_cdc(tx_buffer);
                     }

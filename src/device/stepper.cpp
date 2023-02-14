@@ -34,7 +34,8 @@ StepperState::StepperState() {
 }
 
 
-Stepper::Stepper(uint8_t slot, const char* name, uint32_t maxSteps, float smoothingValue, bool inverted) {
+Stepper::Stepper(uint8_t slot, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
+         uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted) {
 
     verbose("setting up a new stepper");
 
@@ -43,11 +44,16 @@ Stepper::Stepper(uint8_t slot, const char* name, uint32_t maxSteps, float smooth
     this->name = name;
     this->maxSteps = maxSteps;
     this->maxMicrosteps = maxSteps * STEPPER_MICROSTEP_MAX;
-    this->smoothingValue = smoothingValue;
+    this->decelerationAggressiveness = decelerationAggressiveness;
+    this->sleepWakeupPauseTimeUs = sleepWakeupPauseTimeUs;
+    this->sleepAfterUs = sleepAfterUs;
     this->inverted = inverted;
 
-    info("set up servo on slot %d: name: %s, max_steps: %d, smoothing: %.4f, inverted: %s",
-         slot, name, maxSteps, smoothingValue, inverted ? "yes" : "no");
+    this->state->decelerationAggressiveness = decelerationAggressiveness;
+    // TODO: Calculate the sleep stuff
+
+    info("set up stepper on slot %u: name: %s, max_steps: %u, deceleration: %u, inverted: %s",
+         slot, name, maxSteps, decelerationAggressiveness, inverted ? "yes" : "no");
 
 }
 
@@ -65,10 +71,22 @@ const char* Stepper::getName() const {
     return this->name;
 }
 
-float Stepper::getSmoothingValue() const {
-    return this->smoothingValue;
-}
-
 uint8_t Stepper::getSlot() const {
     return this->slot;
+}
+
+bool Stepper::isInverted() {
+    return this->inverted;
+}
+
+uint16_t Stepper::getDecelerationAggressiveness() {
+    return this->decelerationAggressiveness;
+}
+
+uint32_t Stepper::getSleepWakeupPauseTimeUs() {
+    return this->sleepWakeupPauseTimeUs;
+}
+
+uint32_t Stepper::getSleepAfterUs() {
+    return this->sleepAfterUs;
 }

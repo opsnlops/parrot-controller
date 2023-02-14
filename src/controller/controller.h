@@ -93,8 +93,8 @@ private:
     void initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
                    uint16_t maxPulseUs, float smoothingValue, bool inverted);
 
-    void initStepper(uint8_t indexNumber, const char* name, uint32_t maxSteps,
-                     float smoothingValue, bool inverted);
+    void initStepper(uint8_t indexNumber, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
+                     uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted);
 
     /**
      * Map the servo index to the GPO pin to use

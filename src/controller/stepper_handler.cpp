@@ -14,7 +14,6 @@
 // START OF STEPPER TIMER STUFFS
 //
 
-[[nodiscard]] bool stepper_timer_handler(struct repeating_timer *t);
 volatile uint64_t stepper_frame_count = 0L;
 
 /**
@@ -182,30 +181,47 @@ uint32_t set_ms1_ms2_and_get_steps(StepperState* state) {
                          (state->currentMicrostep - state->desiredMicrostep) :
                          (state->desiredMicrostep - state->currentMicrostep);
 
-    // Do full steps
-    if(stepsToGo > (STEPPER_MICROSTEP_MAX * 32)) {
-          state->ms1State = false;
-          state->ms2State = false;
+    uint32_t microSteps = STEPPER_SPEED_0_MICROSTEPS;
 
-          return STEPPER_SPEED_0_MICROSTEPS;
+    // A setting of "0" means no deceleration, so set full steps
+    if (state->decelerationAggressiveness == 0) {
+        state->ms1State = false;
+        state->ms2State = false;
+        goto end;
     }
 
-    if(stepsToGo > (STEPPER_MICROSTEP_MAX * 16)) {
+    // Do full steps
+    if(stepsToGo > (STEPPER_MICROSTEP_MAX * state->decelerationAggressiveness * 8)) {
+        state->ms1State = false;
+        state->ms2State = false;
+        microSteps = STEPPER_SPEED_0_MICROSTEPS;
+        goto end;
+    }
+
+    if(stepsToGo > (STEPPER_MICROSTEP_MAX * state->decelerationAggressiveness * 4)) {
         state->ms1State = true;
         state->ms2State = false;
 
-        return STEPPER_SPEED_1_MICROSTEPS;
+        microSteps = STEPPER_SPEED_1_MICROSTEPS;
+        goto end;
     }
 
-    if(stepsToGo > (STEPPER_MICROSTEP_MAX * 8)) {
+    if(stepsToGo > (STEPPER_MICROSTEP_MAX * state->decelerationAggressiveness * 2)) {
         state->ms1State = false;
         state->ms2State = true;
 
-        return STEPPER_SPEED_2_MICROSTEPS;
+        microSteps = STEPPER_SPEED_2_MICROSTEPS;
+        goto end;
     }
 
     state->ms1State = true;
     state->ms2State = true;
-    return STEPPER_SPEED_3_MICROSTEPS;
+    microSteps = STEPPER_SPEED_3_MICROSTEPS;
+    goto end;
+
+
+
+    end:
+    return microSteps;
 
 }

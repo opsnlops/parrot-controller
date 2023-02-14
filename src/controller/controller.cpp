@@ -64,7 +64,8 @@ void Controller::init(CreatureConfig *incomingConfig) {
     debug("building stepper objects");
     for (int i = 0; i < this->config->getNumberOfSteppers(); i++) {
         StepperConfig *stepper = this->config->getStepperConfig(i);
-        initStepper(i, stepper->name, stepper->maxSteps, stepper->smoothingValue, stepper->inverted);
+        initStepper(i, stepper->name, stepper->maxSteps, stepper->decelerationAggressiveness,
+                    stepper->sleepWakeupPauseTimeUs, stepper->sleepAfterUs, stepper->inverted);
     }
 
     // Declare some space on the heap for our current frame buffer
@@ -174,17 +175,18 @@ void Controller::initServo(uint8_t indexNumber, const char *name, uint16_t minPu
                                     this->config->getServoFrequencyHz());
     numberOfServosInUse++;
 
-    info("servo init: index: %d, pin: %d, name: %s", indexNumber, gpioPin, name);
+    info("controller servo init: index: %d, pin: %d, name: %s", indexNumber, gpioPin, name);
 
 }
 
-void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps,
-                             float smoothingValue, bool inverted) {
+void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
+                             uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted) {
 
-    steppers[slot] = new Stepper(slot, name, maxSteps, smoothingValue, inverted);
+    steppers[slot] = new Stepper(slot, name, maxSteps, decelerationAggressiveness, sleepWakeupPauseTimeUs,
+                                 sleepAfterUs, inverted);
     numberOfSteppersInUse++;
 
-    info("stepper init: slot: %d, name: %s, max_steps: %d", slot, name, maxSteps);
+    info("controller stepper init: slot: %d, name: %s, max_steps: %d", slot, name, maxSteps);
 
 }
 

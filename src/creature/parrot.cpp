@@ -35,12 +35,38 @@ CreatureConfig* Parrot::getDefaultConfig() {
                                   new ServoConfig("Chest", 250, 2500, 0.99, false));
 
     // "Max Steps" is in full steps (use the datasheet from the stepper to know how big that is)
+
+    /*
+     * StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
+                  uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted)
+     */
+
     defaultConfig->setStepperConfig(STEPPER_NECK_ROTATE,
-                                    new StepperConfig(STEPPER_NECK_ROTATE, "Neck Rotate", 200, 0.95, false));
+                                    new StepperConfig(STEPPER_NECK_ROTATE,
+                                                      "Neck Rotate",
+                                                      200,
+                                                      4,
+                                                      0,
+                                                      0,
+                                                      false));
+
     defaultConfig->setStepperConfig(STEPPER_BODY_LEAN,
-                                    new StepperConfig(STEPPER_BODY_LEAN, "Body Lean", 200, 0.95, false));
+                                    new StepperConfig(STEPPER_BODY_LEAN,
+                                                      "Body Lean",
+                                                      200,
+                                                      8,
+                                                      0,
+                                                      0,
+                                                      false));
+
     defaultConfig->setStepperConfig(STEPPER_STAND_ROTATE,
-                                    new StepperConfig(STEPPER_STAND_ROTATE, "Stand Rotate", 300, 0.95, false));
+                                    new StepperConfig(STEPPER_STAND_ROTATE,
+                                                      "Stand Rotate",
+                                                      300,
+                                                      8,
+                                                      0,
+                                                      0,
+                                                      false));
 
     // Make our running defaultConfig point to this
     this->runningConfig = defaultConfig;
