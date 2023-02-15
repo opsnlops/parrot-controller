@@ -59,7 +59,7 @@ private:
     Relay* powerRelay;
 
     // The configuration to use
-    CreatureConfig* config;
+    CreatureConfig* config{};
 
     /**
      * An array of all of the servos we have. Set to the max number possible,
@@ -74,7 +74,7 @@ private:
     uint8_t* currentFrame{};
 
     // How many channels we're expecting from the I/O handler
-    uint16_t numberOfChannels;
+    uint16_t numberOfChannels{};
 
     /**
      * A handle to our creature's working task. Used to signal that a new
@@ -93,8 +93,8 @@ private:
     void initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
                    uint16_t maxPulseUs, float smoothingValue, bool inverted);
 
-    void initStepper(uint8_t indexNumber, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
-                     uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted);
+    void initStepper(uint8_t indexNumber, const char* name, uint32_t maxSteps, float smoothingValue,
+                     uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, uint8_t microsteppingConfig, bool inverted);
 
     /**
      * Map the servo index to the GPO pin to use

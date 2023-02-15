@@ -48,12 +48,10 @@
  * know how to set this!
  *
  */
-#define STEPPER_MICROSTEP_MAX       8           // "8" means 1/8th step
-#define STEPPER_SPEED_0_MICROSTEPS  8           // At full speed, each step is 8 microsteps
-#define STEPPER_SPEED_1_MICROSTEPS  4           //                          ...4 microsteps
-#define STEPPER_SPEED_2_MICROSTEPS  2           //                          ...2 microsteps
-#define STEPPER_SPEED_3_MICROSTEPS  1
-
+#define STEPPER_USE_FULL_STEPS      1
+#define STEPPER_USE_HALF_STEPS      2
+#define STEPPER_USE_QUARTER_STEPS   4
+#define STEPPER_USE_EIGHTH_STEPS    8
 
 
 /**

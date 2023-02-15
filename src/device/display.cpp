@@ -126,25 +126,26 @@ portTASK_FUNCTION(displayUpdateTask, pvParameters) {
         for(auto & i : buffer)
             memset(i, '\0', DISPLAY_BUFFER_SIZE + 1);
 
-        // Go grab the current frame
-        uint8_t* currentFrame = controller->getCurrentFrame();
+        // Go grab the current frame if the controller is ready
+        uint8_t *currentFrame = controller->getCurrentFrame();
+        if(currentFrame != nullptr) {
 
-        sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d",
-                controller->getNumberOfPWMWraps(),
-                controller->getServoPosition(0),
-                controller->getServoPosition(1));
-        sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, controller->isPoweredOn() ? "On" : "Off");
-        sprintf(buffer[2], "Frame: %-5lu  Mem: %d", io->getNumberOfFramesReceived(), xPortGetFreeHeapSize());
-        sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", currentFrame[0], currentFrame[1], currentFrame[2],
-                currentFrame[3], currentFrame[4], currentFrame[5]);
+            sprintf(buffer[0], "Wraps: %-5lu  P: %-3d %d",
+                    controller->getNumberOfPWMWraps(),
+                    controller->getServoPosition(0),
+                    controller->getServoPosition(1));
+            sprintf(buffer[1], "Moves: %-5lu  Pwr: %s", number_of_moves, controller->isPoweredOn() ? "On" : "Off");
+            sprintf(buffer[2], "Frame: %-5lu  Mem: %d", io->getNumberOfFramesReceived(), xPortGetFreeHeapSize());
+            sprintf(buffer[3], "%3d %3d %3d %3d %3d %3d", currentFrame[0], currentFrame[1], currentFrame[2],
+                    currentFrame[3], currentFrame[4], currentFrame[5]);
 
+            drawText(oled, font_5x8, buffer[0], 0, 0);
+            drawText(oled, font_5x8, buffer[1], 0, 7);
+            drawText(oled, font_5x8, buffer[2], 0, 14);
+            drawText(oled, font_5x8, buffer[3], 0, 21);
 
-        drawText(oled, font_5x8, buffer[0], 0, 0);
-        drawText(oled, font_5x8, buffer[1], 0, 7);
-        drawText(oled, font_5x8, buffer[2], 0, 14);
-        drawText(oled, font_5x8, buffer[3], 0, 21);
-
-        oled->sendBuffer();
+            oled->sendBuffer();
+        }
 
         vTaskDelayUntil(&lastDrawTime, pdMS_TO_TICKS(DISPLAY_UPDATE_TIME_MS));
     }

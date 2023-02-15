@@ -94,28 +94,31 @@ StepperConfig::StepperConfig() {
     memset(this->name, '\0', CREATURE_CONFIG_NAME_MAX_SIZE + 1);
     strncpy(this->name, "???", CREATURE_CONFIG_NAME_MAX_SIZE);
 
-    this->maxSteps = 0;
-    this->maxMicrosteps = 0;
-    this->decelerationAggressiveness = 0;
+    this->slot = 0;
+    this->fullSteps = 0;
+    this->stepsInUse = 0;
+    this->smoothingValue = 0.0f;
     this->sleepWakeupPauseTimeUs = 0;
     this->sleepAfterUs = 0;
+    this->microsteppingConfig = 0;
     this->inverted = false;
 }
 
 
-StepperConfig::StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
-        uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted) {
+StepperConfig::StepperConfig(uint8_t slot, const char* name, uint32_t fullSteps, float smoothingValue,
+        uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, uint8_t microsteppingConfig, bool inverted) {
 
     // Initialize the name
     memset(this->name, '\0', CREATURE_CONFIG_NAME_MAX_SIZE + 1);
     strncpy(this->name, name, CREATURE_CONFIG_NAME_MAX_SIZE);
 
     this->slot = slot;
-    this->maxSteps = maxSteps;
-    this->maxMicrosteps = maxSteps * STEPPER_MICROSTEP_MAX;
-    this->decelerationAggressiveness = decelerationAggressiveness;
+    this->fullSteps = fullSteps;
+    this->smoothingValue = smoothingValue;
     this->sleepWakeupPauseTimeUs = sleepWakeupPauseTimeUs;
     this->sleepAfterUs = sleepAfterUs;
+    this->microsteppingConfig = microsteppingConfig;
     this->inverted = inverted;
+    this->stepsInUse = fullSteps * microsteppingConfig;
 
 }

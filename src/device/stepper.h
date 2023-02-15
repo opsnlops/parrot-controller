@@ -13,37 +13,27 @@ public:
 
     StepperState();
 
-    /**
-     * Used to determine how aggressive when we should switch to microsteps.
-     *
-     * Zero means disable.
-     */
-    uint16_t decelerationAggressiveness;
 
-    uint64_t updatedFrame;
-
-    // The controller requests things in whole steps
     uint32_t requestedSteps;
-
-    uint32_t currentMicrostep;
-    uint32_t desiredMicrostep;
+    uint32_t currentStep;
 
     bool currentDirection;
-
-    bool moveRequested;
 
     bool isHigh;
     bool isAwake;
 
+    // Set by the initStepper()
     bool ms1State;
     bool ms2State;
+
+    float smoothingValue;
 
     /**
      * How many frames have we moved?
      *
      * This is just for metrics, it's not used for anything.
      */
-    uint64_t actualSteps;
+    uint64_t stepsTaken;
 
 
     /**
@@ -66,18 +56,40 @@ public:
     uint64_t sleepAfter;
 
     /**
-     * At which frame can we resume motion after wakeup>
+     * At which frame can we resume motion after wakeup?
      */
      uint64_t awakeAt;
 
 
+     /**
+      * Last frame when this stepper was touched
+      */
+    uint64_t updatedFrame;
+
 };
+
+
+
 
 class Stepper {
 
+/*
+ * Truth Table for the A3967 Stepper (this is the EasyDriver one!)
+ *
+ *     +------------------------------+
+ *     |  MS1  |  MS2  |  Resolution  |
+ *     |-------|-------|--------------|
+ *     |   L   |   L   | Full step    |
+ *     |   H   |   L   | Half step    |
+ *     |   L   |   H   | Quarter step |
+ *     |   H   |   H   | Eighth step  |
+ *     +------------------------------+
+ *
+ */
+
 public:
-    Stepper(uint8_t slot, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
-            uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted);
+    Stepper(uint8_t slot, const char* name, uint32_t fullSteps, float smoothingValue,
+            uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, uint8_t microsteppingConfig, bool inverted);
     int init();
     int start();
 
@@ -91,10 +103,17 @@ public:
 
     StepperState* state;
 
-    uint32_t maxSteps;
-    uint32_t maxMicrosteps;
+    uint32_t fullSteps;
+    float smoothingValue;
 
-    uint16_t decelerationAggressiveness;
+    /**
+     * Should we use full steps, half steps, etc.
+     *
+     * Defined in `creature-config.h`
+     */
+    uint8_t microsteppingConfig;
+    uint32_t stepsInUse;
+
     uint32_t sleepWakeupPauseTimeUs;
     uint32_t sleepAfterUs;
 
@@ -104,7 +123,7 @@ public:
 
     [[nodiscard]] const char* getName() const;
 
-    uint16_t getDecelerationAggressiveness();
+    float getSmoothingValue();
     uint32_t getSleepWakeupPauseTimeUs();
     uint32_t getSleepAfterUs();
 

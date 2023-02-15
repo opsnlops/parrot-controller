@@ -36,22 +36,6 @@ static bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
 //
 
 
-/*
- * Truth Table for the A3967 Stepper (this is the EasyDriver one!)
- *
- *     +------------------------------+
- *     |  MS1  |  MS2  |  Resolution  |
- *     |-------|-------|--------------|
- *     |   L   |   L   | Full step    |
- *     |   H   |   L   | Half step    |
- *     |   L   |   H   | Quarter step |
- *     |   H   |   H   | Eighth step  |
- *     +------------------------------+
- *
- */
-
-
-
 /**
  *
  * Callback for the stepper timer
@@ -78,7 +62,7 @@ bool stepper_timer_handler(struct repeating_timer *t) {
          */
         StepperState* state = s->state;
 
-        uint32_t microSteps;
+        bool adjustMicrosteps = false;
 
         // If this stepper is high, there's nothing else to do. Set it to low.
         if(state->isHigh) {
@@ -87,45 +71,29 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         }
 
         // If we're at the position where we need to be, stop
-        if(state->currentMicrostep == state->desiredMicrostep && !state->moveRequested) {
+        if(state->currentStep == state->requestedSteps) {
             goto end;
         }
-
-        /*
-         * If we are on a whole step boundary, update the requested microsteps!
-         *
-         * This is only done on whole step boundaries to avoid drift. If we don't, the
-         * stepper will drift (pretty badly) over time.
-         */
-        if(state->currentMicrostep % STEPPER_MICROSTEP_MAX == 0)
-            state->desiredMicrostep = state->requestedSteps * STEPPER_MICROSTEP_MAX;
 
 
         /*
          * So now we know we need to move. Let's figure out which direction.
          */
 
-        if( state->currentMicrostep < state->desiredMicrostep ) {
-
-            microSteps = set_ms1_ms2_and_get_steps(state);
+        if(state->currentStep < state->requestedSteps ) {
 
             state->currentDirection = false;
-            state->currentMicrostep = state->currentMicrostep + microSteps;
+            state->currentStep++;
             state->isHigh = true;
-            state->actualSteps += microSteps;
 
             goto transmit;
 
         }
 
         // The only thing left is to move the other way
-
-        microSteps = set_ms1_ms2_and_get_steps(state);
-
         state->currentDirection = true;
-        state->currentMicrostep = state->currentMicrostep - microSteps;
+        state->currentStep--;
         state->isHigh = true;
-        state->actualSteps += microSteps;
 
         goto transmit;
 
@@ -163,7 +131,7 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         // Now that we've toggled everything, turn the latch back off
         gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
 
-        state->moveRequested = false;
+        state->stepsTaken++;
         state->updatedFrame = stepper_frame_count;
 
         end:
@@ -172,56 +140,4 @@ bool stepper_timer_handler(struct repeating_timer *t) {
     }
 
     return true;
-}
-
-
-uint32_t set_ms1_ms2_and_get_steps(StepperState* state) {
-
-    uint32_t stepsToGo = (state->currentMicrostep > state->desiredMicrostep) ?
-                         (state->currentMicrostep - state->desiredMicrostep) :
-                         (state->desiredMicrostep - state->currentMicrostep);
-
-    uint32_t microSteps = STEPPER_SPEED_0_MICROSTEPS;
-
-    // A setting of "0" means no deceleration, so set full steps
-    if (state->decelerationAggressiveness == 0) {
-        state->ms1State = false;
-        state->ms2State = false;
-        goto end;
-    }
-
-    // Do full steps
-    if(stepsToGo > (STEPPER_MICROSTEP_MAX * state->decelerationAggressiveness * 8)) {
-        state->ms1State = false;
-        state->ms2State = false;
-        microSteps = STEPPER_SPEED_0_MICROSTEPS;
-        goto end;
-    }
-
-    if(stepsToGo > (STEPPER_MICROSTEP_MAX * state->decelerationAggressiveness * 4)) {
-        state->ms1State = true;
-        state->ms2State = false;
-
-        microSteps = STEPPER_SPEED_1_MICROSTEPS;
-        goto end;
-    }
-
-    if(stepsToGo > (STEPPER_MICROSTEP_MAX * state->decelerationAggressiveness * 2)) {
-        state->ms1State = false;
-        state->ms2State = true;
-
-        microSteps = STEPPER_SPEED_2_MICROSTEPS;
-        goto end;
-    }
-
-    state->ms1State = true;
-    state->ms2State = true;
-    microSteps = STEPPER_SPEED_3_MICROSTEPS;
-    goto end;
-
-
-
-    end:
-    return microSteps;
-
 }

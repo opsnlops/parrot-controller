@@ -45,27 +45,30 @@ CreatureConfig* Parrot::getDefaultConfig() {
                                     new StepperConfig(STEPPER_NECK_ROTATE,
                                                       "Neck Rotate",
                                                       200,
-                                                      4,
+                                                      0.95,
                                                       0,
                                                       0,
+                                                      STEPPER_USE_HALF_STEPS,
                                                       false));
 
     defaultConfig->setStepperConfig(STEPPER_BODY_LEAN,
                                     new StepperConfig(STEPPER_BODY_LEAN,
                                                       "Body Lean",
                                                       200,
-                                                      8,
+                                                      0.90,
                                                       0,
                                                       0,
+                                                      STEPPER_USE_QUARTER_STEPS,
                                                       false));
 
     defaultConfig->setStepperConfig(STEPPER_STAND_ROTATE,
                                     new StepperConfig(STEPPER_STAND_ROTATE,
                                                       "Stand Rotate",
                                                       300,
-                                                      8,
+                                                      0.7,
                                                       0,
                                                       0,
+                                                      STEPPER_USE_EIGHTH_STEPS,
                                                       false));
 
     // Make our running defaultConfig point to this
@@ -195,19 +198,19 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
                                                                  0,
                                                                  UCHAR_MAX,
                                                                0,
-                                                               runningConfig->getStepperConfig(STEPPER_NECK_ROTATE)->maxSteps);
+                                                               runningConfig->getStepperConfig(STEPPER_NECK_ROTATE)->stepsInUse);
 
         parrot->joints[JOINT_BODY_LEAN] = Parrot::convertRange(currentFrame[INPUT_BODY_LEAN],
                                                                  0,
                                                                  UCHAR_MAX,
                                                                  0,
-                                                                 runningConfig->getStepperConfig(STEPPER_BODY_LEAN)->maxSteps);
+                                                                 runningConfig->getStepperConfig(STEPPER_BODY_LEAN)->stepsInUse);
 
         parrot->joints[JOINT_STAND_ROTATE] = Parrot::convertRange(currentFrame[INPUT_STAND_ROTATE],
                                                                  0,
                                                                  UCHAR_MAX,
                                                                  0,
-                                                                 runningConfig->getStepperConfig(STEPPER_STAND_ROTATE)->maxSteps);
+                                                                 runningConfig->getStepperConfig(STEPPER_STAND_ROTATE)->stepsInUse);
 
 
         // Request these positions from the controller
@@ -216,9 +219,9 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         controller->requestServoPosition(SERVO_BEAK,parrot->joints[JOINT_BEAK]);
         controller->requestServoPosition(SERVO_CHEST,parrot->joints[JOINT_CHEST]);
 
-        controller->requestStepperPosition(STEPPER_NECK_ROTATE, parrot->joints[JOINT_NECK_ROTATE]);
-        controller->requestStepperPosition(STEPPER_BODY_LEAN, parrot->joints[JOINT_BODY_LEAN]);
-        controller->requestStepperPosition(STEPPER_STAND_ROTATE, parrot->joints[JOINT_STAND_ROTATE]);
+        Controller::requestStepperPosition(STEPPER_NECK_ROTATE, parrot->joints[JOINT_NECK_ROTATE]);
+        Controller::requestStepperPosition(STEPPER_BODY_LEAN, parrot->joints[JOINT_BODY_LEAN]);
+        Controller::requestStepperPosition(STEPPER_STAND_ROTATE, parrot->joints[JOINT_STAND_ROTATE]);
     }
 #pragma clang diagnostic pop
 }

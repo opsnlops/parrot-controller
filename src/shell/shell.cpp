@@ -174,15 +174,15 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Number of Steppers: %d\n\r", config->getNumberOfSteppers());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        Number of Servos: %u\n\r", config->getNumberOfServos());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of DMX Channels: %d\n\r", controller->getNumberOfDMXChannels());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Number of Steppers: %u\n\r", config->getNumberOfSteppers());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        Number of Servos: %d\n\r", config->getNumberOfServos());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of DMX Channels: %u\n\r", controller->getNumberOfDMXChannels());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -194,7 +194,8 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                              config->getServoFrequencyHz());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Stepper Loop: %dus\n\r",
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Stepper Loop: %uus\n\r",
                              STEPPER_LOOP_PERIOD_IN_US);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
@@ -207,7 +208,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "         TinyUSB Version: %d.%d.%d\n\r",
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "         TinyUSB Version: %u.%u.%u\n\r",
                              TUSB_VERSION_MAJOR, TUSB_VERSION_MINOR, TUSB_VERSION_REVISION);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
@@ -226,7 +227,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     for (int i = 0; i < config->getNumberOfServos(); i++) {
-                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d | %-21s |  %6d |  %6d | %.4f |   %3s\n\r",
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d | %-21s |  %6u |  %6u | %.4f |   %3s\n\r",
                                  i,
                                  config->getServoConfig(i)->name,
                                  config->getServoConfig(i)->minPulseUs,
@@ -241,7 +242,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |   steps  |  microsteps  |   dec  | inverted\n\r");
+                             "      num | slot |         name          |   steps  |  esteps |   dec  | inverted\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
@@ -250,13 +251,13 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     for (int i = 0; i < config->getNumberOfSteppers(); i++) {
-                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu  |      %6lu  | %5u  |   %3s\n\r",
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu  |    %6lu  |  %.4f  |   %3s\n\r",
                                  i,
                                  config->getStepperConfig(i)->slot,
                                  config->getStepperConfig(i)->name,
-                                 config->getStepperConfig(i)->maxSteps,
-                                 config->getStepperConfig(i)->maxMicrosteps,
-                                 config->getStepperConfig(i)->decelerationAggressiveness,
+                                 config->getStepperConfig(i)->fullSteps,
+                                 config->getStepperConfig(i)->stepsInUse,
+                                 config->getStepperConfig(i)->smoothingValue,
                                  config->getStepperConfig(i)->inverted ? "yes" : "no");
                         write_to_cdc(tx_buffer);
                     }
@@ -338,7 +339,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |  cstep  |  dstep |  last updated  | steps taken\n\r");
+                             "      num | slot |         name          |  cstep  |  dstep  |  last updated  | steps taken\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
@@ -350,14 +351,14 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 
                         Stepper *s = Controller::getStepper(i);
                         snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu  |  %12llu  | %12llu\n\r",
+                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu |  %12llu  | %12llu\n\r",
                                  i,
                                  s->getSlot(),
                                  s->getName(),
-                                 s->state->currentMicrostep,
-                                 s->state->desiredMicrostep,
+                                 s->state->currentStep,
+                                 s->state->requestedSteps,
                                  s->state->updatedFrame,
-                                 s->state->actualSteps);
+                                 s->state->stepsTaken);
                         write_to_cdc(tx_buffer);
                     }
 

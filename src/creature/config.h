@@ -42,17 +42,18 @@ class StepperConfig {
 
 public:
     StepperConfig();
-    StepperConfig(uint8_t slot, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
-                  uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted);
+    StepperConfig(uint8_t slot, const char* name, uint32_t fullSteps, float smoothingValue,
+                  uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, uint8_t microsteppingConfig, bool inverted);
 
     uint8_t slot;
-    char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1];
-    uint32_t maxSteps;
-    uint32_t maxMicrosteps;
-    uint16_t decelerationAggressiveness;
+    char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1]{};
+    uint32_t fullSteps;
+    float smoothingValue;
     uint32_t sleepWakeupPauseTimeUs;
     uint32_t sleepAfterUs;
+    uint8_t microsteppingConfig;
     bool inverted;
+    uint32_t stepsInUse;
 };
 
 

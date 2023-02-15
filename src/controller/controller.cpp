@@ -33,6 +33,7 @@ Controller::Controller() {
 
     debug("setting up the controller");
 
+    config = nullptr;
     creatureWorkerTaskHandle = nullptr;
     poweredOn = false;
     powerRelay = new Relay(E_STOP_PIN, poweredOn);
@@ -64,8 +65,8 @@ void Controller::init(CreatureConfig *incomingConfig) {
     debug("building stepper objects");
     for (int i = 0; i < this->config->getNumberOfSteppers(); i++) {
         StepperConfig *stepper = this->config->getStepperConfig(i);
-        initStepper(i, stepper->name, stepper->maxSteps, stepper->decelerationAggressiveness,
-                    stepper->sleepWakeupPauseTimeUs, stepper->sleepAfterUs, stepper->inverted);
+        initStepper(i, stepper->name, stepper->fullSteps, stepper->smoothingValue,
+                    stepper->sleepWakeupPauseTimeUs, stepper->sleepAfterUs, stepper->microsteppingConfig, stepper->inverted);
     }
 
     // Declare some space on the heap for our current frame buffer
@@ -179,14 +180,14 @@ void Controller::initServo(uint8_t indexNumber, const char *name, uint16_t minPu
 
 }
 
-void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
-                             uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted) {
+void Controller::initStepper(uint8_t slot, const char *name, uint32_t fullSteps, float smoothingValue,
+                             uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, uint8_t microsteppingConfig, bool inverted) {
 
-    steppers[slot] = new Stepper(slot, name, maxSteps, decelerationAggressiveness, sleepWakeupPauseTimeUs,
-                                 sleepAfterUs, inverted);
+    steppers[slot] = new Stepper(slot, name, fullSteps, smoothingValue, sleepWakeupPauseTimeUs,
+                                 sleepAfterUs, microsteppingConfig, inverted);
     numberOfSteppersInUse++;
 
-    info("controller stepper init: slot: %d, name: %s, max_steps: %d", slot, name, maxSteps);
+    info("controller stepper init: slot: %d, name: %s, full_steps: %d", slot, name, fullSteps);
 
 }
 
@@ -211,7 +212,7 @@ uint16_t Controller::getServoPosition(uint8_t indexNumber) {
 }
 
 uint32_t Controller::getStepperPosition(uint8_t indexNumber) {
-    return steppers[indexNumber]->state->currentMicrostep / STEPPER_MICROSTEP_MAX;
+    return steppers[indexNumber]->state->currentStep;
 }
 
 void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
@@ -242,7 +243,6 @@ void Controller::requestStepperPosition(uint8_t stepperIndexNumber, uint32_t req
               steppers[stepperIndexNumber]->state->requestedSteps, requestedPosition);
 
         steppers[stepperIndexNumber]->state->requestedSteps = requestedPosition;
-        steppers[stepperIndexNumber]->state->moveRequested = true;
     }
 }
 
