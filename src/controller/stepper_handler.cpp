@@ -15,6 +15,7 @@
 //
 
 volatile uint64_t stepper_frame_count = 0L;
+volatile uint64_t time_spent_in_stepper_handler = 0L;
 
 /**
  * Simple array for setting the address lines of the stepper latches
@@ -62,6 +63,9 @@ static bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
  * @return true
  */
 bool stepper_timer_handler(struct repeating_timer *t) {
+
+    // Let's keep some metrics of how long this takes
+    uint64_t start_time = time_us_64();
 
     // Keep track of which frame we're in
     stepper_frame_count++;
@@ -170,6 +174,9 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         (void*)nullptr;
 
     }
+
+    // Account for the time spent in here
+    time_spent_in_stepper_handler += time_us_64() - start_time;
 
     return true;
 }

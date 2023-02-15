@@ -19,6 +19,7 @@
 extern uint32_t number_of_moves;
 extern TaskHandle_t debug_console_task_handle;
 extern volatile uint64_t stepper_frame_count;
+extern volatile uint64_t time_spent_in_stepper_handler;
 
 QueueHandle_t debug_shell_incoming_keys;
 
@@ -174,19 +175,19 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Number of Steppers: %d\n\r", config->getNumberOfSteppers());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of DMX Channels: %u\n\r", controller->getNumberOfDMXChannels());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "  Number of DMX Channels: %d\n\r", controller->getNumberOfDMXChannels());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Base Channel: %u\n\r", config->getDmxBaseChannel());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        Number of Servos: %d\n\r", config->getNumberOfServos());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Number of Steppers: %u\n\r", config->getNumberOfSteppers());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Base Channel: %d\n\r", config->getDmxBaseChannel());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        Number of Servos: %u\n\r", config->getNumberOfServos());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -194,7 +195,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                              config->getServoFrequencyHz());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Stepper Loop: %dus\n\r",
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            Stepper Loop: %uμs\n\r",
                              STEPPER_LOOP_PERIOD_IN_US);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
@@ -221,12 +222,12 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      ---------------------------------------------------------------------\n\r");
+                             "     ---------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     for (int i = 0; i < config->getNumberOfServos(); i++) {
-                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d | %-21s |  %6d |  %6d | %.4f |   %3s\n\r",
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d | %-21s |  %6d |  %6d | %.4f |      %3s\n\r",
                                  i,
                                  config->getServoConfig(i)->name,
                                  config->getServoConfig(i)->minPulseUs,
@@ -245,12 +246,12 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      --------------------------------------------------------------------------------\n\r");
+                             "     ----------------------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     for (int i = 0; i < config->getNumberOfSteppers(); i++) {
-                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu  |      %6lu  | %5u  |   %3s\n\r",
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "       %-2d |   %-2d | %-21s |  %6lu  |      %6lu  | %5u  |      %3s\n\r",
                                  i,
                                  config->getStepperConfig(i)->slot,
                                  config->getStepperConfig(i)->name,
@@ -269,36 +270,44 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            power: %s\n\r",
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                   power: %s\n\r",
                              controller->isPoweredOn() ? "on" : "off");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            wraps: %lu\n\r", controller->getNumberOfPWMWraps());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                   wraps: %lu\n\r", controller->getNumberOfPWMWraps());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "           frames: %lu\n\r", io->getNumberOfFramesReceived());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                  frames: %lu\n\r", io->getNumberOfFramesReceived());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    stepper frame: %llu\n\r", stepper_frame_count);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "           stepper frame: %llu\n\r", stepper_frame_count);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "            moves: %lu\n\r", number_of_moves);
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "         time in stepper: %lluμs\n\r", time_spent_in_stepper_handler);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "         free mem: %d\n\r", xPortGetFreeHeapSize());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE,  "    average stepper time: %lluμs\n\r", time_spent_in_stepper_handler / stepper_frame_count);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "          min mem: %d\n\r", xPortGetMinimumEverFreeHeapSize());
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                   moves: %lu\n\r", number_of_moves);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
-                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "           uptime: %lums\n\r",
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                free mem: %u\n\r", xPortGetFreeHeapSize());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                 min mem: %u\n\r", xPortGetMinimumEverFreeHeapSize());
+                    write_to_cdc(tx_buffer);
+                    ds_reset_buffers(tx_buffer, rx_buffer);
+
+                    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                  uptime: %lums\n\r",
                              to_ms_since_boot(get_absolute_time()));
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
@@ -309,11 +318,11 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | gpio | sl | ch |         name           |  pos  |  ctick  |  dtick \n\r");
+                             "      num | gpio | sl | ch |         name           |  pos  |  ctick  |  dtick\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      --------------------------------------------------------------------------\n\r");
+                             "     --------------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -338,11 +347,11 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |  cstep  |  dstep |  last updated  | steps taken\n\r");
+                             "      num | slot |         name          |  cstep  |  dstep  |  d  |  last updated  |  steps taken\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      -------------------------------------------------------------------------------------\n\r");
+                             "     -----------------------------------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -350,12 +359,13 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 
                         Stepper *s = Controller::getStepper(i);
                         snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                                 "      %3d |  %2d  | %-21s |  %5lu |  %5lu  |  %12llu  | %12llu\n\r",
+                                 "      %3d |  %2d  | %-21s |  %5lu  |  %5lu  |  %s  |  %12llu  | %12llu\n\r",
                                  i,
                                  s->getSlot(),
                                  s->getName(),
                                  s->state->currentMicrostep,
                                  s->state->desiredMicrostep,
+                                 s->state->currentDirection ? "f" : "r",
                                  s->state->updatedFrame,
                                  s->state->actualSteps);
                         write_to_cdc(tx_buffer);
