@@ -37,11 +37,11 @@
 // Input mapping. Defines which axis is each
 #define INPUT_HEAD_HEIGHT   1
 #define INPUT_HEAD_TILT     0
-#define INPUT_BODY_LEAN     9
+#define INPUT_BODY_LEAN     8
 #define INPUT_BEAK          4
 #define INPUT_NECK_ROTATE   2
-#define INPUT_CHEST         6
-#define INPUT_STAND_ROTATE  5
+#define INPUT_CHEST         9
+#define INPUT_STAND_ROTATE  7
 
 
 

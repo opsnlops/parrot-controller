@@ -38,6 +38,9 @@ public:
     bool ms1State;
     bool ms2State;
 
+    bool lowEndstop = false;
+    bool highEndstop = false;
+
     /**
      * How many frames have we moved?
      *

@@ -17,6 +17,9 @@
 volatile uint64_t stepper_frame_count = 0L;
 volatile uint64_t time_spent_in_stepper_handler = 0L;
 
+bool low_end_stop_hit = false;
+bool high_end_stop_hit = false;
+
 /**
  * Simple array for setting the address lines of the stepper latches
  */
@@ -70,6 +73,7 @@ bool stepper_timer_handler(struct repeating_timer *t) {
     // Keep track of which frame we're in
     stepper_frame_count++;
 
+
     // Look at each stepper we have and adjust if needed
     for(int i = 0; i < Controller::getNumberOfSteppersInUse(); i++) {
 
@@ -83,6 +87,13 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         StepperState* state = s->state;
 
         uint32_t microSteps;
+
+
+        if(state->lowEndstop)
+            error("Low endstop hit on stepper %u", slot);
+
+        if(state->highEndstop)
+            error("High endstop hit on stepper %u", slot);
 
         // If this stepper is high, there's nothing else to do. Set it to low.
         if(state->isHigh) {
@@ -143,11 +154,12 @@ bool stepper_timer_handler(struct repeating_timer *t) {
 
         transmit:
 
+
+
         // Configure the address lines
         gpio_put(STEPPER_A0_PIN, stepperAddressMapping[slot][2]);
         gpio_put(STEPPER_A1_PIN, stepperAddressMapping[slot][1]);
         gpio_put(STEPPER_A2_PIN, stepperAddressMapping[slot][0]);
-
 
         gpio_put(STEPPER_DIR_PIN, state->currentDirection);
         gpio_put(STEPPER_STEP_PIN, state->isHigh);
@@ -167,8 +179,19 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         // Now that we've toggled everything, turn the latch back off
         gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
 
+        // Check the endstops
+        if(gpio_get(STEPPER_END_S_LOW_PIN))
+            low_end_stop_hit = true;
+
+        if(gpio_get(STEPPER_END_S_HIGH_PIN))
+            high_end_stop_hit = true;
+
         state->moveRequested = false;
         state->updatedFrame = stepper_frame_count;
+
+        // Check the endstops
+        state->lowEndstop = gpio_get(STEPPER_END_S_LOW_PIN);
+        state->highEndstop = gpio_get(STEPPER_END_S_HIGH_PIN);
 
         end:
         (void*)nullptr;

@@ -27,6 +27,9 @@ StepperState::StepperState() {
     ms1State = false;
     ms2State = false;
 
+    lowEndstop = false;
+    highEndstop = false;
+
     actualSteps = 0L;
 
     startedSleepingAt = 0L;

@@ -91,10 +91,15 @@ void Controller::init(CreatureConfig *incomingConfig) {
 
     // Input pins
     configureGPIO(STEPPER_FAULT_PIN, false, false);
-    configureGPIO(STEPPER_END_S_LOW_PIN, false, false);
-    configureGPIO(STEPPER_END_S_HIGH_PIN, false, false);
+    //configureGPIO(STEPPER_END_S_LOW_PIN, false, false);
+    //configureGPIO(STEPPER_END_S_HIGH_PIN, false, false);
 
-   debug("done setting up the stepper pins");
+    gpio_set_function(STEPPER_END_S_LOW_PIN, GPIO_FUNC_SIO);
+    gpio_set_function(STEPPER_END_S_LOW_PIN, GPIO_FUNC_SIO);
+    gpio_set_dir(STEPPER_END_S_LOW_PIN, false);
+    gpio_set_dir(STEPPER_END_S_HIGH_PIN, false);
+
+    debug("done setting up the stepper pins");
 
 }
 

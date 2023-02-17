@@ -25,7 +25,7 @@
 
 // Stepper
 
-#define STEPPER_LOOP_PERIOD_IN_US   1000        // The A3967 wants 1us pluses
+#define STEPPER_LOOP_PERIOD_IN_US   1200        // The A3967 wants 1us pluses at a min
 
 #define STEPPER_MUX_BITS            3
 #define STEPPER_STEP_PIN            26

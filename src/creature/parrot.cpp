@@ -53,8 +53,8 @@ CreatureConfig* Parrot::getDefaultConfig() {
     defaultConfig->setStepperConfig(STEPPER_BODY_LEAN,
                                     new StepperConfig(STEPPER_BODY_LEAN,
                                                       "Body Lean",
-                                                      200,
-                                                      8,
+                                                      400,
+                                                      2,
                                                       0,
                                                       0,
                                                       false));
