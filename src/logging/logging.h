@@ -2,6 +2,7 @@
 #pragma once
 
 #include "controller/controller.h"
+#include "shell/shell.h"
 
 #include <cstring>
 #include <cstdio>

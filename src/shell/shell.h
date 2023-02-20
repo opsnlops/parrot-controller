@@ -35,3 +35,8 @@ private:
     CreatureConfig* config;
 
 };
+
+
+// Global scoped stuffs
+void write_to_cdc(char* line);
+void print_log_to_shell(char* logLine);

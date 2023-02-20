@@ -23,6 +23,8 @@ extern volatile uint64_t time_spent_in_stepper_handler;
 
 QueueHandle_t debug_shell_incoming_keys;
 
+bool volatile log_to_shell = false;
+
 DebugShell::DebugShell(Creature *creature, Controller *controller, IOHandler *io) {
 
     debug("created the debug shell");
@@ -118,6 +120,10 @@ void write_to_cdc(char* line) {
 
     gpio_put(LED_PIN, false);
 
+}
+
+void print_log_to_shell(char* logLine) {
+    write_to_cdc(logLine);
 }
 
 portTASK_FUNCTION(debug_console_task, pvParameters) {
@@ -396,8 +402,25 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     break;
 
+                case('l'):
+
+                    if(!log_to_shell) {
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r\n\rEnabling logging to shell! Press 'l' again to stop. Good luck!!\n\r");
+                        write_to_cdc(tx_buffer);
+                        log_to_shell = true;
+                        info("enabled logging to shell");
+                    }
+                    else {
+                        snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\rDisabled logging to shell! :)\n\r");
+                        write_to_cdc(tx_buffer);
+                        log_to_shell = false;
+                        info("disabled logging to shell");
+                    }
+                    break;
+
+
                 default:
-                    const char *helpMenu = "\n\r\n\r%s Debug Shell\n\r\n\r  c = show running config\n\r  d = show debug data\n\r  p = toggle power\n\r";
+                    const char *helpMenu = "\n\r\n\r%s Debug Shell\n\r\n\r  c = show running config\n\r  d = show debug data\n\r  l = toggle logging\n\r  p = toggle power\n\r";
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, helpMenu, controller->getRunningConfig()->getName());
                     write_to_cdc(tx_buffer);
