@@ -11,6 +11,7 @@ volatile TaskHandle_t displayUpdateTaskHandle;
 volatile TaskHandle_t log_queue_reader_task_handle;
 volatile TaskHandle_t dmx_processing_task_handle;
 volatile TaskHandle_t controllerHousekeeperTaskHandle;
+volatile TaskHandle_t controller_motor_setup_task_handle;
 
 #ifdef USE_UART_CONTROL
 TaskHandle_t messageQueueReaderTaskHandle;

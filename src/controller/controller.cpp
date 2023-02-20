@@ -14,7 +14,7 @@
 uint32_t number_of_moves = 0;
 
 extern TaskHandle_t controllerHousekeeperTaskHandle;
-extern TaskHandle_t stepper_step_task_handle;
+extern TaskHandle_t controller_motor_setup_task_handle;
 BaseType_t isrPriorityTaskWoken = pdFALSE;
 
 // Initialize the static members
@@ -101,7 +101,9 @@ void Controller::init(CreatureConfig *incomingConfig) {
 
     debug("done setting up the stepper pins");
 
+
 }
+
 
 void Controller::configureGPIO(uint8_t pin, bool out, bool initialValue) {
 
@@ -122,13 +124,6 @@ void Controller::setCreatureWorkerTaskHandle(TaskHandle_t taskHandle) {
 void Controller::start() {
     info("starting controller!");
 
-    // Install the IRQ handler for the servos
-    pwm_set_irq_enabled(servos[0]->getSlice(), true);
-    irq_set_exclusive_handler(PWM_IRQ_WRAP, Controller::on_pwm_wrap_handler);
-    irq_set_enabled(PWM_IRQ_WRAP, true);
-
-    // Set up the stepper timer
-    add_repeating_timer_us(STEPPER_LOOP_PERIOD_IN_US, stepper_timer_handler, nullptr, &stepper_timer);
 
     // Fire off the housekeeper
     xTaskCreate(controller_housekeeper_task,
@@ -137,6 +132,14 @@ void Controller::start() {
                 (void *) this,
                 1,
                 &controllerHousekeeperTaskHandle);
+
+    // Fire off the motor setup task
+    xTaskCreate(controller_motor_setup_task,
+                "controller_motor_setup_task",
+                1024,
+                (void *) this,
+                1,
+                &controller_motor_setup_task_handle);
 
 }
 
@@ -348,3 +351,39 @@ portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
 }
 
 
+
+/**
+ * Motor setup task
+ *
+ * This is in a task so that we have access to the full functionality of the
+ * Creature Controller while doing this process. (Logging, debug shell, etc.)
+ *
+ * When it's done it will start ISRs and repeating tasks needed for the
+ * controller to actually function, and then terminate itself.
+ *
+ * @param pvParameters
+ */
+portTASK_FUNCTION(controller_motor_setup_task, pvParameters) {
+
+    auto controller = (Controller *) pvParameters;
+
+
+    info("---> controller motor setup running");
+
+    home_stepper(0);
+    controller->getStepper(0)->state->currentMicrostep = controller->getStepper(0)->maxMicrosteps;
+
+
+    // Install the IRQ handler for the servos
+    pwm_set_irq_enabled(controller->getServo(0)->getSlice(), true);
+    irq_set_exclusive_handler(PWM_IRQ_WRAP, Controller::on_pwm_wrap_handler);
+    irq_set_enabled(PWM_IRQ_WRAP, true);
+
+    // Set up the stepper timer
+    add_repeating_timer_us(STEPPER_LOOP_PERIOD_IN_US, stepper_timer_handler, nullptr, &stepper_timer);
+
+
+    info("stopping the motor setup task");
+    vTaskDelete(nullptr);
+
+}

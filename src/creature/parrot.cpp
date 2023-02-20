@@ -44,7 +44,7 @@ CreatureConfig* Parrot::getDefaultConfig() {
     /*
      * The datasheet for the stepper driver we're using says that it needs 1ms to wake back up again
      */
-#define WAIT_AFTER_WAKEUP_TIME 1000
+#define WAIT_AFTER_WAKEUP_TIME 2000
 
     defaultConfig->setStepperConfig(STEPPER_NECK_ROTATE,
                                     new StepperConfig(STEPPER_NECK_ROTATE,
@@ -70,7 +70,7 @@ CreatureConfig* Parrot::getDefaultConfig() {
                                                       300,
                                                       8,
                                                       WAIT_AFTER_WAKEUP_TIME,
-                                                      0,
+                                                      2000 * 1000,
                                                       false));
 
     // Make our running defaultConfig point to this

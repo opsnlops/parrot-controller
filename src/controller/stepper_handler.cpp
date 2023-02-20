@@ -1,6 +1,4 @@
 
-#include <cmath>
-
 #include "controller-config.h"
 
 #include "controller/stepper_handler.h"
@@ -35,6 +33,21 @@ static bool stepperAddressMapping[MAX_NUMBER_OF_STEPPERS][STEPPER_MUX_BITS] = {
 //
 // END OF STEPPER TIMER STUFFS
 //
+
+
+void inline toggle_latch() {
+    // Enable the latch
+    gpio_put(STEPPER_LATCH_PIN, false);     // It's active low
+
+    // Stall long enough to let the latch go! This about 380ns. The datasheet says it
+    // needs 220ns to latch at 2v. (We run at 3.3v) The uint32_t executes faster than an
+    // uint8_t! It surprised me to figure this out. :)
+    volatile uint32_t j;
+    for(j = 0; j < 3; j++) {}
+
+    // Now that we've toggled everything, turn the latch back off
+    gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
+}
 
 
 /*
@@ -85,12 +98,20 @@ bool stepper_timer_handler(struct repeating_timer *t) {
 
         uint32_t microSteps;
 
-
-        if(state->lowEndstop)
+        // TODO: This isn't a great way to handle this
+        if(state->lowEndstop) {
             error("Low endstop hit on stepper %u", slot);
+            state->isAwake = false;
+            state->startedSleepingAt = stepper_frame_count;
+            goto transmit;
+        }
 
-        if(state->highEndstop)
+        if(state->highEndstop) {
             error("High endstop hit on stepper %u", slot);
+            state->isAwake = false;
+            state->startedSleepingAt = stepper_frame_count;
+            goto transmit;
+        }
 
         // If this stepper is high, there's nothing else to do. Set it to low.
         if(state->isHigh) {
@@ -173,8 +194,6 @@ bool stepper_timer_handler(struct repeating_timer *t) {
 
         transmit:
 
-
-
         // Configure the address lines
         gpio_put(STEPPER_A0_PIN, stepperAddressMapping[slot][2]);
         gpio_put(STEPPER_A1_PIN, stepperAddressMapping[slot][1]);
@@ -186,18 +205,8 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         gpio_put(STEPPER_MS2_PIN, state->ms2State);
         gpio_put(STEPPER_SLEEP_PIN, state->isAwake);        // Sleep is active low
 
-        // Enable the latch
-        gpio_put(STEPPER_LATCH_PIN, false);     // It's active low
-
-        // Stall long enough to let the latch go! This about 380ns. The datasheet says it
-        // needs 220ns to latch at 2v. (We run at 3.3v) The uint32_t executes faster than an
-        // uint8_t! It surprised me to figure this out. :)
-        volatile uint32_t j;
-        for(j = 0; j < 3; j++) {}
-
-        // Now that we've toggled everything, turn the latch back off
-        gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
-
+        // Toggle the latch so we make this go
+        toggle_latch();
 
         state->moveRequested = false;
         state->updatedFrame = stepper_frame_count;
@@ -266,5 +275,93 @@ uint32_t set_ms1_ms2_and_get_steps(StepperState* state) {
 
     end:
     return microSteps;
+
+}
+
+/**
+* Moves the stepper to the low end-stop safely
+ *
+ * This uses the main CPU to do all of the timing, since we need to move and check
+ * the endstops very exactly. Once this is done the controller will hand over
+ * control of things to the normal handler, but to get into a known state we need
+ * to do it nice and slow.
+*
+* @param slot the stepper to home
+*/
+bool home_stepper(uint8_t slot) {
+
+    info("attempting to home stepper %u", slot);
+
+    // Set up the address lines for the stepper we're looking at
+    gpio_put(STEPPER_A0_PIN, stepperAddressMapping[slot][2]);
+    gpio_put(STEPPER_A1_PIN, stepperAddressMapping[slot][1]);
+    gpio_put(STEPPER_A2_PIN, stepperAddressMapping[slot][0]);
+
+
+    gpio_put(STEPPER_STEP_PIN, false);
+    gpio_put(STEPPER_DIR_PIN, false);
+    gpio_put(STEPPER_MS1_PIN, true);
+    gpio_put(STEPPER_MS2_PIN, true);
+    gpio_put(STEPPER_SLEEP_PIN, true);
+
+
+    debug("waking up stepper %u", slot);
+
+    // Set this on the latches
+    toggle_latch();
+
+    // This is way longer than we actually need, but let's be safe!
+    vTaskDelay(pdMS_TO_TICKS(500));
+
+
+    uint32_t steps_moved = 0;
+
+    bool high = false;
+    bool home_reached = gpio_get(STEPPER_END_S_LOW_PIN);
+    while(!home_reached) {
+
+        if(++steps_moved % 100 == 0) {
+            debug("moved stepper %u %u microsteps", slot, steps_moved);
+        }
+
+        // Let's slowly walk backwards
+        gpio_put(STEPPER_STEP_PIN, high);
+
+        toggle_latch();
+        vTaskDelay(pdMS_TO_TICKS(4));
+
+        high = !high;
+
+        home_reached = gpio_get(STEPPER_END_S_LOW_PIN);
+
+        if(home_reached)
+            info("stepper %u home reached", slot);
+    }
+
+    // Pause to set all movement settle
+    debug("pausing...");
+    vTaskDelay(pdMS_TO_TICKS(2000));
+
+
+    // Now let's walk the stepper forward a little bit
+    gpio_put(STEPPER_DIR_PIN, true);
+    gpio_put(STEPPER_MS1_PIN, true);
+    gpio_put(STEPPER_MS2_PIN, true);
+
+    high = true;
+    for(int i = 0; i < 3 * STEPPER_MICROSTEP_MAX; i++) {
+
+        vTaskDelay(pdMS_TO_TICKS(6));
+
+        gpio_put(STEPPER_STEP_PIN, high);
+        toggle_latch();
+        high = !high;
+    }
+
+    // We're done, pause for a moment before going on
+    vTaskDelay(pdMS_TO_TICKS(2000));
+    debug("done with stepper %u", slot);
+
+    return home_reached;
 
 }
