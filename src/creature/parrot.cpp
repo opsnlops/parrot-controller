@@ -41,13 +41,18 @@ CreatureConfig* Parrot::getDefaultConfig() {
                   uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted)
      */
 
+    /*
+     * The datasheet for the stepper driver we're using says that it needs 1ms to wake back up again
+     */
+#define WAIT_AFTER_WAKEUP_TIME 1000
+
     defaultConfig->setStepperConfig(STEPPER_NECK_ROTATE,
                                     new StepperConfig(STEPPER_NECK_ROTATE,
                                                       "Neck Rotate",
-                                                      200,
-                                                      4,
-                                                      0,
-                                                      0,
+                                                      80,
+                                                      8,
+                                                      WAIT_AFTER_WAKEUP_TIME,
+                                                      5000 * 1000,        // 5s
                                                       false));
 
     defaultConfig->setStepperConfig(STEPPER_BODY_LEAN,
@@ -55,8 +60,8 @@ CreatureConfig* Parrot::getDefaultConfig() {
                                                       "Body Lean",
                                                       400,
                                                       2,
-                                                      0,
-                                                      0,
+                                                      WAIT_AFTER_WAKEUP_TIME,
+                                                      1000 * 1000,
                                                       false));
 
     defaultConfig->setStepperConfig(STEPPER_STAND_ROTATE,
@@ -64,7 +69,7 @@ CreatureConfig* Parrot::getDefaultConfig() {
                                                       "Stand Rotate",
                                                       300,
                                                       8,
-                                                      0,
+                                                      WAIT_AFTER_WAKEUP_TIME,
                                                       0,
                                                       false));
 
@@ -178,8 +183,14 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         runningConfig = parrot->getRunningConfig();
 
 
-        uint16_t headHeight = parrot->convertToHeadHeight(Parrot::convertInputValueToServoValue(currentFrame[INPUT_HEAD_HEIGHT]));
-        int32_t headTilt = parrot->configToHeadTilt(Parrot::convertInputValueToServoValue(currentFrame[INPUT_HEAD_TILT]));
+        uint8_t height = currentFrame[INPUT_HEAD_HEIGHT];
+        uint8_t tilt = currentFrame[INPUT_HEAD_TILT];
+
+        // Let's inverse height so 0 = down
+        height = UCHAR_MAX - height;
+
+        uint16_t headHeight = parrot->convertToHeadHeight(Parrot::convertInputValueToServoValue(height));
+        int32_t headTilt = parrot->configToHeadTilt(Parrot::convertInputValueToServoValue(tilt));
 
         verbose("head height: %d, head tilt: %d", headHeight, headTilt);
 

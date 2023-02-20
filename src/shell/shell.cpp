@@ -100,7 +100,7 @@ void tud_cdc_rx_cb(uint8_t itf) {
         xQueueSendToBackFromISR(debug_shell_incoming_keys, &ch, nullptr);
     else {
         info("discarding character from shell: 0x%x", ch);
-        tud_cdc_n_read_flush(0);
+        tud_cdc_n_read_flush(itf);
     }
 }
 
@@ -347,11 +347,11 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "      num | slot |         name          |  cstep  |  dstep  |  d  |  last updated  |  steps taken\n\r");
+                             "      num | slot | slp |         name          |  cstep  |  dstep  |  d  |  last updated  |  steps taken\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                             "     -----------------------------------------------------------------------------------------------\n\r");
+                             "     ----------------------------------------------------------------------------------------------------\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
@@ -359,9 +359,10 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
 
                         Stepper *s = Controller::getStepper(i);
                         snprintf(tx_buffer, DS_TX_BUFFER_SIZE,
-                                 "      %3d |  %2d  | %-21s |  %5lu  |  %5lu  |  %s  |  %12llu  | %12llu\n\r",
+                                 "      %3d |  %2d  |  %s  | %-21s |  %5lu  |  %5lu  |  %s  |  %12llu  | %12llu\n\r",
                                  i,
                                  s->getSlot(),
+                                 s->state->isAwake ? "n" : "y",
                                  s->getName(),
                                  s->state->currentMicrostep,
                                  s->state->desiredMicrostep,

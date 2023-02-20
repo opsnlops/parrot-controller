@@ -1,4 +1,6 @@
 
+#include <cmath>
+
 #include "controller-config.h"
 
 #include "pico/time.h"
@@ -33,6 +35,7 @@ StepperState::StepperState() {
     actualSteps = 0L;
 
     startedSleepingAt = 0L;
+    sleepAfterIdleFrames = 0L;
 
 }
 
@@ -53,10 +56,19 @@ Stepper::Stepper(uint8_t slot, const char* name, uint32_t maxSteps, uint16_t dec
     this->inverted = inverted;
 
     this->state->decelerationAggressiveness = decelerationAggressiveness;
-    // TODO: Calculate the sleep stuff
 
-    info("set up stepper on slot %u: name: %s, max_steps: %u, deceleration: %u, inverted: %s",
-         slot, name, maxSteps, decelerationAggressiveness, inverted ? "yes" : "no");
+    // Figure out how many frames we need to wake up and sleep after
+    this->sleepWakeupFrames = ceil(this->sleepWakeupPauseTimeUs / (double)STEPPER_LOOP_PERIOD_IN_US);
+    this->sleepAfterIdleFrames = ceil(this->sleepAfterUs / (double)STEPPER_LOOP_PERIOD_IN_US);
+
+    // Start out awake
+    this->state->awakeAt = 0;
+    this->state->isAwake = true;
+    this->state->framesRequiredToWakeUp = this->sleepWakeupFrames;
+    this->state->sleepAfterIdleFrames = this->sleepAfterIdleFrames;
+
+    info("set up stepper on slot %u: name: %s, max_steps: %u, deceleration: %u, wake frames: %u, idle after: %u, inverted: %s",
+         slot, name, maxSteps, decelerationAggressiveness, this->sleepWakeupFrames, this->sleepAfterIdleFrames, inverted ? "yes" : "no");
 
 }
 
@@ -92,4 +104,12 @@ uint32_t Stepper::getSleepWakeupPauseTimeUs() {
 
 uint32_t Stepper::getSleepAfterUs() {
     return this->sleepAfterUs;
+}
+
+uint32_t Stepper::getSleepWakeupFrames() {
+    return this->sleepWakeupFrames;
+}
+
+uint32_t Stepper::getSleepAfterIdleFrames() {
+    return this->sleepAfterIdleFrames;
 }

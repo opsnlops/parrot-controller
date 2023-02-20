@@ -56,22 +56,19 @@ public:
 
 
     /**
-     * How many frames do we have to wait after sending wakeup to start
-     * moving again?
-     *
-     * This allows time for the stepper driver to re-power after sleep.
-     */
-    uint64_t wakeupTime;
-
-    /**
      * How many frames of idle time do we have to wait before going to sleep?
      */
-    uint64_t sleepAfter;
+    uint64_t sleepAfterIdleFrames;
 
     /**
-     * At which frame can we resume motion after wakeup>
+     * At which frame can we resume motion after wakeup?
      */
-     uint64_t awakeAt;
+    uint64_t awakeAt;
+
+    /**
+     * How many frames do we have to wait to wake up?
+     */
+    uint32_t framesRequiredToWakeUp;
 
 
 };
@@ -101,6 +98,16 @@ public:
     uint32_t sleepWakeupPauseTimeUs;
     uint32_t sleepAfterUs;
 
+    /**
+     * The number of frames needed to wake up from sleep
+     */
+    uint32_t sleepWakeupFrames;
+
+    /**
+     * After how many frames of no moment should we fall asleep?
+     */
+    uint32_t sleepAfterIdleFrames;
+
     [[nodiscard]] uint8_t getSlot() const;
 
     bool isInverted();
@@ -110,5 +117,7 @@ public:
     uint16_t getDecelerationAggressiveness();
     uint32_t getSleepWakeupPauseTimeUs();
     uint32_t getSleepAfterUs();
+    uint32_t getSleepWakeupFrames();
+    uint32_t getSleepAfterIdleFrames();
 
 };

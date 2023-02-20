@@ -17,9 +17,6 @@
 volatile uint64_t stepper_frame_count = 0L;
 volatile uint64_t time_spent_in_stepper_handler = 0L;
 
-bool low_end_stop_hit = false;
-bool high_end_stop_hit = false;
-
 /**
  * Simple array for setting the address lines of the stepper latches
  */
@@ -101,9 +98,31 @@ bool stepper_timer_handler(struct repeating_timer *t) {
             goto transmit;
         }
 
+        // If we're waking up, but we haven't had enough frames yet to wake up, keep on waiting
+        if(state->awakeAt > stepper_frame_count) {
+            goto end;
+        }
+
+        // Should we go to sleep?
+        if(state->updatedFrame + state->sleepAfterIdleFrames < stepper_frame_count && state->isAwake) {
+            state->isAwake = false;
+            state->startedSleepingAt = stepper_frame_count;
+            debug("sleeping stepper %d at frame %u", slot, stepper_frame_count);
+            goto transmit;
+
+        }
+
         // If we're at the position where we need to be, stop
         if(state->currentMicrostep == state->desiredMicrostep && !state->moveRequested) {
             goto end;
+        }
+
+        // If we're asleep, but we should wake up, now's the time. We need to move.
+        if(!state->isAwake) {
+            state->isAwake = true;
+            state->awakeAt = stepper_frame_count + state->framesRequiredToWakeUp;
+            debug("waking up stepper %d at frame %u", slot, stepper_frame_count);
+            goto transmit;
         }
 
         /*
@@ -179,12 +198,6 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         // Now that we've toggled everything, turn the latch back off
         gpio_put(STEPPER_LATCH_PIN, true);     // It's active low
 
-        // Check the endstops
-        if(gpio_get(STEPPER_END_S_LOW_PIN))
-            low_end_stop_hit = true;
-
-        if(gpio_get(STEPPER_END_S_HIGH_PIN))
-            high_end_stop_hit = true;
 
         state->moveRequested = false;
         state->updatedFrame = stepper_frame_count;
