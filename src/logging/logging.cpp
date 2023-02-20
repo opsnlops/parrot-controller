@@ -28,8 +28,17 @@ void logger_init() {
     start_log_reader();
 }
 
+bool inline _is_safe_to_log() {
+    return (logging_queue_exists && !xQueueIsQueueFullFromISR(creature_log_message_queue_handle));
+}
+
 void __unused verbose(const char *message, ...) {
 #if LOGGING_LEVEL > 4
+
+    // If the logging queue if full, stop now
+    if(!_is_safe_to_log())
+        return;
+
     // Copy the arguments to a new va_list
     va_list args;
     va_start(args, message);
@@ -37,13 +46,17 @@ void __unused verbose(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_VERBOSE, message, args);
     va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    xQueueSendToBackFromISR(creature_log_message_queue_handle, &lm, nullptr);
 #endif
 }
 
 void debug(const char *message, ...) {
 #if LOGGING_LEVEL > 3
+
+    // If the logging queue if full, stop now
+    if(!_is_safe_to_log())
+        return;
+
     // Copy the arguments to a new va_list
     va_list args;
     va_start(args, message);
@@ -51,13 +64,18 @@ void debug(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_DEBUG, message, args);
     va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+   xQueueSendToBackFromISR(creature_log_message_queue_handle, &lm, nullptr);
+
 #endif
 }
 
 void info(const char *message, ...) {
 #if LOGGING_LEVEL > 2
+
+    // If the logging queue if full, stop now
+    if(!_is_safe_to_log())
+        return;
+
     // Copy the arguments to a new va_list
     va_list args;
     va_start(args, message);
@@ -65,13 +83,18 @@ void info(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_INFO, message, args);
     va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    xQueueSendToBackFromISR(creature_log_message_queue_handle, &lm, nullptr);
+
 #endif
 }
 
 void warning(const char *message, ...) {
 #if LOGGING_LEVEL > 1
+
+    // If the logging queue if full, stop now
+    if(!_is_safe_to_log())
+        return;
+
     // Copy the arguments to a new va_list
     va_list args;
     va_start(args, message);
@@ -79,13 +102,18 @@ void warning(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_WARNING, message, args);
     va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    xQueueSendToBackFromISR(creature_log_message_queue_handle, &lm, nullptr);
+
 #endif
 }
 
 void error(const char *message, ...) {
 #if LOGGING_LEVEL > 0
+
+    // If the logging queue if full, stop now
+    if(!_is_safe_to_log())
+        return;
+
     // Copy the arguments to a new va_list
     va_list args;
     va_start(args, message);
@@ -93,12 +121,17 @@ void error(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_ERROR, message, args);
     va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    xQueueSendToBackFromISR(creature_log_message_queue_handle, &lm, nullptr);
+
 #endif
 }
 
 void __unused fatal(const char *message, ...) {
+
+    // If the logging queue if full, stop now
+    if(!_is_safe_to_log())
+        return;
+
     // Copy the arguments to a new va_list
     va_list args;
     va_start(args, message);
@@ -106,8 +139,8 @@ void __unused fatal(const char *message, ...) {
     struct LogMessage lm = createMessageObject(LOG_LEVEL_FATAL, message, args);
     va_end(args);
 
-    if (logging_queue_exists)
-        xQueueSendToBack(creature_log_message_queue_handle, &lm, (TickType_t) 10);
+    xQueueSendToBackFromISR(creature_log_message_queue_handle, &lm, nullptr);
+
 }
 
 struct LogMessage createMessageObject(uint8_t level, const char *message, va_list args) {

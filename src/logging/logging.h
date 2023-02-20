@@ -36,5 +36,7 @@ void __unused fatal(const char *message, ...);
 
 LogMessage createMessageObject(uint8_t level, const char *message, va_list args);
 
+bool _is_safe_to_log();
+
 
 void start_log_reader();

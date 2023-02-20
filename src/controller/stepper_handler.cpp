@@ -104,7 +104,7 @@ bool stepper_timer_handler(struct repeating_timer *t) {
         }
 
         // Should we go to sleep?
-        if(state->updatedFrame + state->sleepAfterIdleFrames < stepper_frame_count && state->isAwake) {
+        if(state->isAwake && state->updatedFrame + state->sleepAfterIdleFrames < stepper_frame_count) {
             state->isAwake = false;
             state->startedSleepingAt = stepper_frame_count;
             debug("sleeping stepper %d at frame %u", slot, stepper_frame_count);
