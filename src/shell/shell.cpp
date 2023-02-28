@@ -18,8 +18,11 @@
 
 extern uint32_t number_of_moves;
 extern TaskHandle_t debug_console_task_handle;
+
+#if USE_STEPPERS
 extern volatile uint64_t stepper_frame_count;
 extern volatile uint64_t time_spent_in_stepper_handler;
+#endif
 
 QueueHandle_t debug_shell_incoming_keys;
 
@@ -189,9 +192,11 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
+#if USE_STEPPERS
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "      Number of Steppers: %u\n\r", config->getNumberOfSteppers());
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
+#endif
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "        Number of Servos: %u\n\r", config->getNumberOfServos());
                     write_to_cdc(tx_buffer);
@@ -243,6 +248,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                         write_to_cdc(tx_buffer);
                     }
 
+#if USE_STEPPERS
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r   Stepper Config:\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
@@ -269,7 +275,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     }
 
                     break;
-
+#endif
                 case ('d'):
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r\n\r Info:\n\r");
@@ -289,6 +295,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
 
+#if USE_STEPPERS
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "           stepper frame: %llu\n\r", stepper_frame_count);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
@@ -300,6 +307,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE,  "    average stepper time: %lluμs\n\r", time_spent_in_stepper_handler / stepper_frame_count);
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
+#endif
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                   moves: %lu\n\r", number_of_moves);
                     write_to_cdc(tx_buffer);
@@ -348,6 +356,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                         write_to_cdc(tx_buffer);
                     }
 
+#if USE_STEPPERS
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r Steppers:\n\r");
                     write_to_cdc(tx_buffer);
                     ds_reset_buffers(tx_buffer, rx_buffer);
@@ -377,6 +386,7 @@ portTASK_FUNCTION(debug_console_task, pvParameters) {
                                  s->state->actualSteps);
                         write_to_cdc(tx_buffer);
                     }
+#endif
 
                     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "\n\r Current Frame:\n\r");
                     write_to_cdc(tx_buffer);

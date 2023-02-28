@@ -13,7 +13,10 @@ Creature::Creature() {
     this->workerTaskHandle = nullptr;
     this->numberOfJoints = 0;
     this->numberOfServos = 0;
+
+#if USE_STEPPERS
     this->numberOfSteppers = 0;
+#endif
 
     debug("Creature() called!");
 }
@@ -64,6 +67,9 @@ int32_t Creature::convertRange(int32_t input, int32_t oldMin, int32_t oldMax, in
     return newValue;
 }
 
+CreatureConfig* Creature::getRunningConfig() {
+    return runningConfig;
+}
 
 uint8_t Creature::getNumberOfJoints() const {
     return numberOfJoints;
@@ -73,10 +79,9 @@ uint8_t Creature::getNumberOfServos() const {
     return numberOfServos;
 }
 
+#if USE_STEPPERS
 uint8_t Creature::getNumberOfSteppers() const {
     return numberOfSteppers;
 }
+#endif
 
-CreatureConfig* Creature::getRunningConfig() {
-    return runningConfig;
-}

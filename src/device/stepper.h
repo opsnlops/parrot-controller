@@ -6,6 +6,7 @@
 #include <cstdio>
 #include "pico/stdlib.h"
 
+#if USE_STEPPERS
 
 class StepperState {
 
@@ -121,3 +122,5 @@ public:
     uint32_t getSleepAfterIdleFrames();
 
 };
+
+#endif

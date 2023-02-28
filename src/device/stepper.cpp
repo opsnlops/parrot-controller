@@ -7,8 +7,9 @@
 
 #include "logging/logging.h"
 
-#include "stepper.h"
+#if USE_STEPPERS
 
+#include "stepper.h"
 
 StepperState::StepperState() {
 
@@ -113,3 +114,5 @@ uint32_t Stepper::getSleepWakeupFrames() {
 uint32_t Stepper::getSleepAfterIdleFrames() {
     return this->sleepAfterIdleFrames;
 }
+
+#endif

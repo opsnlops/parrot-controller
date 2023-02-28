@@ -70,7 +70,10 @@ public:
     [[nodiscard]] uint8_t getNumberOfJoints() const;
 
     [[nodiscard]] uint8_t getNumberOfServos() const;
+
+#if USE_STEPPERS
     [[nodiscard]] uint8_t getNumberOfSteppers() const;
+#endif
 
     // This is like the Arduino helper map() function. We do this a lot.
     static int32_t convertRange(int32_t input, int32_t oldMin, int32_t oldMax, int32_t newMin, int32_t newMax);
@@ -81,11 +84,14 @@ protected:
     TaskHandle_t workerTaskHandle;
 
     uint8_t numberOfServos;
-    uint8_t numberOfSteppers;
     uint8_t numberOfJoints;
 
     // This is the config that we're currently using. "Running" in the Cisco sense.
     CreatureConfig* runningConfig;
+
+#if USE_STEPPERS
+    uint8_t numberOfSteppers;
+#endif
 
 };
 

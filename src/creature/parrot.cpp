@@ -16,7 +16,7 @@ Parrot::Parrot()
     debug("the head offset max is %d", this->headOffsetMax);
 
     this->numberOfServos = 4;
-    this->numberOfSteppers = 3;
+    //this->numberOfSteppers = 3;
 
     info("Bawk!");
 }
@@ -46,10 +46,11 @@ CreatureConfig* Parrot::getDefaultConfig() {
      */
 #define WAIT_AFTER_WAKEUP_TIME 2000
 
+    /*
     defaultConfig->setStepperConfig(STEPPER_NECK_ROTATE,
                                     new StepperConfig(STEPPER_NECK_ROTATE,
                                                       "Neck Rotate",
-                                                      80,
+                                                      20p,
                                                       8,
                                                       WAIT_AFTER_WAKEUP_TIME,
                                                       5000 * 1000,        // 5s
@@ -72,7 +73,7 @@ CreatureConfig* Parrot::getDefaultConfig() {
                                                       WAIT_AFTER_WAKEUP_TIME,
                                                       2000 * 1000,
                                                       false));
-
+    */
     // Make our running defaultConfig point to this
     this->runningConfig = defaultConfig;
 
@@ -201,7 +202,7 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         parrot->joints[JOINT_BEAK] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BEAK]);
         parrot->joints[JOINT_CHEST] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_CHEST]);
 
-
+        /*
         parrot->joints[JOINT_NECK_ROTATE] = Parrot::convertRange(currentFrame[INPUT_NECK_ROTATE],
                                                                  0,
                                                                  UCHAR_MAX,
@@ -219,7 +220,7 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
                                                                  UCHAR_MAX,
                                                                  0,
                                                                  runningConfig->getStepperConfig(STEPPER_STAND_ROTATE)->maxSteps);
-
+        */
 
         // Request these positions from the controller
         controller->requestServoPosition(SERVO_NECK_LEFT,parrot->joints[JOINT_NECK_LEFT]);
@@ -227,9 +228,9 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         controller->requestServoPosition(SERVO_BEAK,parrot->joints[JOINT_BEAK]);
         controller->requestServoPosition(SERVO_CHEST,parrot->joints[JOINT_CHEST]);
 
-        controller->requestStepperPosition(STEPPER_NECK_ROTATE, parrot->joints[JOINT_NECK_ROTATE]);
-        controller->requestStepperPosition(STEPPER_BODY_LEAN, parrot->joints[JOINT_BODY_LEAN]);
-        controller->requestStepperPosition(STEPPER_STAND_ROTATE, parrot->joints[JOINT_STAND_ROTATE]);
+        //controller->requestStepperPosition(STEPPER_NECK_ROTATE, parrot->joints[JOINT_NECK_ROTATE]);
+        //controller->requestStepperPosition(STEPPER_BODY_LEAN, parrot->joints[JOINT_BODY_LEAN]);
+        //controller->requestStepperPosition(STEPPER_STAND_ROTATE, parrot->joints[JOINT_STAND_ROTATE]);
     }
 #pragma clang diagnostic pop
 }

@@ -1,12 +1,12 @@
 
 #include "controller-config.h"
 
-#include "controller/stepper_handler.h"
-
 #include "logging/logging.h"
-
 #include "controller/controller.h"
 
+#if USE_STEPPERS
+
+#include "controller/stepper_handler.h"
 
 //
 // START OF STEPPER TIMER STUFFS
@@ -365,3 +365,5 @@ bool home_stepper(uint8_t slot) {
     return home_reached;
 
 }
+
+#endif

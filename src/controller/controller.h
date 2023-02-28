@@ -8,8 +8,10 @@
 #include "creature/config.h"
 #include "device/relay.h"
 #include "device/servo.h"
-#include "device/stepper.h"
 
+#if USE_STEPPERS
+#include "device/stepper.h"
+#endif
 
 class Controller {
 
@@ -20,10 +22,8 @@ public:
 
     uint32_t getNumberOfPWMWraps();
     uint16_t getServoPosition(uint8_t indexNumber);
-    uint32_t getStepperPosition(uint8_t indexNumber);
 
     void requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition);
-    static void requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition);
 
     void init(CreatureConfig* incomingConfig);
     void start();
@@ -42,14 +42,18 @@ public:
     bool acceptInput(uint8_t* input);
 
     static uint8_t getNumberOfServosInUse();
-    static uint8_t getNumberOfSteppersInUse();
 
     uint16_t getNumberOfDMXChannels();
 
     // Get the servo, used for debugging
     static Servo* getServo(uint8_t index);
 
+#if USE_STEPPERS
     static Stepper* getStepper(uint8_t index);
+    static uint8_t getNumberOfSteppersInUse();
+    uint32_t getStepperPosition(uint8_t indexNumber);
+    static void requestStepperPosition(uint8_t stepperIndexNumber, uint32_t requestedPosition);
+#endif
 
     // ISR, called when the PWM wraps
     static void __isr on_pwm_wrap_handler();
@@ -68,7 +72,7 @@ private:
      */
     static Servo* servos[MAX_NUMBER_OF_SERVOS];
 
-    static Stepper* steppers[MAX_NUMBER_OF_STEPPERS];
+
 
     // The current state of the input from the controller
     uint8_t* currentFrame{};
@@ -86,15 +90,18 @@ private:
     static uint8_t numberOfServosInUse;
     static uint32_t numberOfPWMWraps;
 
-    static uint8_t numberOfSteppersInUse;
-
     static void configureGPIO(uint8_t pin, bool out, bool initialValue);
 
     void initServo(uint8_t indexNumber, const char* name, uint16_t minPulseUs,
                    uint16_t maxPulseUs, float smoothingValue, bool inverted);
 
+#if USE_STEPPERS
     void initStepper(uint8_t indexNumber, const char* name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
                      uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted);
+
+    static Stepper* steppers[MAX_NUMBER_OF_STEPPERS];
+    static uint8_t numberOfSteppersInUse;
+#endif
 
     /**
      * Map the servo index to the GPO pin to use

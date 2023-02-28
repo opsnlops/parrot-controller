@@ -37,7 +37,7 @@ public:
     bool inverted;
 };
 
-
+#if USE_STEPPERS
 class StepperConfig {
 
 public:
@@ -54,7 +54,7 @@ public:
     uint32_t sleepAfterUs;
     bool inverted;
 };
-
+#endif
 
 class CreatureConfig {
 
@@ -63,7 +63,6 @@ public:
                    uint8_t numberOfSteppers, uint16_t dmxBaseChannel);
 
     void setServoConfig(uint8_t index, ServoConfig* config);
-    void setStepperConfig(uint8_t index, StepperConfig* config);
 
     char* getName();
     uint32_t getServoFrequencyHz();
@@ -71,9 +70,11 @@ public:
     uint8_t getNumberOfServos();
     ServoConfig* getServoConfig(uint8_t servoNumber);
 
-    uint8_t getNumberOfSteppers();
+#if USE_STEPPERS
     StepperConfig* getStepperConfig(uint8_t stepperNumber);
-
+    void setStepperConfig(uint8_t index, StepperConfig* config);
+    uint8_t getNumberOfSteppers();
+#endif
 
 private:
     char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1]{};
@@ -81,8 +82,12 @@ private:
     uint32_t servoFrequencyHz;
     uint16_t dmxBaseChannel;
     uint8_t numberOfServos;
-    uint8_t numberOfSteppers;
+
     ServoConfig* servoConfigs[MAX_NUMBER_OF_SERVOS]{};
+
+#if USE_STEPPERS
+    uint8_t numberOfSteppers;
     StepperConfig* stepperConfigs[MAX_NUMBER_OF_STEPPERS]{};
+#endif
 
 };

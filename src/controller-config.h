@@ -54,6 +54,7 @@
 #define STEPPER_SPEED_2_MICROSTEPS  2           //                          ...2 microsteps
 #define STEPPER_SPEED_3_MICROSTEPS  1
 
+#define USE_STEPPERS                0
 
 
 /**

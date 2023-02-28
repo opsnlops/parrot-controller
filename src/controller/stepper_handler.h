@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#if USE_STEPPERS
+
 #include "device/stepper.h"
 
 
@@ -14,3 +16,5 @@ void inline toggle_latch();
 
 
 bool home_stepper(uint8_t slot);
+
+#endif

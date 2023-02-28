@@ -19,15 +19,16 @@ BaseType_t isrPriorityTaskWoken = pdFALSE;
 
 // Initialize the static members
 Servo *Controller::servos[MAX_NUMBER_OF_SERVOS] = {};
-Stepper *Controller::steppers[MAX_NUMBER_OF_STEPPERS] = {};
 uint8_t Controller::numberOfServosInUse = 0;
-uint8_t Controller::numberOfSteppersInUse = 0;
 uint32_t Controller::numberOfPWMWraps = 0;
 
+#if USE_STEPPERS
 
+Stepper *Controller::steppers[MAX_NUMBER_OF_STEPPERS] = {};
+uint8_t Controller::numberOfSteppersInUse = 0;
 struct repeating_timer stepper_timer;
 
-
+#endif
 
 Controller::Controller() {
 
@@ -49,9 +50,11 @@ void Controller::init(CreatureConfig *incomingConfig) {
         servo = nullptr;
     }
 
+#if USE_STEPPERS
     for (auto &stepper: steppers) {
         stepper = nullptr;
     }
+#endif
 
     // Set up the servos
     debug("building servo objects");
@@ -60,6 +63,7 @@ void Controller::init(CreatureConfig *incomingConfig) {
         initServo(i, servo->name, servo->minPulseUs, servo->maxPulseUs, servo->smoothingValue, servo->inverted);
     }
 
+#if USE_STEPPERS
     // Set up the steppers
     debug("building stepper objects");
     for (int i = 0; i < this->config->getNumberOfSteppers(); i++) {
@@ -67,6 +71,7 @@ void Controller::init(CreatureConfig *incomingConfig) {
         initStepper(i, stepper->name, stepper->maxSteps, stepper->decelerationAggressiveness,
                     stepper->sleepWakeupPauseTimeUs, stepper->sleepAfterUs, stepper->inverted);
     }
+#endif
 
     // Declare some space on the heap for our current frame buffer
     currentFrame = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * numberOfChannels);
@@ -78,6 +83,7 @@ void Controller::init(CreatureConfig *incomingConfig) {
 
     debug("setting up the stepper pins");
 
+#if USE_STEPPERS
     // Output Pins
     configureGPIO(STEPPER_STEP_PIN, true, false);
     configureGPIO(STEPPER_DIR_PIN, true, false);
@@ -100,7 +106,7 @@ void Controller::init(CreatureConfig *incomingConfig) {
     gpio_set_dir(STEPPER_END_S_HIGH_PIN, false);
 
     debug("done setting up the stepper pins");
-
+#endif
 
 }
 
@@ -187,6 +193,7 @@ void Controller::initServo(uint8_t indexNumber, const char *name, uint16_t minPu
 
 }
 
+#if USE_STEPPERS
 void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps, uint16_t decelerationAggressiveness,
                              uint32_t sleepWakeupPauseTimeUs, uint32_t sleepAfterUs, bool inverted) {
 
@@ -197,6 +204,7 @@ void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps, 
     info("controller stepper init: slot: %d, name: %s, max_steps: %d", slot, name, maxSteps);
 
 }
+#endif
 
 /**
  * Get the configuration that's currently running on the controller
@@ -218,10 +226,6 @@ uint16_t Controller::getServoPosition(uint8_t indexNumber) {
     return servos[indexNumber]->getPosition();
 }
 
-uint32_t Controller::getStepperPosition(uint8_t indexNumber) {
-    return steppers[indexNumber]->state->currentMicrostep / STEPPER_MICROSTEP_MAX;
-}
-
 void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition) {
 
     if (servos[servoIndexNumber]->getPosition() != requestedPosition) {
@@ -230,8 +234,11 @@ void Controller::requestServoPosition(uint8_t servoIndexNumber, uint16_t request
         servos[servoIndexNumber]->move(requestedPosition);
 
     }
+}
 
-
+#if USE_STEPPERS
+uint32_t Controller::getStepperPosition(uint8_t indexNumber) {
+    return steppers[indexNumber]->state->currentMicrostep / STEPPER_MICROSTEP_MAX;
 }
 
 /**
@@ -253,6 +260,7 @@ void Controller::requestStepperPosition(uint8_t stepperIndexNumber, uint32_t req
         steppers[stepperIndexNumber]->state->moveRequested = true;
     }
 }
+#endif
 
 void __isr Controller::on_pwm_wrap_handler() {
 
@@ -307,10 +315,6 @@ uint8_t Controller::getNumberOfServosInUse() {
     return numberOfServosInUse;
 }
 
-uint8_t Controller::getNumberOfSteppersInUse() {
-    return numberOfSteppersInUse;
-}
-
 uint16_t Controller::getNumberOfDMXChannels() {
     return numberOfChannels;
 }
@@ -319,9 +323,15 @@ Servo *Controller::getServo(uint8_t index) {
     return servos[index];
 }
 
+#if USE_STEPPERS
+uint8_t Controller::getNumberOfSteppersInUse() {
+    return numberOfSteppersInUse;
+}
+
 Stepper *Controller::getStepper(uint8_t index) {
     return steppers[index];
 }
+#endif
 
 portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
 
@@ -367,21 +377,19 @@ portTASK_FUNCTION(controller_motor_setup_task, pvParameters) {
 
     auto controller = (Controller *) pvParameters;
 
-
     info("---> controller motor setup running");
-
-    home_stepper(0);
-    controller->getStepper(0)->state->currentMicrostep = controller->getStepper(0)->maxMicrosteps;
-
 
     // Install the IRQ handler for the servos
     pwm_set_irq_enabled(controller->getServo(0)->getSlice(), true);
     irq_set_exclusive_handler(PWM_IRQ_WRAP, Controller::on_pwm_wrap_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
+#if USE_STEPPERS
     // Set up the stepper timer
+    home_stepper(0);
+    controller->getStepper(0)->state->currentMicrostep = controller->getStepper(0)->maxMicrosteps;
     add_repeating_timer_us(STEPPER_LOOP_PERIOD_IN_US, stepper_timer_handler, nullptr, &stepper_timer);
-
+#endif
 
     info("stopping the motor setup task");
     vTaskDelete(nullptr);
