@@ -23,12 +23,16 @@ Parrot::Parrot()
 
 CreatureConfig* Parrot::getDefaultConfig() {
 
-    auto defaultConfig = new CreatureConfig("Beaky", 50, 4, 3, 1);
+    auto defaultConfig = new CreatureConfig(CREATURE_NAME, 50, 6, 1, 1);
 
     defaultConfig->setServoConfig(SERVO_NECK_LEFT,
-                                  new ServoConfig("Neck Left", 250, 2500, 0.92, false));
+                                  new ServoConfig("Neck Left", 500, 2500, 0.92, false));
     defaultConfig->setServoConfig(SERVO_NECK_RIGHT,
-                                  new ServoConfig("Neck Right", 250, 2500, 0.92, true));
+                                  new ServoConfig("Neck Right", 500, 2500, 0.92, true));
+    defaultConfig->setServoConfig(SERVO_NECK_ROTATE,
+                                  new ServoConfig("Neck Rotate", 500, 2500, 0.95, true));
+    defaultConfig->setServoConfig(SERVO_BODY_LEAN,
+                                  new ServoConfig("Body Lean", 900, 2100, 0.93, false));
     defaultConfig->setServoConfig(SERVO_BEAK,
                                   new ServoConfig("Beak", 250, 2500, 0.4, false));
     defaultConfig->setServoConfig(SERVO_CHEST,
@@ -187,9 +191,6 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         uint8_t height = currentFrame[INPUT_HEAD_HEIGHT];
         uint8_t tilt = currentFrame[INPUT_HEAD_TILT];
 
-        // Let's inverse height so 0 = down
-        height = UCHAR_MAX - height;
-
         uint16_t headHeight = parrot->convertToHeadHeight(Parrot::convertInputValueToServoValue(height));
         int32_t headTilt = parrot->configToHeadTilt(Parrot::convertInputValueToServoValue(tilt));
 
@@ -199,6 +200,8 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
         parrot->joints[JOINT_NECK_LEFT] = headPosition.left;
         parrot->joints[JOINT_NECK_RIGHT] = headPosition.right;
+        parrot->joints[JOINT_NECK_ROTATE] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_NECK_ROTATE]);
+        parrot->joints[JOINT_BODY_LEAN] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BODY_LEAN]);
         parrot->joints[JOINT_BEAK] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_BEAK]);
         parrot->joints[JOINT_CHEST] = Parrot::convertInputValueToServoValue(currentFrame[INPUT_CHEST]);
 
@@ -225,6 +228,8 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         // Request these positions from the controller
         controller->requestServoPosition(SERVO_NECK_LEFT,parrot->joints[JOINT_NECK_LEFT]);
         controller->requestServoPosition(SERVO_NECK_RIGHT,parrot->joints[JOINT_NECK_RIGHT]);
+        controller->requestServoPosition(SERVO_NECK_ROTATE,parrot->joints[JOINT_NECK_ROTATE]);
+        controller->requestServoPosition(SERVO_BODY_LEAN,parrot->joints[JOINT_BODY_LEAN]);
         controller->requestServoPosition(SERVO_BEAK,parrot->joints[JOINT_BEAK]);
         controller->requestServoPosition(SERVO_CHEST,parrot->joints[JOINT_CHEST]);
 

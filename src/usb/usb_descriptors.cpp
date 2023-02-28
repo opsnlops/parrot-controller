@@ -34,7 +34,7 @@
 
 
 #define USB_VID                     0x0666
-#define USB_PID                     0x0001
+#define USB_PID                     0x0002
 #define USB_BCD                     0x0200
 
 #define USB_MANUFACTURER_INDEX      0x01
@@ -170,7 +170,7 @@ char const *string_desc_arr[] =
         {
                 (const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
                 "Ops 'n Lops",                     // 1: Manufacturer
-                "Creature Controller",              // 2: Product
+                CREATURE_NAME,              // 2: Product
                 nullptr,                           // Figured out at runtime (serial number)
                 "Debug Console"
         };

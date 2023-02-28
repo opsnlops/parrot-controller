@@ -5,6 +5,9 @@
 * Main configuration for the controller
 */
 
+#define CREATURE_NAME           "Beaky"
+
+
 // Just because it's funny
 #define EVER ;;
 
