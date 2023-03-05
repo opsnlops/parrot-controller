@@ -8,6 +8,7 @@
 #include "tasks.h"
 #include "logging/logging.h"
 #include "util/fast_hsv2rgb.h"
+#include "util/ranges.h"
 
 
 /*
@@ -103,7 +104,11 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
     bool ioActive = false;
 
 
-    uint32_t runningLightColor = rand();
+    uint32_t dmxLightColor = 0;
+    uint32_t runningLightColor = 0;
+    uint32_t motorLightColor[MAX_NUMBER_OF_SERVOS + MAX_NUMBER_OF_STEPPERS] = {0};
+    for(unsigned long & i : motorLightColor)
+        i = 0;
 
 
     uint64_t lastServoFrame[MAX_NUMBER_OF_SERVOS + MAX_NUMBER_OF_STEPPERS] = {0};
@@ -113,6 +118,9 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
     uint16_t currentLightState[MAX_NUMBER_OF_SERVOS + MAX_NUMBER_OF_STEPPERS] = {0};
     for (unsigned short &i: currentLightState)
         i = 0;
+
+
+    uint8_t r, g, b;
 
 
 #pragma clang diagnostic push
@@ -140,7 +148,7 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
                 lastIOFrame = frame;
             }
 
-            statusLights->put_pixel(StatusLights::urgb_u32(0, 255, 0));
+            dmxLightColor = StatusLights::urgb_u32(0, 255, 0);
 
             if (!ioActive) {
                 info("Now receiving data from the IO handler");
@@ -148,7 +156,7 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
             }
         } else {
             // We haven't heard from the IO handler, so set it red
-            statusLights->put_pixel(StatusLights::urgb_u32(255, 0, 0));
+            dmxLightColor = StatusLights::urgb_u32(255, 0, 0);
 
             if (ioActive) {
                 warning("Not getting data from the IO handler!");
@@ -161,11 +169,8 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
         /*
          * The second light is an "is running" light, so let's just change color
          */
-        if (frame % 33 == 0) {
-            runningLightColor = rand();
-        }
-        statusLights->put_pixel(runningLightColor);
-
+        fast_hsv2rgb_32bit(frame % HSV_HUE_MAX, 255, 50, &r, &g, &b);
+        runningLightColor = StatusLights::urgb_u32(r, g, b);
 
         /*
          * The rest of the lights are the status of the motors
@@ -185,15 +190,36 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
             // If we should be on, what color?
             if (lastServoFrame[currentServo] + STATUS_LIGHTS_MOTOR_OFF_FRAMES > frame) {
 
-                // Current Position is 10 bit, let's convert it to 8
-                uint16_t color = (currentPosition >> 2);
-                statusLights->put_pixel(StatusLights::urgb_u32(color, 255 - color, 0));
+                // Convert the position to a hue
+                uint16_t hue = convertRange(currentPosition,
+                                            MIN_POSITION,
+                                            MAX_POSITION,
+                                            HSV_HUE_MIN,
+                                            HSV_HUE_MAX);
+
+                // Dim slowly until we've hit the limit for when we'd turn off
+                uint8_t brightness = convertRange(frame - lastServoFrame[currentServo],
+                                                  0,
+                                                  STATUS_LIGHTS_MOTOR_OFF_FRAMES,
+                                                  0,
+                                                  255);
+                brightness = 255 - brightness;
+
+                fast_hsv2rgb_32bit(hue, 255, brightness, &r, &g, &b);
+                motorLightColor[currentServo] = StatusLights::urgb_u32(r, g, b);
 
             } else {
 
                 // Just turn off
-                statusLights->put_pixel(0);
+                motorLightColor[currentServo] = 0;
             }
+        }
+
+        // Now write out the colors of the lights in one big chunk
+        statusLights->put_pixel(dmxLightColor);
+        statusLights->put_pixel(runningLightColor);
+        for(uint8_t i = 0; i < Controller::getNumberOfServosInUse(); i++) {
+            statusLights->put_pixel(motorLightColor[i]);
         }
 
 
