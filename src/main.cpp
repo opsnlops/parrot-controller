@@ -14,6 +14,7 @@
 #include "controller/controller.h"
 #include "logging/logging.h"
 #include "device/display.h"
+#include "device/status_lights.h"
 #include "io/dmx.h"
 #include "io/handler.h"
 #include "shell/shell.h"
@@ -57,12 +58,16 @@ int main() {
     auto *shell = new DebugShell(parrot, controller, io);
     shell->init();
 
+    auto *statusLights = new StatusLights(controller, io);
+    statusLights->init();
+
     // Start the things running!
     controller->start();
     display->start();
     parrot->start();
     io->start();
     shell->start();
+    statusLights->start();
 
     // Let the controller know how to find the creature worker task
     controller->setCreatureWorkerTaskHandle(parrot->getWorkerTaskHandle());

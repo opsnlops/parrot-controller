@@ -19,6 +19,7 @@ include(Pico-DMX/interfaceLibForPicoSDK.cmake)
 # Set up our includes
 include_directories(
         src/
+        generated/
         )
 
 # Our source files
@@ -39,8 +40,11 @@ add_executable(controller
         )
 
 # PIO-based UART from the Pico examples
-pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_rx.pio)
-pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_tx.pio)
+pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_rx.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
+pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/io/uart_tx.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
+
+# PIO-base NeoPixel control 😍
+pico_generate_pio_header(controller ${CMAKE_CURRENT_LIST_DIR}/src/device/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
 
 target_include_directories(controller PRIVATE
         .

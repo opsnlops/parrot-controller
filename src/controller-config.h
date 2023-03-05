@@ -25,9 +25,20 @@
 #define E_STOP_PIN                  28
 #define DMX_GPIO_PIN                22
 
+// The NeoPixel status lights
+#define STATUS_LIGHTS_PIN           5
+#define STATUS_LIGHTS_TIME_MS       20
+#define STATUS_LIGHTS_PIO           pio1
+#define STATUS_LIGHTS_IS_RGBW       false
+
+// How many frames do we have to go before we decide there's no IO
+#define STATUS_LIGHTS_IO_RESPONSIVENESS 10
+
+// How many frames should we wait to turn off a motor's light?
+#define STATUS_LIGHTS_MOTOR_OFF_FRAMES  100
+
 
 // Stepper
-
 #define STEPPER_LOOP_PERIOD_IN_US   1000        // The A3967 wants 1us pluses at a min
 
 #define STEPPER_MUX_BITS            3
@@ -40,7 +51,6 @@
 #define STEPPER_A2_PIN              20
 #define STEPPER_LATCH_PIN           21
 #define STEPPER_SLEEP_PIN           4
-#define STEPPER_FAULT_PIN           5
 #define STEPPER_END_S_LOW_PIN       14
 #define STEPPER_END_S_HIGH_PIN      15
 

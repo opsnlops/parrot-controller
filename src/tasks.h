@@ -18,5 +18,7 @@ portTASK_FUNCTION_PROTO(log_queue_reader_task, pvParameters);           // used 
 portTASK_FUNCTION_PROTO(dmx_processing_task, pvParameters);             // used in io/dmx.cpp
 portTASK_FUNCTION_PROTO(creature_worker_task, pvParameters);            // used by the creature
 portTASK_FUNCTION_PROTO(controller_housekeeper_task, pvParameters);     // used by the controller
+portTASK_FUNCTION_PROTO(status_lights_task, pvParameters);              // used by the status lights
+
 
 portTASK_FUNCTION_PROTO(controller_motor_setup_task, pvParameters);     // used by the controller
