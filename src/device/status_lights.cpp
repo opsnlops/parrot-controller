@@ -7,6 +7,7 @@
 
 #include "tasks.h"
 #include "logging/logging.h"
+#include "util/fast_hsv2rgb.h"
 
 
 /*

@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "creature/config.h"
+#include "util/ranges.h"
 
 #include "parrot.h"
 #include "creature.h"
@@ -12,7 +13,7 @@ Parrot::Parrot()
         : Creature() {
 
     // Calculate the head offset max
-    this->headOffsetMax = lround((double)(MAX_POSITION - MIN_POSITION) * (double)HEAD_OFFSET_MAX);
+    this->headOffsetMax = lround((double) (MAX_POSITION - MIN_POSITION) * (double) HEAD_OFFSET_MAX);
     debug("the head offset max is %d", this->headOffsetMax);
 
     this->numberOfServos = 4;
@@ -21,7 +22,7 @@ Parrot::Parrot()
     info("Bawk!");
 }
 
-CreatureConfig* Parrot::getDefaultConfig() {
+CreatureConfig *Parrot::getDefaultConfig() {
 
     auto defaultConfig = new CreatureConfig(CREATURE_NAME, 50, 6, 1, 1);
 
@@ -92,7 +93,7 @@ void Parrot::init(Controller *controller) {
     this->numberOfJoints = 7;
 
     // Initialize the array on for the joints on the heap
-    this->joints = (uint16_t*) pvPortMalloc(sizeof(uint16_t) * numberOfJoints);
+    this->joints = (uint16_t *) pvPortMalloc(sizeof(uint16_t) * numberOfJoints);
 }
 
 void Parrot::start() {
@@ -101,15 +102,15 @@ void Parrot::start() {
     assert(this->controller != nullptr);
 
     // Declare this on the heap, so it lasts once start() goes out of scope
-    auto info = (ParrotInfo*)pvPortMalloc(sizeof(ParrotInfo));
+    auto info = (ParrotInfo *) pvPortMalloc(sizeof(ParrotInfo));
     info->controller = this->controller;
-    info->parrot= this;
+    info->parrot = this;
 
     // Fire off our worker task
     xTaskCreate(creature_worker_task,
                 "creature_worker_task",
                 2048,
-                (void*)info,
+                (void *) info,
                 1,
                 &workerTaskHandle);
 
@@ -118,21 +119,21 @@ void Parrot::start() {
 
 uint16_t Parrot::convertToHeadHeight(uint16_t y) {
 
-    return Parrot::convertRange(y,
-                                MIN_POSITION,
-                                MAX_POSITION,
-                                MIN_POSITION + (this->headOffsetMax / 2),
-                                MAX_POSITION - (this->headOffsetMax / 2));
+    return convertRange(y,
+                        MIN_POSITION,
+                        MAX_POSITION,
+                        MIN_POSITION + (this->headOffsetMax / 2),
+                        MAX_POSITION - (this->headOffsetMax / 2));
 
 }
 
 int32_t Parrot::configToHeadTilt(uint16_t x) {
 
-    return Parrot::convertRange(x,
-                                MIN_POSITION,
-                                MAX_POSITION,
-                               1 - (this->headOffsetMax / 2),
-                               this->headOffsetMax / 2);
+    return convertRange(x,
+                        MIN_POSITION,
+                        MAX_POSITION,
+                        1 - (this->headOffsetMax / 2),
+                        this->headOffsetMax / 2);
 }
 
 
@@ -162,17 +163,17 @@ head_position_t Parrot::calculateHeadPosition(uint16_t height, int32_t offset) {
  */
 portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
-    auto info = (ParrotInfo*)pvParameters;
-    Controller* controller = info->controller;
-    Parrot* parrot = info->parrot;
+    auto info = (ParrotInfo *) pvParameters;
+    Controller *controller = info->controller;
+    Parrot *parrot = info->parrot;
 
     // And give this small amount of memory back! :)
     vPortFree(info);
 
     uint32_t ulNotifiedValue;
-    uint8_t* currentFrame;
+    uint8_t *currentFrame;
     uint8_t numberOfJoints = parrot->getNumberOfJoints();
-    CreatureConfig* runningConfig;
+    CreatureConfig *runningConfig;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -226,12 +227,12 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         */
 
         // Request these positions from the controller
-        controller->requestServoPosition(SERVO_NECK_LEFT,parrot->joints[JOINT_NECK_LEFT]);
-        controller->requestServoPosition(SERVO_NECK_RIGHT,parrot->joints[JOINT_NECK_RIGHT]);
-        controller->requestServoPosition(SERVO_NECK_ROTATE,parrot->joints[JOINT_NECK_ROTATE]);
-        controller->requestServoPosition(SERVO_BODY_LEAN,parrot->joints[JOINT_BODY_LEAN]);
-        controller->requestServoPosition(SERVO_BEAK,parrot->joints[JOINT_BEAK]);
-        controller->requestServoPosition(SERVO_CHEST,parrot->joints[JOINT_CHEST]);
+        controller->requestServoPosition(SERVO_NECK_LEFT, parrot->joints[JOINT_NECK_LEFT]);
+        controller->requestServoPosition(SERVO_NECK_RIGHT, parrot->joints[JOINT_NECK_RIGHT]);
+        controller->requestServoPosition(SERVO_NECK_ROTATE, parrot->joints[JOINT_NECK_ROTATE]);
+        controller->requestServoPosition(SERVO_BODY_LEAN, parrot->joints[JOINT_BODY_LEAN]);
+        controller->requestServoPosition(SERVO_BEAK, parrot->joints[JOINT_BEAK]);
+        controller->requestServoPosition(SERVO_CHEST, parrot->joints[JOINT_CHEST]);
 
         //controller->requestStepperPosition(STEPPER_NECK_ROTATE, parrot->joints[JOINT_NECK_ROTATE]);
         //controller->requestStepperPosition(STEPPER_BODY_LEAN, parrot->joints[JOINT_BODY_LEAN]);

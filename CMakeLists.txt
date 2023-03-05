@@ -32,6 +32,7 @@ file(GLOB sourceFiles
         src/logging/*
         src/shell/*
         src/usb/*
+        src/util/*
         )
 
 add_executable(controller
