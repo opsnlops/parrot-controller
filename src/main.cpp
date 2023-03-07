@@ -13,7 +13,11 @@
 #include "creature/parrot.h"
 #include "controller/controller.h"
 #include "logging/logging.h"
+
+#if DISPLAY_ENABLED
 #include "device/display.h"
+#endif
+
 #include "device/status_lights.h"
 #include "io/dmx.h"
 #include "io/handler.h"
@@ -52,8 +56,10 @@ int main() {
 
     parrot->init(controller);
 
+#if DISPLAY_ENABLED
     auto *display = new Display(controller, io);
     display->init();
+#endif
 
     auto *shell = new DebugShell(parrot, controller, io);
     shell->init();
@@ -63,11 +69,15 @@ int main() {
 
     // Start the things running!
     controller->start();
-    display->start();
+
     parrot->start();
     io->start();
     shell->start();
     statusLights->start();
+
+#if DISPLAY_ENABLED
+    display->start();
+#endif
 
     // Let the controller know how to find the creature worker task
     controller->setCreatureWorkerTaskHandle(parrot->getWorkerTaskHandle());
@@ -76,7 +86,6 @@ int main() {
 
     // Turn the power on to the servos
     controller->powerOn();
-
 
     board_init();
     start_usb_tasks();
