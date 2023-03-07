@@ -82,7 +82,38 @@ void StatusLights::start() {
 
 
 
+/**
+ * @brief Returns the requested step in a fade between two hues
+ *
+ * This was taken from my old seconds ring clock like what's in the family room :)
+ *
+ * @param oldColor Starting hue
+ * @param newColor Finishing hue
+ * @param totalSteps How many steps are we fading
+ * @param currentStep Which one to get
+ * @return uint16_t The hue requested
+ */
+uint16_t StatusLights::interpolateHue(uint16_t oldHue, uint16_t newHue, uint8_t totalSteps, uint8_t currentStep)
+{
+    // How much is each step?
+    uint16_t differentialStep = (newHue - oldHue) / totalSteps;
 
+    uint16_t stepHue = oldHue + (differentialStep * currentStep);
+    verbose("old: %u, new: %u, differential: %u, current: %u", oldHue, newHue, differentialStep, stepHue);
+
+    return stepHue;
+}
+
+
+uint16_t StatusLights::getNextColor(uint16_t oldColor) {
+
+    // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+    uint32_t tempColor = oldColor + GOLDEN_RATIO_CONJUGATE;
+    tempColor = tempColor %= HSV_HUE_MAX;
+
+    verbose("new hue is: %u", tempColor);
+    return tempColor;
+}
 
 // Read from the queue and print it to the screen for now
 portTASK_FUNCTION(status_lights_task, pvParameters) {
@@ -106,6 +137,13 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
 
     uint32_t dmxLightColor = 0;
     uint32_t runningLightColor = 0;
+
+
+    uint16_t runningLightHue = rand() * USHRT_MAX;
+    uint16_t oldHue = runningLightHue;
+    uint16_t runningLightFadeStep = 0;
+
+
     uint32_t motorLightColor[MAX_NUMBER_OF_SERVOS + MAX_NUMBER_OF_STEPPERS] = {0};
     for(unsigned long & i : motorLightColor)
         i = 0;
@@ -169,8 +207,18 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
         /*
          * The second light is an "is running" light, so let's just change color
          */
-        fast_hsv2rgb_32bit(frame % HSV_HUE_MAX, 255, 50, &r, &g, &b);
+        fast_hsv2rgb_32bit(StatusLights::interpolateHue(oldHue, runningLightHue, STATUS_LIGHTS_RUNNING_FRAME_CHANGE,
+                                                        runningLightFadeStep++), 255, STATUS_LIGHTS_RUNNING_BRIGHTNESS, &r, &g, &b);
         runningLightColor = StatusLights::urgb_u32(r, g, b);
+
+        if(runningLightFadeStep > STATUS_LIGHTS_RUNNING_FRAME_CHANGE)
+        {
+            oldHue = runningLightHue;
+            runningLightHue = StatusLights::getNextColor(runningLightHue);
+            runningLightFadeStep = 0;
+        }
+
+
 
         /*
          * The rest of the lights are the status of the motors

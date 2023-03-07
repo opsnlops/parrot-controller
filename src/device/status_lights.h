@@ -4,6 +4,11 @@
 
 #include "logging/logging.h"
 #include "controller/controller.h"
+#include "util/fast_hsv2rgb.h"
+
+
+// This is 0.618033988749895
+#define GOLDEN_RATIO_CONJUGATE (0.618033988749895 * HSV_HUE_MAX)
 
 class StatusLights {
 
@@ -21,6 +26,9 @@ public:
 
     uint32_t last_input_frame;
 
+    static uint16_t interpolateHue(uint16_t oldHue, uint16_t newHue, uint8_t totalSteps, uint8_t currentStep);
+
+    static uint16_t getNextColor(uint16_t oldColor);
 
     Controller* getController();
     IOHandler* getIOHandler();

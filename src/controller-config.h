@@ -37,6 +37,9 @@
 // How many frames should we wait to turn off a motor's light?
 #define STATUS_LIGHTS_MOTOR_OFF_FRAMES  100
 
+#define STATUS_LIGHTS_RUNNING_BRIGHTNESS    35
+#define STATUS_LIGHTS_RUNNING_FRAME_CHANGE  20
+
 
 // Stepper
 #define STEPPER_LOOP_PERIOD_IN_US   1000        // The A3967 wants 1us pluses at a min
