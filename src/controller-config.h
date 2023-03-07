@@ -37,6 +37,7 @@
 // How many frames should we wait to turn off a motor's light?
 #define STATUS_LIGHTS_MOTOR_OFF_FRAMES  100
 
+#define STATUS_LIGHTS_DMX_STATUS_BRIGHTNESS 30
 #define STATUS_LIGHTS_RUNNING_BRIGHTNESS    35
 #define STATUS_LIGHTS_RUNNING_FRAME_CHANGE  20
 

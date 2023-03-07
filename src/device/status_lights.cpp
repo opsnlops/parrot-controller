@@ -126,6 +126,8 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
     // What frame are we on?
     uint64_t frame = 0;
 
+    // Holding place for color mixing
+    uint8_t r, g, b;
 
     uint32_t currentIOFrameNumber = 0;
     uint32_t lastIOFrameNumber = 0;
@@ -157,8 +159,12 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
     for (unsigned short &i: currentLightState)
         i = 0;
 
+    // Pre-compute the colors for the DMX status light
+    fast_hsv2rgb_32bit( 1306, 255, STATUS_LIGHTS_DMX_STATUS_BRIGHTNESS, &r, &g, &b);
+    uint32_t dmxConnectedColor = StatusLights::urgb_u32(r, g, b);
 
-    uint8_t r, g, b;
+    fast_hsv2rgb_32bit(311, 255, STATUS_LIGHTS_DMX_STATUS_BRIGHTNESS, &r, &g, &b);
+    uint32_t dmxDisconnectedColor = StatusLights::urgb_u32(r, g, b);
 
 
 #pragma clang diagnostic push
@@ -186,7 +192,7 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
                 lastIOFrame = frame;
             }
 
-            dmxLightColor = StatusLights::urgb_u32(0, 255, 0);
+            dmxLightColor = dmxConnectedColor;
 
             if (!ioActive) {
                 info("Now receiving data from the IO handler");
@@ -194,7 +200,7 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
             }
         } else {
             // We haven't heard from the IO handler, so set it red
-            dmxLightColor = StatusLights::urgb_u32(255, 0, 0);
+            dmxLightColor = dmxDisconnectedColor;
 
             if (ioActive) {
                 warning("Not getting data from the IO handler!");
@@ -205,10 +211,13 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
 
 
         /*
-         * The second light is an "is running" light, so let's just change color
+         * The second light is an "is running" light, so let's smoothly fade between random colors
          */
-        fast_hsv2rgb_32bit(StatusLights::interpolateHue(oldHue, runningLightHue, STATUS_LIGHTS_RUNNING_FRAME_CHANGE,
-                                                        runningLightFadeStep++), 255, STATUS_LIGHTS_RUNNING_BRIGHTNESS, &r, &g, &b);
+        fast_hsv2rgb_32bit(StatusLights::interpolateHue(oldHue,
+                                                        runningLightHue,
+                                                        STATUS_LIGHTS_RUNNING_FRAME_CHANGE,
+                                                        runningLightFadeStep++),
+                           255, STATUS_LIGHTS_RUNNING_BRIGHTNESS, &r, &g, &b);
         runningLightColor = StatusLights::urgb_u32(r, g, b);
 
         if(runningLightFadeStep > STATUS_LIGHTS_RUNNING_FRAME_CHANGE)
@@ -223,7 +232,6 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
         /*
          * The rest of the lights are the status of the motors
          */
-
         for (uint8_t currentServo = 0; currentServo < Controller::getNumberOfServosInUse(); currentServo++) {
 
             uint16_t currentPosition = Controller::getServo(currentServo)->getPosition();
@@ -270,7 +278,7 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
             statusLights->put_pixel(motorLightColor[i]);
         }
 
-
+        // Wait till it's time go again
         vTaskDelayUntil(&lastDrawTime, pdMS_TO_TICKS(STATUS_LIGHTS_TIME_MS));
     }
 #pragma clang diagnostic pop
