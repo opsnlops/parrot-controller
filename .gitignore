@@ -4,3 +4,4 @@ build/
 generated/
 pico-ssd1306
 Pico-DMX
+.DS_Store/
