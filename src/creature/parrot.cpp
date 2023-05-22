@@ -22,9 +22,9 @@ Parrot::Parrot()
     info("Bawk!");
 }
 
-std::shared_ptr<CreatureConfig> Parrot::getDefaultConfig() {
+CreatureConfig* Parrot::getDefaultConfig() {
 
-    auto defaultConfig = std::make_shared<CreatureConfig>(CREATURE_NAME, 50, 6, 1, 1);
+    auto defaultConfig = new CreatureConfig(CREATURE_NAME, 50, 6, 1, 1);
 
     defaultConfig->setServoConfig(SERVO_NECK_LEFT,
                                   new ServoConfig("Neck Left", 500, 2500, 0.92, false));
@@ -86,7 +86,7 @@ std::shared_ptr<CreatureConfig> Parrot::getDefaultConfig() {
 
 }
 
-void Parrot::init(std::shared_ptr<Controller> controller) {
+void Parrot::init(Controller* controller) {
     debug("starting creature init");
 
     this->controller = controller;
@@ -164,7 +164,7 @@ head_position_t Parrot::calculateHeadPosition(uint16_t height, int32_t offset) {
 portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
     auto info = (ParrotInfo *) pvParameters;
-    std::shared_ptr<Controller> controller = info->controller;
+    Controller* controller = info->controller;
     Parrot *parrot = info->parrot;
 
     // And give this small amount of memory back! :)
@@ -173,7 +173,7 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
     uint32_t ulNotifiedValue;
     uint8_t *currentFrame;
     uint8_t numberOfJoints = parrot->getNumberOfJoints();
-    std::shared_ptr<CreatureConfig> runningConfig;
+    CreatureConfig* runningConfig;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -187,6 +187,13 @@ portTASK_FUNCTION(creature_worker_task, pvParameters) {
         // Fetch the current frame and configuration
         currentFrame = controller->getCurrentFrame();
         runningConfig = parrot->getRunningConfig();
+
+#if DEBUG_CREATURE_POSITIONING
+
+        debug("Raw: %u", currentFrame[5]);
+
+#endif
+
 
 
         uint8_t height = currentFrame[INPUT_HEAD_HEIGHT];

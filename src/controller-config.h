@@ -125,3 +125,5 @@
 #define SERVO_5_GPIO_PIN            11              // Pin 15, PWM  5B
 #define SERVO_6_GPIO_PIN            12              // Pin 16, PWM  6A
 #define SERVO_7_GPIO_PIN            13              // Pin 17, PWM  6B
+
+#define DEBUG_CREATURE_POSITIONING  0

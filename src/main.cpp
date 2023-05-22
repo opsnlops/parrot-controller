@@ -38,10 +38,10 @@ int main() {
     debug("Logging running!");
 
     //std::shared_ptr<Parrot> parrot = std::make_unique<Parrot>();
-    auto parrot = std::make_shared<Parrot>();
+    auto parrot = new Parrot();
 
     // Bring up the controller
-    auto controller = std::make_shared<Controller>();
+    auto controller = new Controller();
 
     // Load the config! For now, since we don't have a way to store the config somewhere, let's
     // just use the default

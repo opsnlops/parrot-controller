@@ -25,7 +25,7 @@ TaskHandle_t Creature::getWorkerTaskHandle() {
     return workerTaskHandle;
 }
 
-void Creature::init(std::shared_ptr<Controller> c) {
+void Creature::init(Controller* c) {
     this->controller = c;
 
     debug("init done, controller exists");
@@ -45,7 +45,7 @@ uint16_t Creature::convertInputValueToServoValue(uint8_t inputValue) {
     return servoValue;
 }
 
-std::shared_ptr<CreatureConfig> Creature::getRunningConfig() {
+CreatureConfig* Creature::getRunningConfig() {
     return runningConfig;
 }
 

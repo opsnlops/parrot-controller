@@ -26,7 +26,7 @@ public:
     /**
      * Set up the controller
      */
-    virtual void init(std::shared_ptr<Controller> controller) = 0;
+    virtual void init(Controller* controller) = 0;
 
     /**
      * Start running!
@@ -38,14 +38,14 @@ public:
      *
      * @return a non-customized configuration for this creature
      */
-    virtual std::shared_ptr<CreatureConfig> getDefaultConfig() = 0;
+    virtual CreatureConfig* getDefaultConfig() = 0;
 
     /**
      * Get the "running" config in the Cisco IOS sense
      *
      * @return a pointer to our running config
      */
-    std::shared_ptr<CreatureConfig> getRunningConfig();
+    CreatureConfig* getRunningConfig();
 
     /**
      * Returns a task to be notified when there is a new frame to process
@@ -78,14 +78,14 @@ public:
 
 protected:
 
-    std::shared_ptr<Controller> controller;
+    Controller* controller;
     TaskHandle_t workerTaskHandle;
 
     uint8_t numberOfServos;
     uint8_t numberOfJoints;
 
     // This is the config that we're currently using. "Running" in the Cisco sense.
-    std::shared_ptr<CreatureConfig> runningConfig;
+    CreatureConfig* runningConfig;
 
 #if USE_STEPPERS
     uint8_t numberOfSteppers;

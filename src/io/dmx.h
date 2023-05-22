@@ -14,7 +14,7 @@
 
 // Used to pass information into the task
 typedef struct {
-    std::shared_ptr<Controller> controller;
+    Controller* controller;
     uint16_t baseChannel;
     uint16_t numberOfChannels;
     volatile uint8_t*    dmx_buffer;
@@ -25,7 +25,7 @@ class DMX : public IOHandler {
 
 public:
 
-    explicit DMX(std::shared_ptr<Controller> controller);
+    explicit DMX(Controller* controller);
 
     int init() override;
     int start() override;
@@ -44,7 +44,7 @@ private:
     uint16_t numberOfChannels;
 
     DmxInput dmx_input;
-    std::shared_ptr<Controller> controller;
+    Controller* controller;
 
     PIO pio;
 

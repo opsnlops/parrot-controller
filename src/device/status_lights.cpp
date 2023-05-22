@@ -26,7 +26,7 @@
 // Located in tasks.cpp
 extern TaskHandle_t status_lights_task_handle;
 
-StatusLights::StatusLights(std::shared_ptr<Controller> controller, IOHandler *io) {
+StatusLights::StatusLights(Controller* controller, IOHandler *io) {
 
     this->controller = controller;
     this->io = io;
@@ -50,7 +50,7 @@ inline uint32_t StatusLights::urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 
-std::shared_ptr<Controller> StatusLights::getController() {
+Controller* StatusLights::getController() {
     return this->controller;
 }
 

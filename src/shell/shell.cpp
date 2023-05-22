@@ -1,6 +1,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <utility>
 
 
 #include <FreeRTOS.h>
@@ -28,7 +29,7 @@ QueueHandle_t debug_shell_incoming_keys;
 
 bool volatile log_to_shell = false;
 
-DebugShell::DebugShell(std::shared_ptr<Creature> creature, std::shared_ptr<Controller> controller, IOHandler *io) {
+DebugShell::DebugShell(Creature* creature, Controller* controller, IOHandler *io) {
 
     debug("created the debug shell");
 
@@ -68,11 +69,11 @@ uint8_t DebugShell::start() {
     return 0;
 }
 
-std::shared_ptr<Creature> DebugShell::getCreature() {
+Creature* DebugShell::getCreature() {
     return creature;
 }
 
-std::shared_ptr<Controller> DebugShell::getController() {
+Controller* DebugShell::getController() {
     return controller;
 }
 
@@ -80,7 +81,7 @@ IOHandler *DebugShell::getIOHandler() {
     return io;
 }
 
-std::shared_ptr<CreatureConfig> DebugShell::getConfig() {
+CreatureConfig* DebugShell::getConfig() {
     return config;
 }
 

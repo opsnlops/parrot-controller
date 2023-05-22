@@ -13,7 +13,7 @@
 class StatusLights {
 
 public:
-    StatusLights(std::shared_ptr<Controller> controller, IOHandler* io);
+    StatusLights(Controller* controller, IOHandler* io);
 
     void init();
     void start();
@@ -30,12 +30,12 @@ public:
 
     static uint16_t getNextColor(uint16_t oldColor);
 
-    std::shared_ptr<Controller> getController();
+    Controller* getController();
     IOHandler* getIOHandler();
 
 private:
 
-    std::shared_ptr<Controller> controller;
+    Controller* controller;
     IOHandler* io;
 
 };

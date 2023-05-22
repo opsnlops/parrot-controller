@@ -36,14 +36,14 @@
 
 
 // Input mapping. Defines which axis is each
-#define INPUT_HEAD_HEIGHT   7
-#define INPUT_HEAD_TILT     6
-#define INPUT_NECK_ROTATE   8
-#define INPUT_BODY_LEAN     3
+#define INPUT_HEAD_HEIGHT   1
+#define INPUT_HEAD_TILT     0
+#define INPUT_NECK_ROTATE   2
+#define INPUT_BODY_LEAN     5
 
-#define INPUT_BEAK          0
-#define INPUT_CHEST         2
-#define INPUT_STAND_ROTATE  1
+#define INPUT_BEAK          6
+#define INPUT_CHEST         3
+#define INPUT_STAND_ROTATE  4
 
 
 
@@ -61,8 +61,8 @@ public:
 
     explicit Parrot();
 
-    std::shared_ptr<CreatureConfig> getDefaultConfig() override;
-    void init(std::shared_ptr<Controller> controller) override;
+    CreatureConfig* getDefaultConfig() override;
+    void init(Controller* controller) override;
     void start() override;
 
     /**
@@ -92,7 +92,7 @@ private:
  * Used for passing information into our task
  */
 typedef struct {
-    std::shared_ptr<Controller> controller;
+    Controller* controller;
     uint16_t* joints;
     Parrot* parrot;
 } ParrotInfo;
