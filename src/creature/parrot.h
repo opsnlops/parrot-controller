@@ -61,7 +61,7 @@ public:
 
     explicit Parrot();
 
-    CreatureConfig* getDefaultConfig() override;
+    std::shared_ptr<CreatureConfig> getDefaultConfig() override;
     void init(std::shared_ptr<Controller> controller) override;
     void start() override;
 
@@ -70,7 +70,7 @@ public:
      * @param y the y coordinate
      * @return head height
      */
-    uint16_t convertToHeadHeight(uint16_t y);
+    uint16_t convertToHeadHeight(uint16_t y) const;
 
 
     /**
@@ -78,9 +78,9 @@ public:
      * @param x the x axis
      * @return head tilt
      */
-    int32_t configToHeadTilt(uint16_t x);
+    int32_t configToHeadTilt(uint16_t x) const;
 
-    head_position_t calculateHeadPosition(uint16_t height, int32_t offset);
+    static head_position_t calculateHeadPosition(uint16_t height, int32_t offset);
 
 private:
 

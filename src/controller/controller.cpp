@@ -40,7 +40,7 @@ Controller::Controller() {
 
 }
 
-void Controller::init(CreatureConfig *incomingConfig) {
+void Controller::init(std::shared_ptr<CreatureConfig> incomingConfig) {
 
     this->config = incomingConfig;
     this->numberOfChannels = DMX_NUMBER_OF_CHANNELS;
@@ -214,7 +214,7 @@ void Controller::initStepper(uint8_t slot, const char *name, uint32_t maxSteps, 
  *
  * @return a pointer to our configuration
  */
-CreatureConfig *Controller::getRunningConfig() {
+std::shared_ptr<CreatureConfig> Controller::getRunningConfig() {
     return config;
 }
 

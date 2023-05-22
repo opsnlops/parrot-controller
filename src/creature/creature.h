@@ -38,14 +38,14 @@ public:
      *
      * @return a non-customized configuration for this creature
      */
-    virtual CreatureConfig* getDefaultConfig() = 0;
+    virtual std::shared_ptr<CreatureConfig> getDefaultConfig() = 0;
 
     /**
      * Get the "running" config in the Cisco IOS sense
      *
      * @return a pointer to our running config
      */
-    CreatureConfig* getRunningConfig();
+    std::shared_ptr<CreatureConfig> getRunningConfig();
 
     /**
      * Returns a task to be notified when there is a new frame to process
@@ -85,7 +85,7 @@ protected:
     uint8_t numberOfJoints;
 
     // This is the config that we're currently using. "Running" in the Cisco sense.
-    CreatureConfig* runningConfig;
+    std::shared_ptr<CreatureConfig> runningConfig;
 
 #if USE_STEPPERS
     uint8_t numberOfSteppers;

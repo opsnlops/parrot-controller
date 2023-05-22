@@ -25,14 +25,14 @@ public:
     std::shared_ptr<Creature> getCreature();
     std::shared_ptr<Controller> getController();
     IOHandler* getIOHandler();
-    CreatureConfig* getConfig();
+    std::shared_ptr<CreatureConfig> getConfig();
 
 private:
 
     std::shared_ptr<Creature> creature;
     std::shared_ptr<Controller> controller;
     IOHandler* io;
-    CreatureConfig* config;
+    std::shared_ptr<CreatureConfig> config;
 
 };
 

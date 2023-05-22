@@ -1,6 +1,6 @@
 
-#include <cstdio>
 #include <climits>
+#include <utility>
 
 #include "controller-config.h"
 
@@ -17,7 +17,7 @@ extern TaskHandle_t dmx_processing_task_handle;
 DMX::DMX(std::shared_ptr<Controller> controller) {
     inputPin = 0;
     messagesProcessed = 0;
-    this->controller = controller;
+    this->controller = std::move(controller);
     debug("new DMX just dropped");
 }
 

@@ -45,7 +45,7 @@ uint16_t Creature::convertInputValueToServoValue(uint8_t inputValue) {
     return servoValue;
 }
 
-CreatureConfig* Creature::getRunningConfig() {
+std::shared_ptr<CreatureConfig> Creature::getRunningConfig() {
     return runningConfig;
 }
 

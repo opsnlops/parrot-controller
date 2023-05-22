@@ -80,7 +80,7 @@ IOHandler *DebugShell::getIOHandler() {
     return io;
 }
 
-CreatureConfig *DebugShell::getConfig() {
+std::shared_ptr<CreatureConfig> DebugShell::getConfig() {
     return config;
 }
 

@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <FreeRTOS.h>
 #include <tasks.h>
 
@@ -18,14 +20,14 @@ class Controller {
 public:
     Controller();
 
-    CreatureConfig* getRunningConfig();
+    std::shared_ptr<CreatureConfig> getRunningConfig();
 
     uint32_t getNumberOfPWMWraps();
     uint16_t getServoPosition(uint8_t indexNumber);
 
     void requestServoPosition(uint8_t servoIndexNumber, uint16_t requestedPosition);
 
-    void init(CreatureConfig* incomingConfig);
+    void init(std::shared_ptr<CreatureConfig> incomingConfig);
     void start();
 
     void setCreatureWorkerTaskHandle(TaskHandle_t creatureWorkerTaskHandle);
@@ -63,7 +65,7 @@ private:
     Relay* powerRelay;
 
     // The configuration to use
-    CreatureConfig* config;
+    std::shared_ptr<CreatureConfig> config;
 
     /**
      * An array of all of the servos we have. Set to the max number possible,
