@@ -1,6 +1,8 @@
 
 #include "controller-config.h"
 
+#include <memory>
+
 #include <FreeRTOS.h>
 #include <task.h>
 
@@ -35,10 +37,11 @@ int main() {
     logger_init();
     debug("Logging running!");
 
-    auto *parrot = new Parrot();
+    //std::shared_ptr<Parrot> parrot = std::make_unique<Parrot>();
+    auto parrot = std::make_shared<Parrot>();
 
     // Bring up the controller
-    auto *controller = new Controller();
+    auto controller = std::make_shared<Controller>();
 
     // Load the config! For now, since we don't have a way to store the config somewhere, let's
     // just use the default

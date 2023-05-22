@@ -86,7 +86,7 @@ CreatureConfig *Parrot::getDefaultConfig() {
 
 }
 
-void Parrot::init(Controller *controller) {
+void Parrot::init(std::shared_ptr<Controller> controller) {
     debug("starting creature init");
 
     this->controller = controller;
@@ -164,7 +164,7 @@ head_position_t Parrot::calculateHeadPosition(uint16_t height, int32_t offset) {
 portTASK_FUNCTION(creature_worker_task, pvParameters) {
 
     auto info = (ParrotInfo *) pvParameters;
-    Controller *controller = info->controller;
+    std::shared_ptr<Controller> controller = info->controller;
     Parrot *parrot = info->parrot;
 
     // And give this small amount of memory back! :)

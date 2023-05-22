@@ -14,7 +14,7 @@ uint32_t DMX::messagesProcessed;
 
 extern TaskHandle_t dmx_processing_task_handle;
 
-DMX::DMX(Controller* controller) {
+DMX::DMX(std::shared_ptr<Controller> controller) {
     inputPin = 0;
     messagesProcessed = 0;
     this->controller = controller;
@@ -114,7 +114,7 @@ void __isr DMX::dmxDataGotten(DmxInput* instance) {
 portTASK_FUNCTION(dmx_processing_task, pvParameters) {
 
     auto* info = (DmxHandlerInfo*)pvParameters;
-    Controller* controller = info->controller;
+    std::shared_ptr<Controller> controller = info->controller;
     uint16_t baseChannel = info->baseChannel;
     uint16_t numberOfChannels = info->numberOfChannels;
     volatile uint8_t* dmx_buffer = info->dmx_buffer;

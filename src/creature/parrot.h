@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "creature.h"
 
 #include "logging/logging.h"
@@ -37,11 +39,11 @@
 #define INPUT_HEAD_HEIGHT   7
 #define INPUT_HEAD_TILT     6
 #define INPUT_NECK_ROTATE   8
-#define INPUT_BODY_LEAN     1
+#define INPUT_BODY_LEAN     3
 
 #define INPUT_BEAK          0
 #define INPUT_CHEST         2
-#define INPUT_STAND_ROTATE  3
+#define INPUT_STAND_ROTATE  1
 
 
 
@@ -60,7 +62,7 @@ public:
     explicit Parrot();
 
     CreatureConfig* getDefaultConfig() override;
-    void init(Controller *controller) override;
+    void init(std::shared_ptr<Controller> controller) override;
     void start() override;
 
     /**
@@ -90,7 +92,7 @@ private:
  * Used for passing information into our task
  */
 typedef struct {
-    Controller* controller;
+    std::shared_ptr<Controller> controller;
     uint16_t* joints;
     Parrot* parrot;
 } ParrotInfo;

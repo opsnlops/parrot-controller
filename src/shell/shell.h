@@ -17,20 +17,20 @@
 class DebugShell {
 
 public:
-    DebugShell(Creature* creature, Controller* controller, IOHandler* io);
+    DebugShell(std::shared_ptr<Creature> creature, std::shared_ptr<Controller> controller, IOHandler* io);
 
     static uint8_t init();
     uint8_t start();
 
-    Creature* getCreature();
-    Controller* getController();
+    std::shared_ptr<Creature> getCreature();
+    std::shared_ptr<Controller> getController();
     IOHandler* getIOHandler();
     CreatureConfig* getConfig();
 
 private:
 
-    Creature* creature;
-    Controller* controller;
+    std::shared_ptr<Creature> creature;
+    std::shared_ptr<Controller> controller;
     IOHandler* io;
     CreatureConfig* config;
 

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <climits>
+#include <memory>
 #include <unistd.h>
 
 #include <tasks.h>
@@ -25,7 +26,7 @@ public:
     /**
      * Set up the controller
      */
-    virtual void init(Controller* controller) = 0;
+    virtual void init(std::shared_ptr<Controller> controller) = 0;
 
     /**
      * Start running!
@@ -77,7 +78,7 @@ public:
 
 protected:
 
-    Controller* controller;
+    std::shared_ptr<Controller> controller;
     TaskHandle_t workerTaskHandle;
 
     uint8_t numberOfServos;

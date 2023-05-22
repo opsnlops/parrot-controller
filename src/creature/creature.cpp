@@ -25,7 +25,7 @@ TaskHandle_t Creature::getWorkerTaskHandle() {
     return workerTaskHandle;
 }
 
-void Creature::init(Controller *c) {
+void Creature::init(std::shared_ptr<Controller> c) {
     this->controller = c;
 
     debug("init done, controller exists");

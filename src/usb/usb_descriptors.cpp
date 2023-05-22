@@ -169,7 +169,7 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 char const *string_desc_arr[] =
         {
                 (const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
-                "Ops 'n Lops",                     // 1: Manufacturer
+                "April's Creature Workshop",                     // 1: Manufacturer
                 CREATURE_NAME,              // 2: Product
                 nullptr,                           // Figured out at runtime (serial number)
                 "Debug Console"
