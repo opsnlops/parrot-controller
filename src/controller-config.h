@@ -57,6 +57,7 @@
 #define STEPPER_SLEEP_PIN           4
 #define STEPPER_END_S_LOW_PIN       14
 #define STEPPER_END_S_HIGH_PIN      15
+#define STEPPER_FAULT_PIN           13
 
 /*
  * Microstepping configuration

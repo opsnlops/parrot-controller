@@ -47,6 +47,10 @@ public:
 
     uint16_t getNumberOfDMXChannels();
 
+    bool isOnline() const;
+    void setOnline(bool onlineValue);
+
+
     // Get the servo, used for debugging
     static Servo* getServo(uint8_t index);
 
@@ -74,7 +78,17 @@ private:
      */
     static Servo* servos[MAX_NUMBER_OF_SERVOS];
 
-
+    /**
+     * Keeps track of if we are considered "online."
+     *
+     * When the controller is online, it will process input from the I/O handler.
+     * If the controller is offline, it throws away the input from the handler, which
+     * also makes it not call the housekeeping task.
+     *
+     * This is used for debugging mostly. It allows the debug shell to set a direct a
+     * value of ticks to the servo directly. (Which is good for determining limits.)
+     */
+    bool online;
 
     // The current state of the input from the controller
     uint8_t* currentFrame{};

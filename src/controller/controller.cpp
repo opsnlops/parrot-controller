@@ -37,6 +37,7 @@ Controller::Controller() {
     creatureWorkerTaskHandle = nullptr;
     poweredOn = false;
     powerRelay = new Relay(E_STOP_PIN, poweredOn);
+    online = true;
 
 }
 
@@ -156,6 +157,11 @@ void Controller::start() {
  * @return true if it worked
  */
 bool Controller::acceptInput(uint8_t *input) {
+
+    // If we're not online, stop now and do nothing
+    if(!online) {
+        return false;
+    }
 
     // Copy the incoming buffer into our buffer
     memcpy(currentFrame, input, numberOfChannels);
@@ -317,6 +323,15 @@ uint8_t Controller::getNumberOfServosInUse() {
 
 uint16_t Controller::getNumberOfDMXChannels() {
     return numberOfChannels;
+}
+
+void Controller::setOnline(bool onlineValue) {
+    info("setting online to %s", onlineValue ? "true" : "false");
+    this->online = onlineValue;
+}
+
+bool Controller::isOnline() const {
+    return online;
 }
 
 Servo *Controller::getServo(uint8_t index) {

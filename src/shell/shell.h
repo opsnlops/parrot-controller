@@ -27,6 +27,9 @@ public:
     IOHandler* getIOHandler();
     CreatureConfig* getConfig();
 
+    void showConfig(char* tx_buffer, uint8_t* rx_buffer);
+    void showDebug(char* tx_buffer, uint8_t* rx_buffer);
+
 private:
 
     Creature* creature;
