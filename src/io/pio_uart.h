@@ -24,10 +24,10 @@ public:
     int init(PIO pio, uint8_t rx_pin, uint8_t tx_pin, uint32_t baud_rate);
     int start();
 
-    void putc(char c);
+    void putc(char c) const;
     void puts(const char *s) const;
 
-    char getc();
+    char getc() const;
 
     PIO pio;
 

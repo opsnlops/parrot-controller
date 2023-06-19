@@ -43,7 +43,7 @@ int PioUART::start() {
     return 1;
 }
 
-void PioUART::putc(char c) {
+void PioUART::putc(char c) const {
     uart_tx_program_putc(this->pio, this->tx_state_machine, c);
 }
 
@@ -51,6 +51,6 @@ void PioUART::puts(const char *s) const {
     uart_tx_program_puts(this->pio, this->tx_state_machine, s);
 }
 
-char PioUART::getc() {
+char PioUART::getc() const {
     return uart_rx_program_getc(this->pio, this->rx_state_machine);
 }

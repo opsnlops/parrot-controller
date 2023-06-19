@@ -26,10 +26,10 @@
 // Servo mappings in the servo array
 #define SERVO_NECK_LEFT         0
 #define SERVO_NECK_RIGHT        1
-#define SERVO_NECK_ROTATE       2
-#define SERVO_BODY_LEAN         3
-#define SERVO_CHEST             4
-#define SERVO_BEAK              5
+#define SERVO_NECK_ROTATE       3
+#define SERVO_BODY_LEAN         4
+#define SERVO_CHEST             5
+#define SERVO_BEAK              2
 
 #define STEPPER_STAND_ROTATE    0
 
@@ -70,7 +70,7 @@ public:
      * @param y the y coordinate
      * @return head height
      */
-    uint16_t convertToHeadHeight(uint16_t y) const;
+    [[nodiscard]] uint16_t convertToHeadHeight(uint16_t y) const;
 
 
     /**
@@ -78,7 +78,7 @@ public:
      * @param x the x axis
      * @return head tilt
      */
-    int32_t configToHeadTilt(uint16_t x) const;
+    [[nodiscard]] int32_t configToHeadTilt(uint16_t x) const;
 
     static head_position_t calculateHeadPosition(uint16_t height, int32_t offset);
 

@@ -16,7 +16,7 @@ Parrot::Parrot()
     this->headOffsetMax = lround((double) (MAX_POSITION - MIN_POSITION) * (double) HEAD_OFFSET_MAX);
     debug("the head offset max is %d", this->headOffsetMax);
 
-    this->numberOfServos = 4;
+    this->numberOfServos = 6;
     //this->numberOfSteppers = 3;
 
     info("Bawk!");
@@ -27,15 +27,15 @@ CreatureConfig* Parrot::getDefaultConfig() {
     auto defaultConfig = new CreatureConfig(CREATURE_NAME, 50, 6, 1, 1);
 
     defaultConfig->setServoConfig(SERVO_NECK_LEFT,
-                                  new ServoConfig("Neck Left", 500, 2500, 0.92, false));
+                                  new ServoConfig("Neck Left", 1500, 2500, 0.92, false));
     defaultConfig->setServoConfig(SERVO_NECK_RIGHT,
-                                  new ServoConfig("Neck Right", 500, 2500, 0.92, true));
+                                  new ServoConfig("Neck Right", 1500, 2500, 0.92, true));
     defaultConfig->setServoConfig(SERVO_NECK_ROTATE,
-                                  new ServoConfig("Neck Rotate", 500, 2500, 0.95, false));
+                                  new ServoConfig("Neck Rotate", 1000, 2000, 0.95, false));
     defaultConfig->setServoConfig(SERVO_BODY_LEAN,
                                   new ServoConfig("Body Lean", 1475, 1850, 0.93, false));
     defaultConfig->setServoConfig(SERVO_BEAK,
-                                  new ServoConfig("Beak", 250, 2500, 0.4, false));
+                                  new ServoConfig("Beak", 1500, 2200, 0.4, false));
     defaultConfig->setServoConfig(SERVO_CHEST,
                                   new ServoConfig("Chest", 250, 2500, 0.99, false));
 
