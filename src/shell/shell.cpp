@@ -48,8 +48,8 @@ uint8_t DebugShell::init() {
     debug_shell_incoming_keys = xQueueCreate(1, sizeof(uint8_t));
     vQueueAddToRegistry(debug_shell_incoming_keys, "debug_shell_incoming_keys");
 
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
+    gpio_init(CDC_ACTIVE_PIN);
+    gpio_set_dir(CDC_ACTIVE_PIN, GPIO_OUT);
 
     return 1;
 }
@@ -118,11 +118,11 @@ void tud_cdc_rx_cb(uint8_t itf) {
 void write_to_cdc(char* line) {
 
     // Use the onboard LED as a "TX" light
-    gpio_put(LED_PIN, true);
+    gpio_put(CDC_ACTIVE_PIN, true);
 
     cdc_send(line);
 
-    gpio_put(LED_PIN, false);
+    gpio_put(CDC_ACTIVE_PIN, false);
 
 }
 

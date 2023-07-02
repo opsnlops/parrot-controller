@@ -11,7 +11,7 @@
 // Just because it's funny
 #define EVER ;;
 
-#define LED_PIN                     25
+#define CDC_ACTIVE_PIN              17
 
 // The most servos we can control
 #define MAX_NUMBER_OF_SERVOS        8
