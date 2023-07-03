@@ -31,11 +31,18 @@
 #define STATUS_LIGHTS_PIO           pio1
 #define STATUS_LIGHTS_IS_RGBW       false
 
+// The NeoPixel status lights
+#define STATUS_LIGHTS_MOD_A_PIN             14
+#define STATUS_LIGHTS_MOD_A_TIME_MS         20
+#define STATUS_LIGHTS_MOD_A_PIO             pio1
+#define STATUS_LIGHTS_MOD_A_IS_RGBW         false
+
+
 // How many frames do we have to go before we decide there's no IO
-#define STATUS_LIGHTS_IO_RESPONSIVENESS 10
+#define STATUS_LIGHTS_IO_RESPONSIVENESS     10
 
 // How many frames should we wait to turn off a motor's light?
-#define STATUS_LIGHTS_MOTOR_OFF_FRAMES  100
+#define STATUS_LIGHTS_MOTOR_OFF_FRAMES      100
 
 #define STATUS_LIGHTS_DMX_STATUS_BRIGHTNESS 30
 #define STATUS_LIGHTS_RUNNING_BRIGHTNESS    35
