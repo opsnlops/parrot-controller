@@ -5,38 +5,44 @@
 * Main configuration for the controller
 */
 
-#define CREATURE_NAME           "Beaky"
+#define CREATURE_NAME                       "Beaky"
 
 
 // Just because it's funny
 #define EVER ;;
 
-#define CDC_ACTIVE_PIN              17
+#define CDC_ACTIVE_PIN                      17
 
 // The most servos we can control
-#define MAX_NUMBER_OF_SERVOS        8
+#define MAX_NUMBER_OF_SERVOS                8
 
 // The number of steppers we can control
-#define MAX_NUMBER_OF_STEPPERS      8
+#define MAX_NUMBER_OF_STEPPERS              8
 
 // Devices
-#define DMX_PIO                     pio0
-#define DMX_INVERTED                false
-#define E_STOP_PIN                  28
-#define DMX_GPIO_PIN                22
+#define DMX_PIO                             pio0
+#define DMX_INVERTED                        false
+#define E_STOP_PIN                          28
+#define DMX_GPIO_PIN                        22
 
 // The NeoPixel status lights
-#define STATUS_LIGHTS_PIN           5
-#define STATUS_LIGHTS_TIME_MS       20
-#define STATUS_LIGHTS_PIO           pio1
-#define STATUS_LIGHTS_IS_RGBW       false
+#define STATUS_LIGHTS_TIME_MS               20
+#define STATUS_LIGHTS_PIO                   pio1
 
-// The NeoPixel status lights
+#define STATUS_LIGHTS_LOGIC_BOARD_PIN       5
+#define STATUS_LIGHTS_LOGIC_BOARD_IS_RGBW   false
+
+// Max brightness of the lights on the servo modules. Max is 255.
+#define STATUS_LIGHTS_SERVO_BRIGHTNESS      64
+
 #define STATUS_LIGHTS_MOD_A_PIN             14
-#define STATUS_LIGHTS_MOD_A_TIME_MS         20
-#define STATUS_LIGHTS_MOD_A_PIO             pio1
 #define STATUS_LIGHTS_MOD_A_IS_RGBW         false
 
+#define STATUS_LIGHTS_MOD_B_PIN             15
+#define STATUS_LIGHTS_MOD_B_IS_RGBW         false
+
+#define STATUS_LIGHTS_MOD_C_PIN             16
+#define STATUS_LIGHTS_MOD_C_IS_RGBW         false
 
 // How many frames do we have to go before we decide there's no IO
 #define STATUS_LIGHTS_IO_RESPONSIVENESS     10
@@ -47,6 +53,7 @@
 #define STATUS_LIGHTS_DMX_STATUS_BRIGHTNESS 30
 #define STATUS_LIGHTS_RUNNING_BRIGHTNESS    35
 #define STATUS_LIGHTS_RUNNING_FRAME_CHANGE  20
+
 
 
 // Stepper

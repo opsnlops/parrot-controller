@@ -38,8 +38,8 @@ StatusLights::StatusLights(Controller* controller, IOHandler *io) {
 }
 
 
-inline void StatusLights::put_pixel(uint32_t pixel_grb) {
-    pio_sm_put_blocking(STATUS_LIGHTS_PIO, 0, pixel_grb << 8u);
+inline void StatusLights::put_pixel(uint32_t pixel_grb, uint8_t state_machine) {
+    pio_sm_put_blocking(STATUS_LIGHTS_PIO, state_machine, pixel_grb << 8u);
 }
 
 inline uint32_t StatusLights::urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
@@ -62,10 +62,23 @@ IOHandler *StatusLights::getIOHandler() {
 void StatusLights::init() {
 
     this->pio = STATUS_LIGHTS_PIO;
-    this->state_machine = 0;
     uint offset = pio_add_program(pio, &ws2812_program);
 
-    ws2812_program_init(pio, this->state_machine, offset, STATUS_LIGHTS_PIN, 800000, STATUS_LIGHTS_IS_RGBW);
+    logic_board_state_machine = pio_claim_unused_sm(pio, true);
+    debug("logic board status lights state machine: %u", logic_board_state_machine);
+    ws2812_program_init(pio, logic_board_state_machine, offset, STATUS_LIGHTS_LOGIC_BOARD_PIN, 800000, STATUS_LIGHTS_LOGIC_BOARD_IS_RGBW);
+
+    module_a_state_machine = pio_claim_unused_sm(pio, true);
+    debug("module A state machine: %u", module_a_state_machine);
+    ws2812_program_init(pio, module_a_state_machine, offset, STATUS_LIGHTS_MOD_A_PIN, 800000, STATUS_LIGHTS_MOD_A_IS_RGBW);
+
+    module_b_state_machine = pio_claim_unused_sm(pio, true);
+    debug("module B state machine: %u", module_b_state_machine);
+    ws2812_program_init(pio, module_b_state_machine, offset, STATUS_LIGHTS_MOD_B_PIN, 800000, STATUS_LIGHTS_MOD_B_IS_RGBW);
+
+    module_c_state_machine = pio_claim_unused_sm(pio, true);
+    debug("module C state machine: %u", module_c_state_machine);
+    ws2812_program_init(pio, module_c_state_machine, offset, STATUS_LIGHTS_MOD_C_PIN, 800000, STATUS_LIGHTS_MOD_C_IS_RGBW);
 
 }
 
@@ -258,8 +271,8 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
                                                   0,
                                                   STATUS_LIGHTS_MOTOR_OFF_FRAMES,
                                                   0,
-                                                  255);
-                brightness = 255 - brightness;
+                                                  STATUS_LIGHTS_SERVO_BRIGHTNESS);
+                brightness = STATUS_LIGHTS_SERVO_BRIGHTNESS - brightness;
 
                 fast_hsv2rgb_32bit(hue, 255, brightness, &r, &g, &b);
                 motorLightColor[currentServo] = StatusLights::urgb_u32(r, g, b);
@@ -272,10 +285,20 @@ portTASK_FUNCTION(status_lights_task, pvParameters) {
         }
 
         // Now write out the colors of the lights in one big chunk
-        statusLights->put_pixel(dmxLightColor);
-        statusLights->put_pixel(runningLightColor);
-        for(uint8_t i = 0; i < Controller::getNumberOfServosInUse(); i++) {
-            statusLights->put_pixel(motorLightColor[i]);
+        statusLights->put_pixel(dmxLightColor, statusLights->logic_board_state_machine);
+        statusLights->put_pixel(runningLightColor, statusLights->logic_board_state_machine);
+
+        // Dump out the lights to the various modules
+        for(uint8_t i = 0; i < Controller::getNumberOfServosInUse() && i <= 3; i++) {
+            statusLights->put_pixel(motorLightColor[i], statusLights->module_a_state_machine);
+        }
+
+        for(uint8_t i = 4; i < Controller::getNumberOfServosInUse() && i <= 7; i++) {
+            statusLights->put_pixel(motorLightColor[i], statusLights->module_b_state_machine);
+        }
+
+        for(uint8_t i = 8; i < Controller::getNumberOfServosInUse() && i <= 12; i++) {
+            statusLights->put_pixel(motorLightColor[i], statusLights->module_c_state_machine);
         }
 
         // Wait till it's time go again
