@@ -27,13 +27,13 @@ CreatureConfig* Parrot::getDefaultConfig() {
     auto defaultConfig = new CreatureConfig(CREATURE_NAME, 50, 6, 1, 1);
 
     defaultConfig->setServoConfig(SERVO_NECK_LEFT,
-                                  new ServoConfig("Neck Left", 1100, 2400, 0.92, false));
+                                  new ServoConfig("Neck Left", 1250, 2250, 0.90, false));
     defaultConfig->setServoConfig(SERVO_NECK_RIGHT,
-                                  new ServoConfig("Neck Right", 500, 1800, 0.92, true));
+                                  new ServoConfig("Neck Right", 800, 1800, 0.90, true));
     defaultConfig->setServoConfig(SERVO_NECK_ROTATE,
-                                  new ServoConfig("Neck Rotate", 1100, 1900, 0.95, false));
+                                  new ServoConfig("Neck Rotate", 1400, 1900, 0.95, false));
     defaultConfig->setServoConfig(SERVO_BODY_LEAN,
-                                  new ServoConfig("Body Lean", 1475, 1850, 0.93, true));
+                                  new ServoConfig("Body Lean", 1475, 1950, 0.96, true));
     defaultConfig->setServoConfig(SERVO_BEAK,
                                   new ServoConfig("Beak", 1800, 2250, 0.4, true));
     defaultConfig->setServoConfig(SERVO_CHEST,
