@@ -87,9 +87,6 @@ int main() {
 
     info("I see a new parrot! Its name is %s!", controller->getRunningConfig()->getName());
 
-    // Turn the power on to the servos
-    controller->powerOn();
-
     board_init();
     start_usb_tasks();
 

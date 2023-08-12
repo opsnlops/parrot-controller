@@ -362,6 +362,11 @@ void DebugShell::showDebug(char *tx_buffer, uint8_t *rx_buffer) {
     write_to_cdc(tx_buffer);
     ds_reset_buffers(tx_buffer, rx_buffer);
 
+    snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "    first frame received: %s\n\r",
+             controller->hasReceivedFirstFrame() ? "yes" : "no");
+    write_to_cdc(tx_buffer);
+    ds_reset_buffers(tx_buffer, rx_buffer);
+
     snprintf(tx_buffer, DS_TX_BUFFER_SIZE, "                   wraps: %lu\n\r", controller->getNumberOfPWMWraps());
     write_to_cdc(tx_buffer);
     ds_reset_buffers(tx_buffer, rx_buffer);

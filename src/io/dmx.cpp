@@ -146,6 +146,11 @@ portTASK_FUNCTION(dmx_processing_task, pvParameters) {
         // Send this to the controller
         controller->acceptInput(buffer);
 
+        // If this is the very first time we've gotten a frame, signal to the controller
+        if(DMX::messagesProcessed == 1) {
+            controller->confirmFirstFrameReceived();
+        }
+
     }
 #pragma clang diagnostic pop
 }

@@ -2,6 +2,7 @@
 #include <climits>
 #include <cmath>
 
+#include "controller-config.h"
 #include "creature/config.h"
 #include "util/ranges.h"
 
@@ -27,17 +28,23 @@ CreatureConfig* Parrot::getDefaultConfig() {
     auto defaultConfig = new CreatureConfig(CREATURE_NAME, 50, 6, 1, 1);
 
     defaultConfig->setServoConfig(SERVO_NECK_LEFT,
-                                  new ServoConfig("Neck Left", 1250, 2250, 0.90, false));
+                                  new ServoConfig("Neck Left", 1250, 2250,
+                                                  0.90, DEFAULT_POSITION, false));
     defaultConfig->setServoConfig(SERVO_NECK_RIGHT,
-                                  new ServoConfig("Neck Right", 800, 1800, 0.90, true));
+                                  new ServoConfig("Neck Right", 800, 1800,
+                                                  0.90, DEFAULT_POSITION, true));
     defaultConfig->setServoConfig(SERVO_NECK_ROTATE,
-                                  new ServoConfig("Neck Rotate", 1400, 1900, 0.95, false));
+                                  new ServoConfig("Neck Rotate", 1400, 1900,
+                                                  0.95, DEFAULT_POSITION, false));
     defaultConfig->setServoConfig(SERVO_BODY_LEAN,
-                                  new ServoConfig("Body Lean", 1475, 1950, 0.96, true));
+                                  new ServoConfig("Body Lean", 1475, 1950,
+                                                  0.96, MIN_POSITION,true));
     defaultConfig->setServoConfig(SERVO_BEAK,
-                                  new ServoConfig("Beak", 1800, 2250, 0.4, true));
+                                  new ServoConfig("Beak", 1400, 2350,
+                                                  0.4, MIN_POSITION, true));
     defaultConfig->setServoConfig(SERVO_CHEST,
-                                  new ServoConfig("Chest", 250, 2500, 0.99, false));
+                                  new ServoConfig("Chest", 250, 2500,
+                                                  0.99, DEFAULT_POSITION, false));
 
     // "Max Steps" is in full steps (use the datasheet from the stepper to know how big that is)
 

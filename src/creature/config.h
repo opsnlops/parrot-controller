@@ -27,13 +27,15 @@ class ServoConfig {
 
 public:
     ServoConfig();
-    ServoConfig(const char* name, uint16_t minPulseUs, uint16_t maxPulseUs, float smoothingValue, bool inverted);
+    ServoConfig(const char* name, uint16_t minPulseUs, uint16_t maxPulseUs,
+                float smoothingValue, uint16_t defaultPosition, bool inverted);
 
     // Make name a static array to make the size predictable for storing in an EEPROM or Flash memory
     char name[CREATURE_CONFIG_NAME_MAX_SIZE + 1];
     uint16_t minPulseUs;
     uint16_t maxPulseUs;
     float smoothingValue;
+    uint16_t defaultPosition = DEFAULT_POSITION;
     bool inverted;
 };
 

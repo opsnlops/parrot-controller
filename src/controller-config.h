@@ -128,6 +128,7 @@
  */
 #define MIN_POSITION                0
 #define MAX_POSITION                1023
+#define DEFAULT_POSITION            512
 
 /*
  * Servo <-> GPIO Pin Mappings

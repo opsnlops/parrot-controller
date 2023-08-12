@@ -73,13 +73,14 @@ ServoConfig::ServoConfig() {
 
     this->minPulseUs = 0;
     this->maxPulseUs = 0;
+    this->defaultPosition = DEFAULT_POSITION;
     this->smoothingValue = 0.0f;
     this->inverted = false;
 }
 
 
 ServoConfig::ServoConfig(const char* name, uint16_t minPulseUs, uint16_t maxPulseUs,
-                         float smoothingValue, bool inverted) {
+                         float smoothingValue, uint16_t defaultPosition, bool inverted) {
 
     // Initialize the name
     memset(this->name, '\0', CREATURE_CONFIG_NAME_MAX_SIZE + 1);
@@ -88,6 +89,7 @@ ServoConfig::ServoConfig(const char* name, uint16_t minPulseUs, uint16_t maxPuls
     this->minPulseUs = minPulseUs;
     this->maxPulseUs = maxPulseUs;
     this->smoothingValue = smoothingValue;
+    this->defaultPosition = defaultPosition;
     this->inverted = inverted;
 
 }

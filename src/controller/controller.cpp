@@ -38,6 +38,7 @@ Controller::Controller() {
     poweredOn = false;
     powerRelay = new Relay(E_STOP_PIN, poweredOn);
     online = true;
+    receivedFirstFrame = false;
 
 }
 
@@ -61,7 +62,8 @@ void Controller::init(CreatureConfig* incomingConfig) {
     debug("building servo objects");
     for (int i = 0; i < this->config->getNumberOfServos(); i++) {
         ServoConfig *servo = this->config->getServoConfig(i);
-        initServo(i, servo->name, servo->minPulseUs, servo->maxPulseUs, servo->smoothingValue, servo->inverted);
+        initServo(i, servo->name, servo->minPulseUs, servo->maxPulseUs,
+                  servo->smoothingValue, servo->defaultPosition, servo->inverted);
     }
 
 #if USE_STEPPERS
@@ -186,13 +188,17 @@ uint8_t *Controller::getCurrentFrame() {
 }
 
 void Controller::initServo(uint8_t indexNumber, const char *name, uint16_t minPulseUs,
-                           uint16_t maxPulseUs, float smoothingValue, bool inverted) {
+                           uint16_t maxPulseUs, float smoothingValue, uint16_t defaultPosition, bool inverted) {
 
     uint8_t gpioPin = getPinMapping(indexNumber);
 
     servos[indexNumber] = new Servo(gpioPin, name, minPulseUs,
                                     maxPulseUs, smoothingValue, inverted,
                                     this->config->getServoFrequencyHz());
+
+    // Set it to its default position
+    servos[indexNumber]->move(defaultPosition);
+
     numberOfServosInUse++;
 
     info("controller servo init: index: %d, pin: %d, name: %s", indexNumber, gpioPin, name);
@@ -313,8 +319,23 @@ void Controller::powerToggle() {
     poweredOn ? powerOff() : powerOn();
 }
 
-bool Controller::isPoweredOn() const {
+bool Controller::isPoweredOn() {
     return poweredOn;
+}
+
+bool Controller::hasReceivedFirstFrame() {
+    return receivedFirstFrame;
+}
+
+void Controller::confirmFirstFrameReceived() {
+    info("the I/O handler has signaled that it got the first frame");
+    receivedFirstFrame = true;
+
+    // If we're not already on, now it's safe to do so!
+    if(!poweredOn) {
+        debug("turning on the motors now that we have our first frame");
+        powerOn();
+    }
 }
 
 uint8_t Controller::getNumberOfServosInUse() {
@@ -330,7 +351,7 @@ void Controller::setOnline(bool onlineValue) {
     this->online = onlineValue;
 }
 
-bool Controller::isOnline() const {
+bool Controller::isOnline() {
     return online;
 }
 
@@ -370,7 +391,6 @@ portTASK_FUNCTION(controller_housekeeper_task, pvParameters) {
             controller->getServo(i)->calculateNextTick();
 
         }
-
     }
 #pragma clang diagnostic pop
 }
