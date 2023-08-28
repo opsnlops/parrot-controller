@@ -40,7 +40,7 @@ CreatureConfig* Parrot::getDefaultConfig() {
                                   new ServoConfig("Body Lean", 1475, 1950,
                                                   0.96, MIN_POSITION,true));
     defaultConfig->setServoConfig(SERVO_BEAK,
-                                  new ServoConfig("Beak", 1400, 2350,
+                                  new ServoConfig("Beak", 1600, 2350,
                                                   0.4, MIN_POSITION, true));
     defaultConfig->setServoConfig(SERVO_CHEST,
                                   new ServoConfig("Chest", 250, 2500,

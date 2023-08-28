@@ -25,6 +25,9 @@
 #define E_STOP_PIN                          28
 #define DMX_GPIO_PIN                        22
 
+// Use the status lights?
+#define USE_STATUS_LIGHTS                   1
+
 // The NeoPixel status lights
 #define STATUS_LIGHTS_TIME_MS               20
 #define STATUS_LIGHTS_PIO                   pio1

@@ -67,8 +67,11 @@ int main() {
     auto *shell = new DebugShell(parrot, controller, io);
     shell->init();
 
+
+#if USE_STATUS_LIGHTS
     auto *statusLights = new StatusLights(controller, io);
     statusLights->init();
+#endif
 
     // Start the things running!
     controller->start();
@@ -76,7 +79,10 @@ int main() {
     parrot->start();
     io->start();
     shell->start();
+
+#if USE_STATUS_LIGHTS
     statusLights->start();
+#endif
 
 #if DISPLAY_ENABLED
     display->start();
